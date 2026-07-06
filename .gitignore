@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Generated corpus slice: 4.5 MB of scored windows, reproducible with
+# `python -m sentinelai.pipeline`. The JSON artifacts ARE tracked, because the
+# static demo and the README numbers must stay verifiable without a rerun.
+artifacts/scored_test_windows.csv
+
+# Node / Vite
+web/node_modules/
+web/dist/
+# Copied out of artifacts/ by `npm run sync-data`; never edited by hand.
+web/public/data/
+
+# Secrets: the API refuses to boot without SENTINELAI_JWT_SECRET, and it must
+# never be committed.
+.env
+.env.*
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
