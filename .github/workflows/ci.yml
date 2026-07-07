@@ -1,0 +1,156 @@
+name: ci
+
+# A detection platform that ships without its own security gates is a
+# contradiction. This pipeline runs the model test suite, a reproducibility
+# smoke test, and three classes of security check against the platform itself.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Weekly rebuild so dependency CVEs surface even when nobody pushes code.
+    - cron: "17 4 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: unit tests (py${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.14 is included because that is what the project was first run on in
+        # the wild; 3.11 is the floor we claim to support.
+        python: ["3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Run test suite
+        run: python -m unittest discover -s tests -v
+
+  reproducibility:
+    name: end-to-end determinism
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Same seed must produce the same operating point
+        # Guards against silently non-deterministic changes: unseeded RNG, dict
+        # ordering leaking into tree splits, or a threshold search that depends
+        # on floating-point accumulation order.
+        run: |
+          python - <<'PY'
+          import json, subprocess, sys
+          def run(out):
+              subprocess.run([sys.executable, "-m", "sentinelai.pipeline",
+                              "--out", out, "--seed", "11", "--budget", "50"],
+                             check=True, capture_output=True)
+              r = json.load(open(f"{out}/report.json"))
+              return r["operating_point"], r["features"]["count"]
+          a, fa = run("ci_a")
+          b, fb = run("ci_b")
+          assert fa == fb, (fa, fb)
+          for k in ("threshold", "recall", "precision_eval", "ppv_at_deployment_prior"):
+              assert abs(a[k] - b[k]) < 1e-12, (k, a[k], b[k])
+          print(f"deterministic across runs: threshold={a['threshold']:.10f} "
+                f"recall={a['recall']:.4f} features={fa}")
+          PY
+      - name: Upload measured artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: measured-artifacts
+          path: ci_a/
+          retention-days: 14
+
+  static-analysis:
+    name: SAST + lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -r requirements.txt ruff bandit[toml]
+      - name: Lint
+        run: ruff check sentinelai tests
+      - name: Bandit (Python SAST)
+        # The auth, redaction and audit-chain code is the highest-risk surface,
+        # so findings fail the build rather than being reported as advisories.
+        run: bandit -r sentinelai -ll -f txt
+
+  dependency-audit:
+    name: dependency CVE audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -r requirements.txt pip-audit
+      - name: pip-audit
+        run: pip-audit --strict --progress-spinner off
+
+  secret-hygiene:
+    name: secret hygiene
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Assert no JWT secret is hardcoded
+        # serve.py must always read the signing key from the environment. If a
+        # default value ever appears next to SENTINELAI_JWT_SECRET, the API
+        # could start with a predictable key and every token becomes forgeable.
+        run: |
+          if grep -rn 'SENTINELAI_JWT_SECRET *= *["'\'']' --include='*.py' .; then
+            echo "::error::JWT signing secret must come from the environment, never a literal"
+            exit 1
+          fi
+          echo "no hardcoded signing secret"
+
+  container:
+    name: image build + filesystem scan
+    runs-on: ubuntu-latest
+    needs: [tests]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image (runs the test suite inside the build)
+        run: docker build -t sentinelai:ci .
+      - name: Assert the API refuses to start without a signing secret
+        # Fail-closed behaviour is a security control, so it is asserted in CI:
+        # a non-zero exit here means an unauthenticated API could have shipped.
+        run: |
+          if docker run --rm sentinelai:ci --days 0.2; then
+            echo "::error::serve.py started without SENTINELAI_JWT_SECRET"
+            exit 1
+          fi
+          echo "fails closed without a signing secret, as designed"
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          ignore-unfixed: true

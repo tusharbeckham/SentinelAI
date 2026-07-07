@@ -1,0 +1,802 @@
+[
+  {
+    "ts": 1785329521,
+    "entity": "h002",
+    "window": 1767491700,
+    "probability": 0.9866137013264895,
+    "suspected_family": "dos",
+    "mode": "auto_contain",
+    "action": "rate_limit_src_at_edge",
+    "executed": false,
+    "explanation_support": 0.712,
+    "rationale": [
+      "probability 0.987 >= auto threshold, explanation consistent"
+    ],
+    "prev_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "hash": "77e8f3047f24db02007001c78fe4939097caec9f2b29b51b0b1260fb00e07197"
+  },
+  {
+    "ts": 1785329522,
+    "entity": "h033",
+    "window": 1767486900,
+    "probability": 0.9831170311810041,
+    "suspected_family": "dos",
+    "mode": "auto_contain",
+    "action": "rate_limit_src_at_edge",
+    "executed": false,
+    "explanation_support": 0.7305,
+    "rationale": [
+      "probability 0.983 >= auto threshold, explanation consistent"
+    ],
+    "prev_hash": "77e8f3047f24db02007001c78fe4939097caec9f2b29b51b0b1260fb00e07197",
+    "hash": "205d98dcd9d1909cf284ad28c0908695db7809feb65d6d2ae89692a62d929087"
+  },
+  {
+    "ts": 1785329523,
+    "entity": "h012",
+    "window": 1767545700,
+    "probability": 0.9814967917589927,
+    "suspected_family": "dos",
+    "mode": "auto_contain",
+    "action": "rate_limit_src_at_edge",
+    "executed": false,
+    "explanation_support": 0.6981,
+    "rationale": [
+      "probability 0.981 >= auto threshold, explanation consistent"
+    ],
+    "prev_hash": "205d98dcd9d1909cf284ad28c0908695db7809feb65d6d2ae89692a62d929087",
+    "hash": "b6aaa374dc9af749f7d1e797e3010a841b92fecbdaf4c60372c5e8840d20e943"
+  },
+  {
+    "ts": 1785329524,
+    "entity": "h029",
+    "window": 1767554100,
+    "probability": 0.9746239592242943,
+    "suspected_family": "dos",
+    "mode": "auto_contain",
+    "action": "rate_limit_src_at_edge",
+    "executed": false,
+    "explanation_support": 0.7301,
+    "rationale": [
+      "probability 0.975 >= auto threshold, explanation consistent"
+    ],
+    "prev_hash": "b6aaa374dc9af749f7d1e797e3010a841b92fecbdaf4c60372c5e8840d20e943",
+    "hash": "d09e8f9040215ed61fba4a2e0b98b22695553b96a14a5b7586d7563d10102cee"
+  },
+  {
+    "ts": 1785329525,
+    "entity": "h012",
+    "window": 1767546000,
+    "probability": 0.9726904488795979,
+    "suspected_family": "dos",
+    "mode": "auto_contain",
+    "action": "rate_limit_src_at_edge",
+    "executed": false,
+    "explanation_support": 0.7899,
+    "rationale": [
+      "probability 0.973 >= auto threshold, explanation consistent"
+    ],
+    "prev_hash": "d09e8f9040215ed61fba4a2e0b98b22695553b96a14a5b7586d7563d10102cee",
+    "hash": "33e8ca58ff58b92d351c721c7397d1677b273777097048671bb88cd9312ea979"
+  },
+  {
+    "ts": 1785329526,
+    "entity": "h029",
+    "window": 1767553800,
+    "probability": 0.9722670864310966,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.7339,
+    "rationale": [
+      "auto-action rate limit reached"
+    ],
+    "prev_hash": "33e8ca58ff58b92d351c721c7397d1677b273777097048671bb88cd9312ea979",
+    "hash": "3a8404f90dc670f6831c4b5e52b05754c82e8412784501b0da6bbc6af20e9ff4"
+  },
+  {
+    "ts": 1785329527,
+    "entity": "h011",
+    "window": 1767569700,
+    "probability": 0.9712828669301067,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.7331,
+    "rationale": [
+      "auto-action rate limit reached"
+    ],
+    "prev_hash": "3a8404f90dc670f6831c4b5e52b05754c82e8412784501b0da6bbc6af20e9ff4",
+    "hash": "6e4a7dbe3672a6927fa7bd38cddb78951ff61724433b10416468b90929e0bb0f"
+  },
+  {
+    "ts": 1785329528,
+    "entity": "h002",
+    "window": 1767491400,
+    "probability": 0.9692563147461276,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.7914,
+    "rationale": [
+      "auto-action rate limit reached"
+    ],
+    "prev_hash": "6e4a7dbe3672a6927fa7bd38cddb78951ff61724433b10416468b90929e0bb0f",
+    "hash": "999280982222a450cb2c5338a21a37fe53bac5de2c6d0006c5558ca5c7eeb41a"
+  },
+  {
+    "ts": 1785329529,
+    "entity": "h012",
+    "window": 1767545400,
+    "probability": 0.9677553966816099,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.7077,
+    "rationale": [
+      "auto-action rate limit reached"
+    ],
+    "prev_hash": "999280982222a450cb2c5338a21a37fe53bac5de2c6d0006c5558ca5c7eeb41a",
+    "hash": "805c2aeb5d8e491cc8ae2f35f281b714decf3dc1a63930c8bb09e65cfb8f3239"
+  },
+  {
+    "ts": 1785329530,
+    "entity": "h002",
+    "window": 1767492000,
+    "probability": 0.9665858957936683,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.7005,
+    "rationale": [
+      "auto-action rate limit reached"
+    ],
+    "prev_hash": "805c2aeb5d8e491cc8ae2f35f281b714decf3dc1a63930c8bb09e65cfb8f3239",
+    "hash": "563a1d0e44ed7fb8d22904b4cb83ec58b46a79929c0da011b7c860436eb489e7"
+  },
+  {
+    "ts": 1785329531,
+    "entity": "h033",
+    "window": 1767486600,
+    "probability": 0.9647300915305389,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.7764,
+    "rationale": [
+      "auto-action rate limit reached"
+    ],
+    "prev_hash": "563a1d0e44ed7fb8d22904b4cb83ec58b46a79929c0da011b7c860436eb489e7",
+    "hash": "1e6a22cdff594ef3195272e83f540f47efb3c83adcbc82d1ba4aab0c769a11f9"
+  },
+  {
+    "ts": 1785329532,
+    "entity": "h020",
+    "window": 1767487500,
+    "probability": 0.9571870181156897,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.7094,
+    "rationale": [
+      "auto-action rate limit reached"
+    ],
+    "prev_hash": "1e6a22cdff594ef3195272e83f540f47efb3c83adcbc82d1ba4aab0c769a11f9",
+    "hash": "c3cd821202205032704302d3f79e99447501fa201f11251043d44c0c9f378cba"
+  },
+  {
+    "ts": 1785329533,
+    "entity": "h029",
+    "window": 1767553200,
+    "probability": 0.9529482270357716,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.7267,
+    "rationale": [
+      "auto-action rate limit reached"
+    ],
+    "prev_hash": "c3cd821202205032704302d3f79e99447501fa201f11251043d44c0c9f378cba",
+    "hash": "9af84bb5db3fc02fe45b12b9e19ec7325bb2dbc2a2c2b36996144cd9e002cdc1"
+  },
+  {
+    "ts": 1785329534,
+    "entity": "h029",
+    "window": 1767553500,
+    "probability": 0.9502024690927428,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.7194,
+    "rationale": [
+      "auto-action rate limit reached"
+    ],
+    "prev_hash": "9af84bb5db3fc02fe45b12b9e19ec7325bb2dbc2a2c2b36996144cd9e002cdc1",
+    "hash": "fdcb8e87275f1922fccb18212674f1a0b6e14c9382dee7eea72fc960230ed2c5"
+  },
+  {
+    "ts": 1785329535,
+    "entity": "h002",
+    "window": 1767492300,
+    "probability": 0.9477240565297319,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.7632,
+    "rationale": [
+      "auto-action rate limit reached"
+    ],
+    "prev_hash": "fdcb8e87275f1922fccb18212674f1a0b6e14c9382dee7eea72fc960230ed2c5",
+    "hash": "55999ee84cf68175131643706aefb9e5ff27a00d76ce313cb651b762805ce030"
+  },
+  {
+    "ts": 1785329536,
+    "entity": "h020",
+    "window": 1767488100,
+    "probability": 0.9410796152750236,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.7006,
+    "rationale": [
+      "auto-action rate limit reached"
+    ],
+    "prev_hash": "55999ee84cf68175131643706aefb9e5ff27a00d76ce313cb651b762805ce030",
+    "hash": "2738d8756719b019c01f51e521d20f20df0c784de1e2cc24b954113eba90d312"
+  },
+  {
+    "ts": 1785329537,
+    "entity": "h020",
+    "window": 1767487800,
+    "probability": 0.9383789367085061,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.7058,
+    "rationale": [
+      "auto-action rate limit reached"
+    ],
+    "prev_hash": "2738d8756719b019c01f51e521d20f20df0c784de1e2cc24b954113eba90d312",
+    "hash": "9c89c87fdf55760010eb6b55edd1d16558082ead38192fc98d2a0fc2517c6f8e"
+  },
+  {
+    "ts": 1785329538,
+    "entity": "h011",
+    "window": 1767570000,
+    "probability": 0.9165971205479521,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.7789,
+    "rationale": [
+      "auto-action rate limit reached"
+    ],
+    "prev_hash": "9c89c87fdf55760010eb6b55edd1d16558082ead38192fc98d2a0fc2517c6f8e",
+    "hash": "7723115cfc43acf414b425c418a2716474fc08f9fd4a352bf37bd70d11692c43"
+  },
+  {
+    "ts": 1785329539,
+    "entity": "h002",
+    "window": 1767537900,
+    "probability": 0.8987664725197736,
+    "suspected_family": "lateral_movement",
+    "mode": "human_review",
+    "action": "open_case_lateral_movement",
+    "executed": false,
+    "explanation_support": 0.1576,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "7723115cfc43acf414b425c418a2716474fc08f9fd4a352bf37bd70d11692c43",
+    "hash": "c0f3c058f7146717c02d39789375da202867aec1fe780086310f1ffcfe62fdcf"
+  },
+  {
+    "ts": 1785329540,
+    "entity": "h005",
+    "window": 1767490200,
+    "probability": 0.8809433678534948,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.8766,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "c0f3c058f7146717c02d39789375da202867aec1fe780086310f1ffcfe62fdcf",
+    "hash": "f4cedb1726d647d50af2d168abdde6b8df79074f0b42e3c21f6738300e765389"
+  },
+  {
+    "ts": 1785329541,
+    "entity": "h005",
+    "window": 1767490500,
+    "probability": 0.8759913624232971,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.897,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "f4cedb1726d647d50af2d168abdde6b8df79074f0b42e3c21f6738300e765389",
+    "hash": "999cbee4640905bc7780bdf1d142831d0af3cd10fd05db7ed4cddf38d72dc920"
+  },
+  {
+    "ts": 1785329542,
+    "entity": "h002",
+    "window": 1767524100,
+    "probability": 0.873262821185831,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.5858,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "999cbee4640905bc7780bdf1d142831d0af3cd10fd05db7ed4cddf38d72dc920",
+    "hash": "1056f484caaa72b3ad2fc798d10530269b687b5cad283ed552bf530af5b64289"
+  },
+  {
+    "ts": 1785329543,
+    "entity": "h020",
+    "window": 1767502200,
+    "probability": 0.8666183006218844,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.88,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "1056f484caaa72b3ad2fc798d10530269b687b5cad283ed552bf530af5b64289",
+    "hash": "32980e17bc2b075faf33ff80f3f39a8e2f69c0f47c9e8af9d8fc4c5be02fcda2"
+  },
+  {
+    "ts": 1785329544,
+    "entity": "h026",
+    "window": 1767492000,
+    "probability": 0.8594033276058692,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.5516,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "32980e17bc2b075faf33ff80f3f39a8e2f69c0f47c9e8af9d8fc4c5be02fcda2",
+    "hash": "994ccb9811f4bfe569c76a1d40a89247a2ddc8fd467b42db6e38b23973f684e3"
+  },
+  {
+    "ts": 1785329545,
+    "entity": "h026",
+    "window": 1767492300,
+    "probability": 0.858833082013465,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.5182,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "994ccb9811f4bfe569c76a1d40a89247a2ddc8fd467b42db6e38b23973f684e3",
+    "hash": "a661735e737947bda74e0b38ac6df16130b8627c4aaca6545a4626d4d3e9bbfa"
+  },
+  {
+    "ts": 1785329546,
+    "entity": "h008",
+    "window": 1767490200,
+    "probability": 0.8365185398875252,
+    "suspected_family": "lateral_movement",
+    "mode": "human_review",
+    "action": "open_case_lateral_movement",
+    "executed": false,
+    "explanation_support": 0.1472,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "a661735e737947bda74e0b38ac6df16130b8627c4aaca6545a4626d4d3e9bbfa",
+    "hash": "a83bc7201054082e37b84af079eef536322ccd5e4efe5bac87703e0d36d50ae4"
+  },
+  {
+    "ts": 1785329547,
+    "entity": "h012",
+    "window": 1767545100,
+    "probability": 0.8336301757944381,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.8539,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "a83bc7201054082e37b84af079eef536322ccd5e4efe5bac87703e0d36d50ae4",
+    "hash": "21423e22b317b05ba64ab012c02cfd325cbc941342a09ba6ab910da029958eeb"
+  },
+  {
+    "ts": 1785329548,
+    "entity": "h015",
+    "window": 1767530400,
+    "probability": 0.8262475909770048,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.4785,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "21423e22b317b05ba64ab012c02cfd325cbc941342a09ba6ab910da029958eeb",
+    "hash": "41d03b9563c166cdd42ee3d3303d198c9caad081ceb2fb5ce1b2d94bb5857e4f"
+  },
+  {
+    "ts": 1785329549,
+    "entity": "h005",
+    "window": 1767490800,
+    "probability": 0.825224328497808,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.8967,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "41d03b9563c166cdd42ee3d3303d198c9caad081ceb2fb5ce1b2d94bb5857e4f",
+    "hash": "a0c95a5be40085df2a60793b25f0a9f00dc889d51323842c61c0a7291c8ba04a"
+  },
+  {
+    "ts": 1785329550,
+    "entity": "h039",
+    "window": 1767563100,
+    "probability": 0.818605986928259,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.6239,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "a0c95a5be40085df2a60793b25f0a9f00dc889d51323842c61c0a7291c8ba04a",
+    "hash": "2743b866993d19592f269bc69f086a970cf3f10b3941bdcf76d50b4633322a39"
+  },
+  {
+    "ts": 1785329551,
+    "entity": "h011",
+    "window": 1767570300,
+    "probability": 0.794649647697618,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.7311,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "2743b866993d19592f269bc69f086a970cf3f10b3941bdcf76d50b4633322a39",
+    "hash": "dbe1dea45edae96c886020af3c7242bddc400659b6bd3cc91a2f52793d08cfe6"
+  },
+  {
+    "ts": 1785329552,
+    "entity": "h027",
+    "window": 1767510000,
+    "probability": 0.7928948220610882,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.5202,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "dbe1dea45edae96c886020af3c7242bddc400659b6bd3cc91a2f52793d08cfe6",
+    "hash": "41d771fd222f3c4a785d8b104e8788cd2862eb5ab7843d95af8967d3af1cc09b"
+  },
+  {
+    "ts": 1785329553,
+    "entity": "h005",
+    "window": 1767489900,
+    "probability": 0.7923430419304937,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.8952,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "41d771fd222f3c4a785d8b104e8788cd2862eb5ab7843d95af8967d3af1cc09b",
+    "hash": "7ca9978b10779fb9d6c53869bc19943861df84028df4ed01a2b8e6c94e684191"
+  },
+  {
+    "ts": 1785329554,
+    "entity": "h020",
+    "window": 1767502500,
+    "probability": 0.7880300114257786,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.8678,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "7ca9978b10779fb9d6c53869bc19943861df84028df4ed01a2b8e6c94e684191",
+    "hash": "51f6697dbab6a0b6712bdcd55676337b3e4c2944a0fd7be8e6c4c3218d2328d9"
+  },
+  {
+    "ts": 1785329555,
+    "entity": "h026",
+    "window": 1767490500,
+    "probability": 0.7710671877330546,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.4759,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "51f6697dbab6a0b6712bdcd55676337b3e4c2944a0fd7be8e6c4c3218d2328d9",
+    "hash": "ed5582c927c286d9d8a78366d58520f15d044e8dd06f0ee6be5e6f0cbe755eb1"
+  },
+  {
+    "ts": 1785329556,
+    "entity": "h026",
+    "window": 1767489900,
+    "probability": 0.7698784430284805,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.5041,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "ed5582c927c286d9d8a78366d58520f15d044e8dd06f0ee6be5e6f0cbe755eb1",
+    "hash": "ee8c95f8c6b1d4b7d836ca684cea5feeb4270ff92fa81cf0ecf88dee58f63e1e"
+  },
+  {
+    "ts": 1785329557,
+    "entity": "h013",
+    "window": 1767532500,
+    "probability": 0.7578562739386169,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.6825,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "ee8c95f8c6b1d4b7d836ca684cea5feeb4270ff92fa81cf0ecf88dee58f63e1e",
+    "hash": "250720ee26de9f67eb24af879aca95caf9fc1672c617d8fe733cccb15c47f1a3"
+  },
+  {
+    "ts": 1785329558,
+    "entity": "h016",
+    "window": 1767556800,
+    "probability": 0.7494983012310734,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.5519,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "250720ee26de9f67eb24af879aca95caf9fc1672c617d8fe733cccb15c47f1a3",
+    "hash": "212ac90632c15f0be7811f9e078aa1aea1808ac70e3ad516c2b6bb78136aea4a"
+  },
+  {
+    "ts": 1785329559,
+    "entity": "h020",
+    "window": 1767501900,
+    "probability": 0.7259327619927333,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.8912,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "212ac90632c15f0be7811f9e078aa1aea1808ac70e3ad516c2b6bb78136aea4a",
+    "hash": "6b2a999404190cf564c457af058be04fad3564e5b9ecd38e14833a80ef4aafe1"
+  },
+  {
+    "ts": 1785329560,
+    "entity": "h014",
+    "window": 1767552300,
+    "probability": 0.7247586119205766,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.5057,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "6b2a999404190cf564c457af058be04fad3564e5b9ecd38e14833a80ef4aafe1",
+    "hash": "a8d74b37f910379073b142ab85b7e82b9c1a623593f36109f25b3ae00be66f1b"
+  },
+  {
+    "ts": 1785329561,
+    "entity": "h014",
+    "window": 1767552900,
+    "probability": 0.7197112324449129,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.4603,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "a8d74b37f910379073b142ab85b7e82b9c1a623593f36109f25b3ae00be66f1b",
+    "hash": "e9ea2a6618a173c977955e873ace0b93777e9a409b35545b3bae36266c0b20ca"
+  },
+  {
+    "ts": 1785329562,
+    "entity": "h014",
+    "window": 1767552000,
+    "probability": 0.7146062290070101,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.5995,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "e9ea2a6618a173c977955e873ace0b93777e9a409b35545b3bae36266c0b20ca",
+    "hash": "479d5b45f8bc06923102446ba8976eb8574a4e52cf986038320548d7b7506a35"
+  },
+  {
+    "ts": 1785329563,
+    "entity": "h010",
+    "window": 1767497100,
+    "probability": 0.6705422808218636,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.7156,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "479d5b45f8bc06923102446ba8976eb8574a4e52cf986038320548d7b7506a35",
+    "hash": "4c6bd47fb93ba844b3d9d11c4e880303fd71848b202fcd5b826ffdd8ff71d3d3"
+  },
+  {
+    "ts": 1785329564,
+    "entity": "h016",
+    "window": 1767550500,
+    "probability": 0.6697933970785878,
+    "suspected_family": "lateral_movement",
+    "mode": "human_review",
+    "action": "open_case_lateral_movement",
+    "executed": false,
+    "explanation_support": 0.1652,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "4c6bd47fb93ba844b3d9d11c4e880303fd71848b202fcd5b826ffdd8ff71d3d3",
+    "hash": "e98a2dd6e63653bda188e029d6220357bf327099285fc7e2269c28c4f48854d2"
+  },
+  {
+    "ts": 1785329565,
+    "entity": "h038",
+    "window": 1767518400,
+    "probability": 0.6621924740492058,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.6389,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "e98a2dd6e63653bda188e029d6220357bf327099285fc7e2269c28c4f48854d2",
+    "hash": "063bddb920c03d09816fe6ac0529add025a122e263cab6d37037ceacf18b91ee"
+  },
+  {
+    "ts": 1785329566,
+    "entity": "h007",
+    "window": 1767568200,
+    "probability": 0.6454018762366768,
+    "suspected_family": "lateral_movement",
+    "mode": "human_review",
+    "action": "open_case_lateral_movement",
+    "executed": false,
+    "explanation_support": 0.2729,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "063bddb920c03d09816fe6ac0529add025a122e263cab6d37037ceacf18b91ee",
+    "hash": "b75892a5bd22aa72f37adc9cc8496cd43167e671e09e459b7e771ed5bf57dedc"
+  },
+  {
+    "ts": 1785329567,
+    "entity": "h007",
+    "window": 1767523500,
+    "probability": 0.638256370758582,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.5095,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "b75892a5bd22aa72f37adc9cc8496cd43167e671e09e459b7e771ed5bf57dedc",
+    "hash": "4a7e485bd57e3b8cefbb2a08a46f03b06312735b1dd75b154f6f232b038ae257"
+  },
+  {
+    "ts": 1785329568,
+    "entity": "h014",
+    "window": 1767552600,
+    "probability": 0.6380662905665988,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.6239,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "4a7e485bd57e3b8cefbb2a08a46f03b06312735b1dd75b154f6f232b038ae257",
+    "hash": "0f4a7bad6ec9f3d5d5d4322e0a5f6e011dbbb3a179642a2c31bc89b1210c6561"
+  },
+  {
+    "ts": 1785329569,
+    "entity": "h037",
+    "window": 1767525000,
+    "probability": 0.6303419959358633,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.7189,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "0f4a7bad6ec9f3d5d5d4322e0a5f6e011dbbb3a179642a2c31bc89b1210c6561",
+    "hash": "cc2bc34793ba296a4395b19bed7f20d57e5efa55b8a7db7cb3fa36d2198907b8"
+  },
+  {
+    "ts": 1785329570,
+    "entity": "h036",
+    "window": 1767553800,
+    "probability": 0.626067247917153,
+    "suspected_family": "dos",
+    "mode": "human_review",
+    "action": "open_case_volumetric",
+    "executed": false,
+    "explanation_support": 0.6582,
+    "rationale": [
+      "medium confidence: analyst triage queue"
+    ],
+    "prev_hash": "cc2bc34793ba296a4395b19bed7f20d57e5efa55b8a7db7cb3fa36d2198907b8",
+    "hash": "de22823cd1a3741342018131cc8a0f182d0256fd8e7f40045c738d6657ce1a3c"
+  }
+]
