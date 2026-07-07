@@ -424,7 +424,7 @@ def run(out_dir: str = "artifacts", seed: int = 7, alert_budget_per_day: float =
     # which silently changes or fails on non-ASCII content; artifacts must be
     # byte-identical whatever machine produced them.
     def _dump(name: str, obj: object) -> None:
-        (out / name).write_text(json.dumps(obj, indent=2, default=str))
+        (out / name).write_text(json.dumps(obj, indent=2, default=str), encoding="utf-8")
 
     _dump("report.json", report)
     _dump("alerts.json", alerts)

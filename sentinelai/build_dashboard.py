@@ -298,7 +298,7 @@ def build(artifacts: str = "artifacts", out: str = "dashboard.html") -> Path:
     # </script> inside JSON would terminate the block early; escape defensively.
     blob = json.dumps(payload).replace("</", "<\\/")
     target = Path(out)
-    target.write_text(TEMPLATE.replace("__DATA__", blob))
+    target.write_text(TEMPLATE.replace("__DATA__", blob), encoding="utf-8")
     return target
 
 
