@@ -1,0 +1,55 @@
+{
+  "psi": {
+    "g_rarity": 2.5402,
+    "graph_score": 0.1374,
+    "z_flow_count": 0.05,
+    "z_bytes_out_sum": 0.0398,
+    "z_distinct_dsts": 0.0316,
+    "z_distinct_dports": 0.0303,
+    "roll_bytes_out_1h": 0.0045,
+    "roll_dst_reach_1h": 0.0044,
+    "roll_dport_reach_1h": 0.0043,
+    "roll_dns_flows_1h": 0.0012,
+    "g_breadth_z": 0.0011,
+    "mean_pkt_size": 0.0009,
+    "syn_ratio": 0.0007,
+    "port_entropy": 0.0006,
+    "bytes_out_p95": 0.0006,
+    "ext_dst_ratio": 0.0006,
+    "pkts_sum": 0.0006,
+    "flow_count": 0.0006,
+    "roll_dns_entropy_mean_1h": 0.0004,
+    "bytes_out_sum": 0.0004,
+    "distinct_dports": 0.0003,
+    "out_in_ratio": 0.0003,
+    "short_flow_ratio": 0.0003,
+    "bytes_in_sum": 0.0002,
+    "dns_entropy_max": 0.0002,
+    "distinct_dsts": 0.0001,
+    "distinct_auth_targets": 0.0001,
+    "auth_events": 0.0001,
+    "dns_flow_ratio": 0.0,
+    "roll_active_windows_1h": 0.0,
+    "admin_port_ratio": 0.0,
+    "night_flag": 0.0,
+    "failed_logins": 0.0,
+    "failed_login_ratio": 0.0,
+    "interactive_logons": 0.0,
+    "z_failed_logins": 0.0,
+    "roll_admin_flows_1h": 0.0,
+    "g_new_edges": 0.0,
+    "g_chain_depth": 0.0,
+    "g_new_user_host": 0.0
+  },
+  "features_with_material_shift": [
+    "g_rarity"
+  ],
+  "features_with_moderate_shift": [
+    "graph_score"
+  ],
+  "retrain_recommended": true,
+  "thresholds": {
+    "warn": 0.1,
+    "alarm": 0.25
+  }
+}
