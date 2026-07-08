@@ -64,6 +64,23 @@ export type Calibration = {
 	prior_shift_logodds: number
 }
 
+/**
+ * A retrain leg is NOT a flat number map: alongside its scalar metrics it
+ * carries a nested `operating_point` object. Typing it as Record<string, number>
+ * was wrong and let a generic Object.keys loop call .toFixed on that object,
+ * which threw and blanked the entire page.
+ */
+export type RetrainLeg = {
+	n: number
+	positives: number
+	eval_base_rate: number
+	roc_auc: number
+	average_precision: number
+	'tpr_at_fpr_1e-2': number
+	'tpr_at_fpr_1e-3': number
+	operating_point: OperatingPoint
+}
+
 export type Report = {
 	generated_at: string
 	runtime_seconds: number
@@ -85,8 +102,8 @@ export type Report = {
 	drift_and_active_learning: {
 		labels_spent: number
 		drift: Record<string, unknown>
-		before_retrain: Record<string, number>
-		after_retrain: Record<string, number>
+		before_retrain: RetrainLeg
+		after_retrain: RetrainLeg
 		delta: Record<string, number>
 	}
 }
@@ -200,4 +217,34 @@ export function familyRows(
 		.filter((entry): entry is [string, FamilyRecall] => typeof entry[1] === 'object')
 		.map(([family, v]) => ({ family, windows: v.windows, recall: v.recall }))
 		.sort((a, b) => b.recall - a.recall || b.windows - a.windows)
+}
+
+export type DriftRow = { label: string; before: number; after: number }
+
+/**
+ * The before/after retrain comparison, as an explicit list of numeric pairs.
+ * Named deliberately rather than derived from Object.keys, so a nested object
+ * in the artifact can never again be rendered as if it were a number.
+ */
+export function driftRows(d: Report['drift_and_active_learning']): DriftRow[] {
+	const b = d.before_retrain
+	const a = d.after_retrain
+	return [
+		{ label: 'average precision', before: b.average_precision, after: a.average_precision },
+		{
+			label: `recall @ ${a.operating_point.budget_per_day}/day`,
+			before: b.operating_point.recall,
+			after: a.operating_point.recall,
+		},
+		{
+			label: `precision @ ${a.operating_point.budget_per_day}/day`,
+			before: b.operating_point.precision_eval,
+			after: a.operating_point.precision_eval,
+		},
+		{
+			label: 'tpr @ fpr 1e-3',
+			before: b['tpr_at_fpr_1e-3'],
+			after: a['tpr_at_fpr_1e-3'],
+		},
+	].filter((r) => typeof r.before === 'number' && typeof r.after === 'number')
 }
