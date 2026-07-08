@@ -23,6 +23,7 @@ import {
 } from '@/components/bits'
 import { AttributionBars, CompareBars, SweepChart } from '@/components/charts'
 import {
+	driftRows,
 	familyRows,
 	loadBundle,
 	probeApi,
@@ -608,9 +609,9 @@ function Pct({ label, value }: { label: string; value: number }) {
 
 function DriftSection({ report }: { report: Bundle['report'] }) {
 	const d = report.drift_and_active_learning
-	const before = d.before_retrain
-	const after = d.after_retrain
-	const keys = Object.keys(after).filter((k) => k in before)
+	// Named pairs, not Object.keys: these legs also carry a nested
+	// operating_point object, and iterating keys blindly rendered it as a number.
+	const rows = driftRows(d)
 	return (
 		<section className="flex flex-col gap-6">
 			<SectionHead
@@ -620,14 +621,14 @@ function DriftSection({ report }: { report: Bundle['report'] }) {
 				blurb={`The attack mix is shifted, drift is detected by population stability index, and only ${d.labels_spent} analyst labels are spent on the most informative windows before retraining. This is the loop that keeps a deployed detector from quietly rotting.`}
 			/>
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-				{keys.map((k, i) => {
-					const b = before[k] ?? 0
-					const a = after[k] ?? 0
+				{rows.map((row, i) => {
+					const b = row.before
+					const a = row.after
 					const up = a >= b
 					return (
-						<ScrollReveal key={k} delay={i * 0.05}>
+						<ScrollReveal key={row.label} delay={i * 0.05}>
 							<div className="panel h-full p-5">
-								<p className="text-[14px] text-ink-dim">{k.replaceAll('_', ' ')}</p>
+								<p className="text-[14px] text-ink-dim">{row.label}</p>
 								<p className="tabular mt-2 text-2xl font-semibold">
 									{b.toFixed(3)}
 									<span className="text-ink-faint"> &rarr; </span>
