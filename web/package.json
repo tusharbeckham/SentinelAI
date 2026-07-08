@@ -1,0 +1,31 @@
+{
+  "name": "sentinelai-console",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "SentinelAI SOC console - React 19 + Vite + Tailwind v4 front end for the hybrid IDS",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --port 4173",
+    "typecheck": "tsc --noEmit",
+    "sync-data": "node scripts/sync-artifacts.mjs"
+  },
+  "dependencies": {
+    "animejs": "4.0.2",
+    "clsx": "2.1.1",
+    "motion": "12.23.12",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "tailwind-merge": "3.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.1.11",
+    "@types/react": "19.2.0",
+    "@types/react-dom": "19.2.0",
+    "@vitejs/plugin-react": "5.0.0",
+    "tailwindcss": "4.1.11",
+    "typescript": "5.9.2",
+    "vite": "7.0.6"
+  }
+}

@@ -1,0 +1,85 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens. Deliberately NOT a purple-gradient AI landing page: this is a
+ * security console, so the palette is near-black with a single cold accent and
+ * severity colours that only ever mean severity. Colour carries information.
+ */
+@theme {
+	--color-canvas: #0a0b0d;
+	--color-surface: #121316;
+	--color-raised: #1a1c20;
+	--color-line: rgba(255, 255, 255, 0.09);
+	--color-line-strong: rgba(255, 255, 255, 0.18);
+	--color-ink: #f2f4f7;
+	--color-ink-dim: rgba(242, 244, 247, 0.62);
+	--color-ink-faint: rgba(242, 244, 247, 0.38);
+
+	--color-signal: #5e9fe8;
+	--color-safe: #72bc8f;
+	--color-watch: #de9255;
+	--color-alarm: #e97366;
+	--color-graph: #bf8eda;
+
+	--font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+	--font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+
+	--radius-panel: 10px;
+}
+
+@layer base {
+	html {
+		background-color: var(--color-canvas);
+		color-scheme: dark;
+		-webkit-font-smoothing: antialiased;
+	}
+	body {
+		background-color: var(--color-canvas);
+		color: var(--color-ink);
+		font-family: var(--font-sans);
+		font-size: 16px;
+		line-height: 1.5;
+		margin: 0;
+		min-height: 100vh;
+	}
+	/* Never below 14px: this is read by tired people at 3am. */
+	small {
+		font-size: 14px;
+	}
+	:focus-visible {
+		outline: 2px solid var(--color-signal);
+		outline-offset: 2px;
+	}
+}
+
+@layer utilities {
+	.panel {
+		background-color: var(--color-surface);
+		border: 1px solid var(--color-line);
+		border-radius: var(--radius-panel);
+	}
+	.tabular {
+		font-family: var(--font-mono);
+		font-variant-numeric: tabular-nums;
+	}
+	.grid-floor {
+		background-image: linear-gradient(to right, var(--color-line) 1px, transparent 1px),
+			linear-gradient(to bottom, var(--color-line) 1px, transparent 1px);
+		background-size: 48px 48px;
+		mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 20%, transparent 75%);
+	}
+}
+
+/*
+ * Accessibility is not optional in a monitoring UI. Every animation layer in
+ * this app (CSS, Motion and anime.js) checks this query before running.
+ */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.001ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.001ms !important;
+	}
+}
