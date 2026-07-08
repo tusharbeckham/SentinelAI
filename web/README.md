@@ -1,0 +1,94 @@
+# SentinelAI Console
+
+The front end for SentinelAI: **Vite 7 + React 19 + TypeScript 5.9 + Tailwind v4**,
+animated with **Motion** and **anime.js v4**. It replaces the old single-file
+`dashboard.html`, which is kept only as a zero-dependency fallback.
+
+Attribution for every UI resource used (and the ones deliberately not used) is in
+[`RESOURCES.md`](./RESOURCES.md).
+
+## Run it
+
+```bash
+# 1. produce the artifacts the console renders (from the repo root)
+python -m sentinelai.pipeline --out artifacts --budget 50
+
+# 2. install and start the console
+cd web
+pnpm install          # or npm install
+pnpm sync-data        # copies ../artifacts/*.json -> public/data
+pnpm dev              # http://localhost:5173
+```
+
+`pnpm build` runs `tsc --noEmit` before `vite build`, so a type error fails the
+build rather than shipping.
+
+## Optional: live scoring
+
+The console works with static artifacts alone. To enable on-demand scoring, run
+the authenticated API in a second terminal - the dev server proxies `/v1` and
+`/healthz` to it:
+
+```bash
+export SENTINELAI_JWT_SECRET="$(python -c 'import secrets;print(secrets.token_hex(32))')"
+python -m sentinelai.serve --port 8088
+```
+
+The badge in the header flips from *static artifacts only* to *live scorer
+online*. `/v1/*` still requires a role-scoped JWT; a 401 is surfaced verbatim
+rather than silently swallowed.
+
+## Deploy the demo
+
+One public URL serving both the console and the scorer:
+
+```bash
+docker build -f ../Dockerfile.space -t sentinelai-space ..
+docker run -p 7860:7860 sentinelai-space
+```
+
+For a Hugging Face Space, create a **Docker** Space, push the repo with
+`Dockerfile.space` renamed to `Dockerfile`, and add this front matter to the
+Space `README.md`:
+
+```yaml
+---
+title: SentinelAI Console
+emoji: 🛡️
+colorFrom: gray
+colorTo: blue
+sdk: docker
+app_port: 7860
+pinned: false
+---
+```
+
+Static-only hosts (Vercel, Netlify, Cloudflare Pages, GitHub Pages) also work -
+`base` is `./` and the app degrades to artifacts with no backend. Streamlit is
+not an option for this front end; see `RESOURCES.md`.
+
+## Layout
+
+```
+web/
+  index.html                  meta, OG tags, noscript fallback
+  vite.config.ts              react + tailwind plugins, /v1 proxy, chunk split
+  scripts/sync-artifacts.mjs  artifacts -> public/data, fails loudly if missing
+  src/lib/data.ts             types derived from the real artifact schema
+  src/lib/cn.ts               clsx + tailwind-merge (registry convention)
+  src/components/bits.tsx     animated primitives, attribution in the header
+  src/components/charts.tsx   hand-built SVG: sweep curve, compare + SHAP bars
+  src/App.tsx                 the eight console sections
+```
+
+## Design rules this code follows
+
+1. **No mock data.** Every rendered number comes from an artifact. Missing
+   artifacts produce an error state with the command to fix it.
+2. **Failures are visible.** PPV at the deployment prior, the weak families, the
+   hybrid losing on AP, and the `mean_pkt_size` shortcut are all on screen.
+3. **Colour means something.** Green/amber/red encode severity or pass/fail only.
+4. **Motion never blocks reading.** `prefers-reduced-motion` is honoured
+   everywhere; counters land on exact values.
+5. **Accessible by default.** Skip link, focus rings, `aria-label`ed charts,
+   keyboard-operable queue, nothing below 14px.
