@@ -1,0 +1,52 @@
+# Hugging Face Docker Space (also works on Fly.io / Render).
+#
+# Stage 1 builds the React console, stage 2 runs the Python scorer and serves the
+# built bundle from the same port, so the browser gets one origin and no CORS.
+#
+#   docker build -f Dockerfile.space -t sentinelai-space .
+#   docker run -p 7860:7860 -e SENTINELAI_JWT_SECRET=$(openssl rand -hex 32) sentinelai-space
+
+# ---------- stage 1: front end ----------
+FROM node:22-alpine AS web
+WORKDIR /build
+
+# Artifacts first: the console renders measured numbers, so the sync step must
+# have them before the bundle is built.
+COPY artifacts ./artifacts
+COPY web/package.json ./web/
+WORKDIR /build/web
+RUN corepack enable && pnpm install --no-frozen-lockfile
+
+COPY web ./
+RUN node scripts/sync-artifacts.mjs ../artifacts && pnpm build
+
+# ---------- stage 2: runtime ----------
+FROM python:3.12-slim AS runtime
+
+# Non-root by default. A security project that ships a root container is not
+# making its own argument credibly.
+RUN useradd --create-home --uid 1000 sentinel
+WORKDIR /app
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PORT=7860
+
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY sentinelai ./sentinelai
+COPY artifacts ./artifacts
+COPY README.md ./
+COPY --from=web /build/web/dist ./web/dist
+
+RUN chown -R sentinel:sentinel /app
+USER sentinel
+
+EXPOSE 7860
+
+# HF Spaces inject no secrets by default, so generate an ephemeral JWT secret at
+# boot if none was configured. Tokens then live only as long as the container,
+# which is the correct posture for a public demo: the API stays authenticated,
+# and nobody inherits a hardcoded key.
+CMD ["sh", "-c", "export SENTINELAI_JWT_SECRET=${SENTINELAI_JWT_SECRET:-$(python -c 'import secrets;print(secrets.token_hex(32))')} && exec python -m sentinelai.space_server --port ${PORT} --dist web/dist --days 1.0"]
