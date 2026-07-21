@@ -77,6 +77,28 @@ jobs:
           path: ci_a/
           retention-days: 14
 
+  explainer-integrity:
+    name: explainer reproduces the model
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Regenerate the trace and verify its arithmetic
+        # The website claims the arithmetic it shows is the arithmetic the model
+        # performed. verify_trace.py imports none of the code it checks: it
+        # recomputes every fusion term from the artifact alone and fails if the
+        # reconstruction misses the published probability. A previous version of
+        # the explainer multiplied the stacker weights by raw leg scores instead
+        # of standardised ones -- plausible numbers, wrong by 0.91 log-odds --
+        # and this is the gate that would have stopped it.
+        run: |
+          python -m sentinelai.pipeline --out artifacts --seed 7 --budget 50
+          python scripts/verify_trace.py artifacts/alert_trace.json
+
   static-analysis:
     name: SAST + lint
     runs-on: ubuntu-latest
