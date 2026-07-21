@@ -24,6 +24,7 @@ import pandas as pd
 
 from . import active_learning as al
 from . import ensemble as ens
+from . import explain_trace as tr
 from .explain import ShapleyExplainer, narrate
 from .features import FEATURES, build_dataset, matrix, time_split
 from .graphlm import GRAPH_FEATURES, attach_graph_features
@@ -327,6 +328,72 @@ def run(out_dir: str = "artifacts", seed: int = 7, alert_budget_per_day: float =
     engine = ResponseEngine(Policy(protected_assets=("h000", "h001")), execute=False)
     decisions = engine.run(alerts)
 
+    # ------------------------------------------------ one alert, fully traced
+    # The console's explainer renders this artifact and nothing else. Building
+    # it here -- inside the run that produced the alert, off the fitted stacker
+    # -- is the whole point: a hand-written "how it works" page drifts from the
+    # model silently, and the reader has no way to detect it.
+    focus = tr.select_alert(alerts)
+    _ent = np.asarray(test["entity"])
+    _win = np.asarray(test["win"], dtype=np.int64)
+    fi = int(np.flatnonzero((_ent == focus["entity"]) & (_win == int(focus["window"])))[0])
+    focus_rank = int(np.flatnonzero(np.argsort(-p_te) == fi)[0]) + 1
+    # pd.api.types, not np.issubdtype: pandas string columns carry a StringDtype
+    # that numpy refuses to interpret as a dtype at all.
+    focus_row = {
+        c: float(test.iloc[fi][c])
+        for c in test.columns
+        if pd.api.types.is_numeric_dtype(test[c])
+    }
+
+    def _pct(feature: str, value: float) -> float:
+        """Percentile of a value within the test population for that column.
+
+        A raw feature value is meaningless to a reader without the population
+        it came from: 45 failed logins is only damning next to the fact that
+        almost no other window has any.
+        """
+        if feature not in test.columns or not pd.api.types.is_numeric_dtype(test[feature]):
+            return float("nan")
+        return tr.percentile_of(test[feature].to_numpy(dtype=float), value)
+
+    focus_decision = next(
+        (
+            d
+            for d in decisions
+            if d["entity"] == focus["entity"] and int(d.get("window", -1)) == int(focus["window"])
+        ),
+        None,
+    )
+    alert_trace = tr.build_trace(
+        alert=focus,
+        row=focus_row,
+        fusion_row=model.fusion_inputs(X_te[fi])[0],
+        coefficients=calibration["stacker_coefficients"],
+        intercept=calibration["stacker_intercept"],
+        prior_shift=calibration["prior_shift_logodds"],
+        family_signatures=FAMILY_SIGNATURES,
+        ablation=ablation,
+        # The stacker weights standardised inputs, so the trace needs the same
+        # centring and scaling or its arithmetic will not reproduce the score.
+        standardizer={"mean": model.stacker.mu, "scale": model.stacker.sd},
+        operating_point=op.to_dict(),
+        dataset=tel.summary(),
+        soar_decision=None
+        if focus_decision is None
+        else {
+            "mode": focus_decision["mode"],
+            "playbook": focus_decision["action"],
+            "actions": [focus_decision["action"]],
+            "rationale": focus_decision["rationale"],
+        },
+        percentile=_pct,
+        top_importance=dict(list(model.gbdt.importance(list(ALL_FEATURES)).items())[:8]),
+        rank=focus_rank,
+        total_windows=int(len(test)),
+        audit_chain_valid=bool(engine.stats().get("audit_chain_valid")),
+    )
+
     # -------------------------------------------- drift + active learning
     drift_mix = dict(DEFAULT_MIX)
     drift_mix.update({"exfil": 0.30, "dns_tunnel": 0.28, "portscan": 0.08, "dos": 0.06})
@@ -432,6 +499,7 @@ def run(out_dir: str = "artifacts", seed: int = 7, alert_budget_per_day: float =
     _dump("audit_log.json", engine.audit.records)
     _dump("drift_psi.json", drift)
     _dump("budget_sweep.json", sweep)
+    _dump("alert_trace.json", alert_trace)
     test.assign(probability=p_te).to_csv(out / "scored_test_windows.csv", index=False)
     return report
 
