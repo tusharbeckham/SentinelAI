@@ -27,6 +27,7 @@ const OPTIONAL = [
 	'audit_log.json',
 	'entity_risk.json',
 	'hunt_index.json',
+	'alert_trace.json',
 ]
 
 async function exists(path) {
