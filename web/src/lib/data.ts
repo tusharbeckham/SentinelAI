@@ -292,9 +292,123 @@ export type HuntIndex = {
 	rows: Array<Record<string, number | string>>
 }
 
+// ------------------------------------------------------------- alert trace
+// Mirrors sentinelai/explain_trace.py. Fields are optional per stage because
+// one array carries six differently-shaped stages; the renderer narrows by id.
+
+export type TraceFeature = {
+	feature: string
+	value: number
+	percentile: number | null
+	attributed_credit: boolean
+}
+
+export type TraceBand = {
+	group: string
+	label?: string
+	features: TraceFeature[]
+}
+
+export type TraceLeg = {
+	input: string
+	label: string
+	value: number
+	standardized: number
+	mean: number
+	scale: number
+	coefficient: number
+	term: number
+	average_precision: number | null
+	roc_auc: number | null
+	recall_at_budget: number | null
+	precision_at_budget: number | null
+}
+
+export type TraceTerm = {
+	label: string
+	coefficient: number
+	value: number
+	standardized: number
+	mean: number
+	scale: number
+	term: number
+}
+
+export type TraceStage = {
+	id: string
+	title: string
+	caption: string
+	// telemetry
+	corpus?: Record<string, number | undefined>
+	observed?: Array<{ label: string; value: number | null }>
+	// features
+	count?: number
+	bands?: TraceBand[]
+	model_importance?: Record<string, number>
+	// legs
+	legs?: TraceLeg[]
+	// fusion
+	terms?: TraceTerm[]
+	intercept?: number
+	log_odds?: number
+	probability?: number
+	published_probability?: number
+	reconstruction_error?: number
+	prior_shift_logodds?: number
+	probability_at_deployment_prior?: number
+	caption_prior?: string
+	caption_standardisation?: string
+	// threshold
+	threshold?: number
+	margin?: number
+	fired?: boolean
+	alerts_per_day?: number
+	budget_per_day?: number
+	recall?: number
+	precision_eval?: number
+	fpr?: number
+	ppv_at_deployment_prior?: number
+	rank?: number
+	total_windows?: number
+	// response
+	mode?: string
+	playbook?: string
+	actions?: string[]
+	rationale?: string[]
+	audit_chain_valid?: boolean
+}
+
+export type AlertTrace = {
+	generated_at?: string
+	alert_id: string
+	entity: string
+	window_iso: string
+	probability: number
+	narrative: string
+	suspected_family: string
+	ground_truth: string | null
+	stage_order: string[]
+	stages: TraceStage[]
+	attributions: Array<{ feature: string; contribution: number; value: number }>
+	family_evidence: Array<{
+		family: string
+		attributed: number
+		corroboration: number | null
+		features: TraceFeature[]
+	}>
+	disagreement: {
+		detected: boolean
+		suspected: string
+		truth: string | null
+		missed_evidence: TraceFeature[]
+		explanation: string
+	}
+}
+
 export type Extras = {
 	entityRisk?: EntityRiskBundle
 	huntIndex?: HuntIndex
+	trace?: AlertTrace
 }
 
 async function optionalJson<T>(url: string): Promise<T | undefined> {
@@ -308,9 +422,10 @@ async function optionalJson<T>(url: string): Promise<T | undefined> {
 }
 
 export async function loadExtras(base = './data'): Promise<Extras> {
-	const [entityRisk, huntIndex] = await Promise.all([
+	const [entityRisk, huntIndex, trace] = await Promise.all([
 		optionalJson<EntityRiskBundle>(`${base}/entity_risk.json`),
 		optionalJson<HuntIndex>(`${base}/hunt_index.json`),
+		optionalJson<AlertTrace>(`${base}/alert_trace.json`),
 	])
-	return { entityRisk, huntIndex }
+	return { entityRisk, huntIndex, trace }
 }
