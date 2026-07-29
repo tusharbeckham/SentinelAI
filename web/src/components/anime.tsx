@@ -245,48 +245,6 @@ export function MagneticButton({
 	)
 }
 
-/** A soft light that trails the pointer across the page. */
-export function CursorGlow() {
-	const ref = useRef<HTMLDivElement | null>(null)
-	const reduced = useReducedMotion()
-
-	useEffect(() => {
-		const el = ref.current
-		if (!el || reduced) return
-		// Coarse pointers have no hover position to follow.
-		if (window.matchMedia('(pointer: coarse)').matches) return
-		const onMove = (event: PointerEvent) => {
-			animate(el, {
-				left: event.clientX,
-				top: event.clientY,
-				opacity: 1,
-				duration: 520,
-				ease: 'out(3)',
-			})
-		}
-		const onLeave = () => animate(el, { opacity: 0, duration: 300 })
-		window.addEventListener('pointermove', onMove, { passive: true })
-		window.addEventListener('pointerleave', onLeave)
-		return () => {
-			window.removeEventListener('pointermove', onMove)
-			window.removeEventListener('pointerleave', onLeave)
-		}
-	}, [reduced])
-
-	if (reduced) return null
-	return (
-		<div
-			ref={ref}
-			aria-hidden
-			className="pointer-events-none fixed z-0 h-[380px] w-[380px] -translate-x-1/2 -translate-y-1/2 opacity-0"
-			style={{
-				background:
-					'radial-gradient(circle, color-mix(in oklab, var(--color-signal) 16%, transparent) 0%, transparent 68%)',
-			}}
-		/>
-	)
-}
-
 /** Sparkline that draws itself along the entity's real timeline. */
 export function Sparkline({
 	values,
