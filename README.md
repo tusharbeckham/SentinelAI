@@ -364,6 +364,88 @@ replacing a runtime never changes the science.
    column is shown so the analyst is never misled.
 6. Graph leg alone is weak (PR-AUC 0.039) — it is a specialist, not a detector.
 
+## 9. The alert explainer (`explain_trace.py`)
+
+Every pipeline run writes `artifacts/alert_trace.json`: a single real alert
+walked through six stages -- `telemetry -> features -> legs -> fusion ->
+threshold -> response` -- with the arithmetic exposed at each step. The console
+renders it as the **Explain** section. Nothing in that section is written by
+hand, so a "how it works" walkthrough cannot drift away from the model that is
+actually shipping.
+
+The alert it selects is deliberately not a clean win. `select_alert()` prefers a
+window where the model disagrees with ground truth, because those are the ones
+that teach something.
+
+### 9.1 The case: right answer, wrong reason
+
+`AL-1767491700-h002`, p = 0.9866137, ranked **1st of 11,326** test windows.
+It is a true positive: the window really is an attack. The model named it `dos`.
+The ground truth is `brute_force`.
+
+The evidence for brute force was sitting in the same feature vector:
+
+| feature | value | percentile | attributed credit |
+| --- | --- | --- | --- |
+| `failed_logins` | 45.0 | 99.912 | **0.000** |
+| `failed_login_ratio` | 0.957 | -- | 0.000 |
+| `z_failed_logins` | 45.0 | 99.912 | **0.000** |
+| `mean_pkt_size` | 201.98 | -- | 3.327 |
+
+45 of 47 authentication events in a five-minute window failed, a top-0.1%
+reading, and the explanation gave it exactly zero weight. Meanwhile
+`mean_pkt_size` -- which holds **80.9%** of the booster's split importance --
+carried the entire narrative. That is textbook shortcut learning: the detector
+ranks the window correctly while reasoning about the wrong signal, so the SOAR
+layer fires a rate-limit playbook at what is really a credential attack.
+
+Ranking quality and reasoning quality are separate properties. The explainer
+shows both failing independently, which no aggregate metric on this repo would
+have revealed.
+
+### 9.2 The fusion arithmetic, and a bug the artifact caught
+
+Stage 4 renders the stacker as visible arithmetic:
+
+```
+ isolation forest    0.342546 x  +4.8906  =  +1.6753
+ gradient boosting   1.100883 x  +9.6462  = +10.6193
+ graph leg           0.113480 x  +3.8724  =  +0.4394
+ intercept                                 -8.433969
+                                          ----------
+ log-odds                                  +4.300047
+ sigmoid(log-odds)                          0.9866137
+```
+
+The trace then compares that reconstruction to the probability the pipeline
+actually published and records the gap as `reconstruction_error`. It is `0.0`.
+
+That check earned its place immediately. The first implementation multiplied
+each coefficient by the leg's **raw** score, which produced entirely plausible
+numbers and a `reconstruction_error` of `0.0193`. `LogisticStacker.decision()`
+standardises its inputs first (`Z = (X - mu) / sd`, then `Z @ w + b`), so the
+term is `coefficient x standardised input`. Reading logistic weights against
+raw features is one of the most common ways to misreport a model, and the only
+reason it did not ship here is that the artifact was required to reproduce a
+number it could not fake. `tests/test_explain_trace.py::TestStandardisedFusion`
+now fails if anyone reintroduces it.
+
+### 9.3 Two ways of scoring the family
+
+`family_evidence()` scores each attack family twice: **attributed** credit (what
+the model leaned on) and **corroboration** (how extreme that family's signature
+features are in this window, ignoring the model entirely). For this alert:
+
+| family | attributed | corroboration |
+| --- | --- | --- |
+| `dos` | 3.007 | 0.983 |
+| `brute_force` | **0.000** | **0.995** |
+| `lateral_movement` | 0.000 | 0.988 |
+
+Brute force has the highest corroboration of any family and no attributed
+credit at all. A model-only explanation cannot express that; two independent
+views can.
+
 ## 8. References
 
 - Axelsson, *The Base-Rate Fallacy and its Implications for the Difficulty of Intrusion Detection*, ACM CCS 1999 / TISSEC 3(3):186–205, 2000.
