@@ -22,7 +22,8 @@ import {
 	ThreatField,
 } from '@/components/bits'
 import { AttributionBars, CompareBars, SweepChart } from '@/components/charts'
-import { CursorGlow, ScrollProgress } from '@/components/anime'
+import { ScrollProgress } from '@/components/anime'
+import { ScrollScene } from '@/components/scene'
 import {
 	CommandPalette,
 	EntityRiskSection,
@@ -159,6 +160,7 @@ export default function App() {
 
 			<main className="mx-auto flex max-w-6xl flex-col gap-24 px-5 pb-32 pt-10">
 				<Hero report={report} live={live} />
+				<ScrollScene />
 				<SweepSection report={report} />
 				<AblationSection report={report} />
 				<TriageSection alerts={alerts} />
@@ -174,7 +176,6 @@ export default function App() {
 			</main>
 
 			<ScrollProgress />
-			<CursorGlow />
 			<CommandPalette items={paletteItems} />
 		</div>
 	)
