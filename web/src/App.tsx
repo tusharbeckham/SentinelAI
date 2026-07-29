@@ -23,7 +23,7 @@ import {
 } from '@/components/bits'
 import { AttributionBars, CompareBars, SweepChart } from '@/components/charts'
 import { ScrollProgress } from '@/components/anime'
-import { ScrollScene } from '@/components/scene'
+import { LensHero } from '@/components/lens'
 import {
 	CommandPalette,
 	EntityRiskSection,
@@ -160,7 +160,6 @@ export default function App() {
 
 			<main className="mx-auto flex max-w-6xl flex-col gap-24 px-5 pb-32 pt-10">
 				<Hero report={report} live={live} />
-				<ScrollScene />
 				<SweepSection report={report} />
 				<AblationSection report={report} />
 				<TriageSection alerts={alerts} />
@@ -236,32 +235,43 @@ function Hero({ report, live }: { report: Bundle['report']; live: LiveStatus }) 
 	const windows = report.windows
 	return (
 		<section id="top" className="scroll-mt-24">
+			{/* The title lives inside the lens: magnified and refracted through
+			    moving glass while you scroll, and the panel below is what the lens
+			    hands you off to once it blooms open. */}
+			<LensHero>
+				<div className="grid h-full place-items-center px-6">
+					<div className="mx-auto max-w-3xl text-center">
+						<span className="panel inline-block px-2.5 py-1 text-[14px] text-ink-dim">
+							v1 - {report.features.count} features - {report.runtime_seconds.toFixed(1)}s
+							end-to-end
+						</span>
+						<h1 className="mt-6 text-4xl font-semibold tracking-tight sm:text-6xl">
+							<ShinyText text="SentinelAI" />
+							<span className="block text-ink-dim sm:text-5xl">
+								anomaly detection built around the analyst&rsquo;s budget
+							</span>
+						</h1>
+						<p className="mx-auto mt-6 max-w-2xl text-lg text-ink-dim">
+							A hybrid detector (isolation forest + gradient boosting + a graph leg, fused
+							by a calibrated stacker) tuned to a fixed{' '}
+							<strong className="text-ink">{op.budget_per_day} alerts/day</strong> budget
+							rather than to a flattering AUC. Every figure below is read from the
+							pipeline&rsquo;s own artifacts, including the ones that look bad.
+						</p>
+					</div>
+				</div>
+			</LensHero>
+
 			<div className="panel relative overflow-hidden p-8 sm:p-12">
 				<div className="absolute inset-0 grid-floor" aria-hidden />
 				<ThreatField entities={48} flagged={report.soar.by_mode.auto_contain ?? 5} />
 				<div className="relative">
 					<div className="flex flex-wrap items-center gap-3">
-						<span className="panel px-2.5 py-1 text-[14px] text-ink-dim">
-							v1 - {report.features.count} features - {report.runtime_seconds.toFixed(1)}s
-							end-to-end
-						</span>
 						<LiveBadge status={live} />
-					</div>
-
-					<h1 className="mt-6 text-4xl font-semibold tracking-tight sm:text-6xl">
-						<ShinyText text="SentinelAI" />
-						<span className="block text-ink-dim sm:text-5xl">
-							anomaly detection built around the analyst&rsquo;s budget
+						<span className="tabular panel px-2.5 py-1 text-[14px] text-ink-dim">
+							threshold {op.threshold.toFixed(6)}
 						</span>
-					</h1>
-
-					<p className="mt-6 max-w-2xl text-lg text-ink-dim">
-						A hybrid detector (isolation forest + gradient boosting + a graph leg, fused by a
-						calibrated stacker) tuned to a fixed{' '}
-						<strong className="text-ink">{op.budget_per_day} alerts/day</strong> budget rather
-						than to a flattering AUC. Every figure below is read from the pipeline&rsquo;s own
-						artifacts, including the ones that look bad.
-					</p>
+					</div>
 
 					<BentoGrid className="mt-10">
 						<Stat
