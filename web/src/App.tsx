@@ -11,19 +11,16 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import {
 	AnimatedList,
-	BentoGrid,
-	CountUp,
 	Dock,
 	GlowCard,
 	Marquee,
 	ScrollReveal,
 	ShimmeringText,
-	ShinyText,
-	ThreatField,
 } from '@/components/bits'
 import { AttributionBars, CompareBars, SweepChart } from '@/components/charts'
 import { ScrollProgress } from '@/components/anime'
 import { PipelineExplainer } from '@/components/explainer'
+import { NetworkHero } from '@/components/hero3d'
 import {
 	CommandPalette,
 	EntityRiskSection,
@@ -160,7 +157,7 @@ export default function App() {
 			/>
 
 			<main className="mx-auto flex max-w-6xl flex-col gap-24 px-5 pb-32 pt-10">
-				<Hero report={report} live={live} />
+				<NetworkHero report={report} live={live} />
 				{extras.trace ? <PipelineExplainer trace={extras.trace} /> : null}
 				<SweepSection report={report} />
 				<AblationSection report={report} />
@@ -203,146 +200,6 @@ function SectionHead({
 		</header>
 	)
 }
-
-function Stat({
-	label,
-	value,
-	decimals = 1,
-	suffix = '',
-	foot,
-	accent,
-}: {
-	label: string
-	value: number
-	decimals?: number
-	suffix?: string
-	foot: string
-	accent?: string
-}) {
-	return (
-		<GlowCard className="p-5" accent={accent}>
-			<p className="text-[14px] text-ink-dim">{label}</p>
-			<p className="mt-2 text-3xl font-semibold" style={accent ? { color: accent } : undefined}>
-				<CountUp to={value} decimals={decimals} suffix={suffix} />
-			</p>
-			<p className="mt-2 text-[14px] text-ink-faint">{foot}</p>
-		</GlowCard>
-	)
-}
-
-/* -------------------------------------------------------------------------- */
-
-function Hero({ report, live }: { report: Bundle['report']; live: LiveStatus }) {
-	const op = report.operating_point
-	const windows = report.windows
-	return (
-		<section id="top" className="scroll-mt-24">
-			{/* One copy of the title, at full contrast. The previous version stacked
-			    a magnified duplicate and two chromatic fringes over this text to fake
-			    a glass lens; the layers never fully cancelled and the headline read as
-			    four overlapping ghosts. Motion belongs on things that are not words. */}
-			<div className="mx-auto max-w-3xl text-center">
-				<span className="panel inline-block px-2.5 py-1 text-[14px] text-ink-dim">
-					v1 - {report.features.count} features - {report.runtime_seconds.toFixed(1)}s
-					end-to-end
-				</span>
-				<h1 className="mt-6 text-4xl font-semibold tracking-tight sm:text-6xl">
-					<ShinyText text="SentinelAI" />
-					<span className="block text-ink-dim sm:text-5xl">
-						anomaly detection built around the analyst&rsquo;s budget
-					</span>
-				</h1>
-				<p className="mx-auto mt-6 max-w-2xl text-lg text-ink-dim">
-					A hybrid detector (isolation forest + gradient boosting + a graph leg, fused
-					by a calibrated stacker) tuned to a fixed{' '}
-					<strong className="text-ink">{op.budget_per_day} alerts/day</strong> budget
-					rather than to a flattering AUC. Every figure below is read from the
-					pipeline&rsquo;s own artifacts, including the ones that look bad.
-				</p>
-			</div>
-
-			<div className="panel relative mt-12 overflow-hidden p-8 sm:p-12">
-				<div className="absolute inset-0 grid-floor" aria-hidden />
-				<ThreatField entities={48} flagged={report.soar.by_mode.auto_contain ?? 5} />
-				<div className="relative">
-					<div className="flex flex-wrap items-center gap-3">
-						<LiveBadge status={live} />
-						<span className="tabular panel px-2.5 py-1 text-[14px] text-ink-dim">
-							threshold {op.threshold.toFixed(6)}
-						</span>
-					</div>
-
-					<BentoGrid className="mt-10">
-						<Stat
-							label="Recall at budget"
-							value={op.recall * 100}
-							suffix="%"
-							foot={`${op.alerts_per_day.toFixed(2)} alerts/day sustained`}
-							accent="var(--color-signal)"
-						/>
-						<Stat
-							label="Precision (eval prior)"
-							value={op.precision_eval * 100}
-							suffix="%"
-							foot={`FPR ${op.fpr.toExponential(2)}`}
-							accent="var(--color-safe)"
-						/>
-						<Stat
-							label="PPV at 1e-4 prior"
-							value={op.ppv_at_deployment_prior * 100}
-							suffix="%"
-							foot="the base-rate reality check"
-							accent="var(--color-alarm)"
-						/>
-						<Stat
-							label="Calibration (Brier)"
-							value={report.calibration.brier_test}
-							decimals={4}
-							foot={`ECE ${report.calibration.ece_test.toFixed(4)}`}
-						/>
-					</BentoGrid>
-
-					<Marquee
-						className="mt-10"
-						items={[
-							`${Number(windows.total ?? 0).toLocaleString()} windows`,
-							`train ${Number(windows.train ?? 0).toLocaleString()}`,
-							`calibration ${Number(windows.calibration ?? 0).toLocaleString()}`,
-							`test ${Number(windows.test ?? 0).toLocaleString()}`,
-							`threshold ${op.threshold.toFixed(6)}`,
-							`prior shift ${report.calibration.prior_shift_logodds.toFixed(3)} logodds`,
-							`SOAR decisions ${report.soar.decisions}`,
-							`audit chain ${report.soar.audit_chain_valid ? 'valid' : 'BROKEN'}`,
-							`generated ${report.generated_at}`,
-						]}
-					/>
-				</div>
-			</div>
-		</section>
-	)
-}
-
-function LiveBadge({ status }: { status: LiveStatus }) {
-	const map: Record<LiveStatus, { text: string; color: string }> = {
-		unknown: { text: 'probing scorer', color: 'var(--color-ink-faint)' },
-		online: { text: 'live scorer online', color: 'var(--color-safe)' },
-		offline: { text: 'static artifacts only', color: 'var(--color-watch)' },
-	}
-	const v = map[status]
-	return (
-		<span className="panel inline-flex items-center gap-2 px-2.5 py-1 text-[14px]">
-			<motion.span
-				className="h-2 w-2 rounded-full"
-				style={{ backgroundColor: v.color }}
-				animate={status === 'online' ? { opacity: [1, 0.35, 1] } : undefined}
-				transition={{ duration: 2, repeat: Infinity }}
-			/>
-			<span style={{ color: v.color }}>{v.text}</span>
-		</span>
-	)
-}
-
-/* -------------------------------------------------------------------------- */
 
 function SweepSection({ report }: { report: Bundle['report'] }) {
 	return (
