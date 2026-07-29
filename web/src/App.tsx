@@ -22,15 +22,25 @@ import {
 	ThreatField,
 } from '@/components/bits'
 import { AttributionBars, CompareBars, SweepChart } from '@/components/charts'
+import { CursorGlow, ScrollProgress } from '@/components/anime'
+import {
+	CommandPalette,
+	EntityRiskSection,
+	HuntSection,
+	type PaletteItem,
+} from '@/components/interactive'
 import {
 	driftRows,
 	familyRows,
 	loadBundle,
+	loadExtras,
 	probeApi,
 	type Alert,
 	type Bundle,
+	type Extras,
 	type LiveStatus,
 } from '@/lib/data'
+import { HUNT_EXAMPLES } from '@/lib/hunt'
 import { cn } from '@/lib/cn'
 
 const SECTIONS = [
@@ -42,6 +52,8 @@ const SECTIONS = [
 	{ id: 'drift', label: 'Drift' },
 	{ id: 'soar', label: 'Response' },
 	{ id: 'stack', label: 'Stack' },
+	{ id: 'entities', label: 'Entities' },
+	{ id: 'hunt', label: 'Hunt' },
 ]
 
 export default function App() {
@@ -49,11 +61,16 @@ export default function App() {
 	const [error, setError] = useState<string | null>(null)
 	const [live, setLive] = useState<LiveStatus>('unknown')
 	const [active, setActive] = useState('top')
+	const [extras, setExtras] = useState<Extras>({})
+	const [huntPreset, setHuntPreset] = useState<string | undefined>(undefined)
 
 	useEffect(() => {
 		loadBundle()
 			.then(setBundle)
 			.catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
+		// Optional artifacts, loaded separately: an older artifacts directory
+		// without them must hide those sections, not break the page.
+		void loadExtras().then(setExtras)
 		const ctrl = new AbortController()
 		void probeApi(ctrl.signal).then(setLive)
 		return () => ctrl.abort()
@@ -100,6 +117,29 @@ export default function App() {
 	const { report, alerts, decisions } = bundle
 	const op = report.operating_point
 
+	const jump = (id: string) =>
+		document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+	// The palette carries sections first, then saved hunts, so a reviewer can run
+	// a real query without having to learn the grammar first.
+	const paletteItems: PaletteItem[] = [
+		...SECTIONS.map((s) => ({
+			id: `jump-${s.id}`,
+			label: `Go to ${s.label}`,
+			hint: 'section',
+			run: () => jump(s.id),
+		})),
+		...HUNT_EXAMPLES.map((example, i) => ({
+			id: `hunt-${i}`,
+			label: example.why,
+			hint: 'hunt',
+			run: () => {
+				setHuntPreset(example.query)
+				jump('hunt')
+			},
+		})),
+	]
+
 	return (
 		<div className="min-h-screen">
 			<a
@@ -126,8 +166,16 @@ export default function App() {
 				<DriftSection report={report} />
 				<SoarSection report={report} decisions={decisions} />
 				<StackSection report={report} />
+				{extras.entityRisk ? <EntityRiskSection data={extras.entityRisk} /> : null}
+				{extras.huntIndex ? (
+					<HuntSection index={extras.huntIndex} presetQuery={huntPreset} />
+				) : null}
 				<Footer op={op} />
 			</main>
+
+			<ScrollProgress />
+			<CursorGlow />
+			<CommandPalette items={paletteItems} />
 		</div>
 	)
 }
