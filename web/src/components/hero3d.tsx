@@ -342,7 +342,17 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 
 		const tl = createTimeline({
 			defaults: { ease: 'inOut(3)' },
-			autoplay: onScroll({ target: section, sync: 0.18 }),
+			autoplay: onScroll({
+				target: section,
+				// Map progress 0..1 to exactly the pinned range: the timeline starts
+				// when the section's top reaches the viewport top and completes when
+				// its bottom reaches the viewport bottom. The defaults ('end start' /
+				// 'start end') would burn the first ~15% of the timeline while the
+				// section is still approaching the viewport.
+				enter: 'top top',
+				leave: 'bottom bottom',
+				sync: 0.18,
+			}),
 		})
 		tl.add(cam, { x: 10, y: 4, z: 18, duration: 960 }, 600)
 			.add(fx, { particleSpeed: 3, edgeAlpha: 0.55, duration: 960 }, 600)
