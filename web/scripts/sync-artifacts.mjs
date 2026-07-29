@@ -21,7 +21,13 @@ const target = join(webRoot, 'public', 'data')
 // Only what the UI actually reads. scored_test_windows.csv is 4.5 MB and is
 // deliberately NOT shipped to the browser.
 const REQUIRED = ['report.json', 'alerts.json', 'soar_decisions.json']
-const OPTIONAL = ['budget_sweep.json', 'drift_psi.json', 'audit_log.json']
+const OPTIONAL = [
+	'budget_sweep.json',
+	'drift_psi.json',
+	'audit_log.json',
+	'entity_risk.json',
+	'hunt_index.json',
+]
 
 async function exists(path) {
 	try {

@@ -248,3 +248,69 @@ export function driftRows(d: Report['drift_and_active_learning']): DriftRow[] {
 		},
 	].filter((r) => typeof r.before === 'number' && typeof r.after === 'number')
 }
+
+/* -------------------------------------------------------------------------- */
+/* Optional artifacts.                                                        */
+/*                                                                            */
+/* entity_risk.json and hunt_index.json are produced by newer pipeline stages. */
+/* An older artifacts directory will not contain them, and that must degrade   */
+/* to a hidden section rather than a broken console, so these are fetched      */
+/* separately from the required bundle and every failure resolves to           */
+/* undefined.                                                                  */
+/* -------------------------------------------------------------------------- */
+
+export type EntityRiskEntry = {
+	entity: string
+	windows: number
+	alerts: number
+	risk: number
+	max_probability: number
+	mean_probability: number
+	truth_attack_windows: number
+	truth_families: string[]
+	timeline: number[]
+}
+
+export type EntityRiskBundle = {
+	generated_at: string
+	method: string
+	assumption_violated: string
+	threshold: number
+	top_k: number
+	entity_count: number
+	ranks_of_true_positive_entities: number[]
+	entities: EntityRiskEntry[]
+}
+
+export type HuntIndex = {
+	generated_at: string
+	fields: string[]
+	threshold: number
+	total_scored_windows: number
+	rows_in_index: number
+	sampling: string
+	rows: Array<Record<string, number | string>>
+}
+
+export type Extras = {
+	entityRisk?: EntityRiskBundle
+	huntIndex?: HuntIndex
+}
+
+async function optionalJson<T>(url: string): Promise<T | undefined> {
+	try {
+		const res = await fetch(url)
+		if (!res.ok) return undefined
+		return (await res.json()) as T
+	} catch {
+		return undefined
+	}
+}
+
+export async function loadExtras(base = './data'): Promise<Extras> {
+	const [entityRisk, huntIndex] = await Promise.all([
+		optionalJson<EntityRiskBundle>(`${base}/entity_risk.json`),
+		optionalJson<HuntIndex>(`${base}/hunt_index.json`),
+	])
+	return { entityRisk, huntIndex }
+}
