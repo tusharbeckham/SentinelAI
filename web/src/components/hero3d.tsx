@@ -121,3 +121,64 @@ const ACTS: Act[] = [
 		n: "06",
 		id: "response",
 		name: "Response",
+		color: "var(--color-alarm)",
+		body: "One point stands highest: h002, rank 1 of 11,326. Policy-driven playbooks act on what crossed the gate, every decision hash-chained into the audit log.",
+		chips: ["h002 \u00B7 p = 0.9866", "auto_contain", "chain valid"],
+	},
+]
+
+/** Progress boundaries where acts 1..6 begin (act 0 is the title). */
+const ACT_BOUNDARIES = [0.1, 0.26, 0.42, 0.58, 0.73, 0.86]
+
+type Embedding = {
+	n: number
+	thresholdY: number
+	rank1: number
+	pos: number[]
+	p: number[]
+	fam: number[]
+}
+
+export function NetworkHero({ report, live }: { report: Bundle["report"]; live: LiveStatus }) {
+	const reduced = useReducedMotion()
+	const sectionRef = useRef<HTMLElement | null>(null)
+	const mountRef = useRef<HTMLDivElement | null>(null)
+	const probRef = useRef<HTMLSpanElement | null>(null)
+	const titleRef = useRef<HTMLDivElement | null>(null)
+	const [act, setAct] = useState(0)
+	const [failed, setFailed] = useState(false)
+
+	useEffect(() => {
+		if (reduced) return
+		const mount = mountRef.current
+		const section = sectionRef.current
+		if (!mount || !section) return
+
+		let renderer: THREE.WebGLRenderer
+		try {
+			renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" })
+		} catch {
+			setFailed(true)
+			return
+		}
+		renderer.setPixelRatio(Math.min(window.devicePixelRatio, mount.clientWidth < 768 ? 1.5 : 2))
+		renderer.setSize(mount.clientWidth, Math.max(mount.clientHeight, 1))
+		renderer.toneMapping = THREE.ACESFilmicToneMapping
+		renderer.toneMappingExposure = 1.06
+		renderer.outputColorSpace = THREE.SRGBColorSpace
+		mount.appendChild(renderer.domElement)
+
+		const scene = new THREE.Scene()
+		scene.background = new THREE.Color(CANVAS)
+		scene.fog = new THREE.FogExp2(CANVAS, 0.021)
+		const camera = new THREE.PerspectiveCamera(50, mount.clientWidth / Math.max(mount.clientHeight, 1), 0.1, 260)
+		camera.position.set(0, 3.2, 34)
+
+		const composer = new EffectComposer(renderer)
+		composer.addPass(new RenderPass(scene, camera))
+		/*
+		 * Bloom threshold 1.0 makes glow opt-in by authoring: a colour blooms only
+		 * if a channel exceeds 1. Alerted points are pushed above 1 in the shader
+		 * and benign points sit far below, so ignition reads as light rather than
+		 * as a blur smeared over everything.
+		 */
