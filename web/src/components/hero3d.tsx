@@ -23,6 +23,7 @@ import { createTimer, createTimeline, onScroll } from 'animejs'
 import { motion } from 'motion/react'
 import { useReducedMotion } from '@/components/anime'
 import { cn } from '@/lib/cn'
+import { HeroHud } from '@/components/herohud'
 import type { Bundle, LiveStatus } from '@/lib/data'
 
 const CANVAS = 0x0a0b0d
