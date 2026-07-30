@@ -38,3 +38,22 @@ const READOUTS: Array<{ mode: string; note: string }> = [
 
 export function HeroHud({ act, className }: Props) {
 	/* Tick geometry is deterministic, so it is built once and never rebuilt. */
+	const ticks = useMemo(
+		() =>
+			Array.from({ length: TICKS }, (_, i) => {
+				const a = (i / TICKS) * Math.PI * 2
+				const major = i % 6 === 0
+				const inner = major ? 232 : 244
+				return {
+					i,
+					major,
+					x1: CX + Math.cos(a) * inner,
+					y1: CY + Math.sin(a) * inner,
+					x2: CX + Math.cos(a) * 256,
+					y2: CY + Math.sin(a) * 256,
+				}
+			}),
+		[],
+	)
+
+	const r = READOUTS[Math.min(act, READOUTS.length - 1)]
