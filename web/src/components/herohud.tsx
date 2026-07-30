@@ -25,3 +25,30 @@ type Props = { act: number; className?: string }
 const LEGEND: Array<{ k: string; c: string }> = [
 	{ k: "benign", c: "#39414f" },
 	{ k: "brute_force", c: "#e97366" },
+	{ k: "dns_tunnel", c: "#bf8eda" },
+	{ k: "dos", c: "#de9255" },
+	{ k: "exfil", c: "#e0b15a" },
+	{ k: "lateral", c: "#5e9fe8" },
+	{ k: "portscan", c: "#72bc8f" },
+]
+
+/* One readout set per act. Act 0 is deliberately empty: the title page stays
+   clean, which is the whole complaint the previous version earned. */
+const READOUTS: Array<Array<[string, string]>> = [
+	[],
+	[
+		["corpus", "11,326 windows"],
+		["features", "40"],
+		["split", "held-out test"],
+	],
+	[
+		["PC1", "22.5% var"],
+		["PC2", "12.5% var"],
+		["benign", "11,257"],
+	],
+	[
+		["y axis", "model log-odds"],
+		["range", "\u221210.40 \u2026 +4.30"],
+	],
+	[
+		["stacker", "logistic, calibrated"],
