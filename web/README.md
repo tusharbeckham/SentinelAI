@@ -126,3 +126,15 @@ attacks stranded below it are visible directly.
 
 Regenerate the projection with `python scripts/make_embedding.py`, then
 `npm run sync-data`. Design rationale lives in `HERO-3D-PLAN-V5.md`.
+
+### Improving the projection
+
+The committed `scripts/make_embedding.py` uses PCA, which is linear: PC1 and PC2 hold
+only 22.5% and 12.5% of the variance, so the benign mass flattens into one smear. For a
+projection with real cluster structure, run `notebooks/sentinelai-embedding-kaggle.ipynb`
+on a GPU, which computes the horizontal layout with UMAP and emits a schema-identical
+`embedding.json`.
+
+Only `x` and `z` may ever change. `y` is the model log-odds, which is what makes the
+decision threshold an exact plane rather than an illustration. The notebook asserts the
+plane still reproduces precision 0.7959 and recall 0.6610 before it writes anything.
