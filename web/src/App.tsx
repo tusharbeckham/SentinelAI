@@ -13,7 +13,6 @@ import {
 	AnimatedList,
 	Dock,
 	GlowCard,
-	Marquee,
 	ScrollReveal,
 	ShimmeringText,
 } from '@/components/bits'
