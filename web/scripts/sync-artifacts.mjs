@@ -28,6 +28,7 @@ const OPTIONAL = [
 	'entity_risk.json',
 	'hunt_index.json',
 	'alert_trace.json',
+	'embedding.json',
 ]
 
 async function exists(path) {
