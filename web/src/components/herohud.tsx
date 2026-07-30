@@ -79,3 +79,30 @@ export function HeroHud({ act, className }: Props) {
 				className="absolute inset-6 hidden md:block"
 				initial={false}
 				animate={{ opacity: on ? 0.5 : 0.16 }}
+				transition={{ duration: 0.7, ease: "easeOut" }}
+			>
+				{[
+					"left-0 top-0 border-l border-t",
+					"right-0 top-0 border-r border-t",
+					"left-0 bottom-0 border-l border-b",
+					"right-0 bottom-0 border-r border-b",
+				].map((pos) => (
+					<span key={pos} className={cn("hud-line absolute h-5 w-5", pos)} />
+				))}
+			</motion.div>
+
+			{/* Axis triad, bottom-left. This is the key to reading the scene: two
+			    principal components on the floor, model confidence as height. */}
+			<motion.div
+				className="absolute bottom-6 left-6 flex items-end gap-3"
+				initial={false}
+				animate={{ opacity: on ? 1 : 0, y: on ? 0 : 8 }}
+				transition={{ duration: 0.6, ease: "easeOut" }}
+			>
+				<svg viewBox="0 0 60 60" className="h-12 w-12 opacity-80">
+					<g stroke="currentColor" strokeWidth="1" fill="none" className="hud-line-faint">
+						<path d="M14 46 L52 46" />
+						<path d="M14 46 L2 56" />
+						<path d="M14 46 L14 6" />
+					</g>
+					<g fill="currentColor" className="hud-line-faint">
