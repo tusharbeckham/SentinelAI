@@ -244,30 +244,51 @@
  * came from stacking duplicates, and this never does that.
  * --------------------------------------------------------------- */
 .ai-gradient {
+	/*
+	 * Seamless shine. The previous version panned 130% -> -130% across a 260%
+	 * background box: a travel of 1.6 box-widths, which is not a whole number
+	 * of tiles, so every wrap landed mid-gradient and cut the highlight in half.
+	 *
+	 * The fix is to make the loop provably periodic:
+	 *   - the tile is an explicit width (--ai-tile) rather than a percentage of
+	 *     the text, so its size does not depend on how wide "AI" happens to be;
+	 *   - the first and last colour stops are identical, so tiling is invisible;
+	 *   - the gradient is exactly horizontal, so a horizontal shift changes
+	 *     phase by exactly that distance (a tilted gradient would shift phase by
+	 *     dx * sin(angle) and would need the travel divided by that factor);
+	 *   - the animation travels exactly one tile, so the last frame is pixel
+	 *     identical to the first and there is no wrap discontinuity at all.
+	 */
+	--ai-tile: 3.5em;
 	background-image: linear-gradient(
-		100deg,
+		90deg,
 		#4d84d8 0%,
-		#5e9fe8 18%,
-		#a9d4ff 34%,
+		#5e9fe8 16%,
+		#a9d4ff 33%,
 		#ffffff 44%,
-		#a9d4ff 54%,
-		#5e9fe8 70%,
+		#eaf4ff 50%,
+		#a9d4ff 60%,
+		#5e9fe8 80%,
 		#4d84d8 100%
 	);
-	background-size: 260% 100%;
+	background-size: var(--ai-tile) 100%;
+	background-repeat: repeat;
 	background-clip: text;
 	-webkit-background-clip: text;
 	color: transparent;
-	animation: ai-pan 6.5s linear infinite;
+	animation: ai-pan 3.5s linear infinite;
+	/* Promote to its own layer so the pan never re-rasterises the glyphs. */
+	will-change: background-position;
 }
 
 @keyframes ai-pan {
 	from {
-		background-position: 130% 50%;
+		background-position: 0 50%;
 	}
 	to {
-		background-position: -130% 50%;
+		background-position: calc(-1 * var(--ai-tile)) 50%;
 	}
+}
 }
 
 /* ---------------------------------------------------------------
