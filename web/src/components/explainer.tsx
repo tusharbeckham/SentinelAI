@@ -17,6 +17,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { animate, stagger, utils } from 'animejs'
 
 import { useReducedMotion } from '@/components/anime'
+import { ScrollReveal } from '@/components/bits'
 import { cn } from '@/lib/cn'
 import type { AlertTrace, TraceBand, TraceLeg, TraceStage, TraceTerm } from '@/lib/data'
 
@@ -647,6 +648,7 @@ export function PipelineExplainer({ trace }: { trace: AlertTrace }) {
 
 	return (
 		<section id="explain" className="scroll-mt-24">
+			<ScrollReveal>
 			<header className="flex flex-wrap items-end justify-between gap-4">
 				<div>
 					<div className="text-[13px] uppercase tracking-wide text-ink-faint">
@@ -668,6 +670,7 @@ export function PipelineExplainer({ trace }: { trace: AlertTrace }) {
 					</div>
 				</div>
 			</header>
+			</ScrollReveal>
 
 			{/* Stage rail. Buttons, not scroll capture: the reader sets the pace. */}
 			<div
