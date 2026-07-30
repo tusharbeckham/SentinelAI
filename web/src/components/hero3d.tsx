@@ -189,10 +189,8 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 		const inst = new THREE.InstancedMesh(nodeGeo, nodeMat, layout.nodes.length - 1)
 		world.add(inst)
 		const dummy = new THREE.Object3D()
-		const alertNode = new THREE.Mesh(
-			new THREE.IcosahedronGeometry(0.3, 1),
-			new THREE.MeshBasicMaterial({ color: ALARM, transparent: true, opacity: 0.4 }),
-		)
+		const alertMat = new THREE.MeshBasicMaterial({ color: ALARM, transparent: true, opacity: 0.4 })
+		const alertNode = new THREE.Mesh(new THREE.IcosahedronGeometry(0.3, 1), alertMat)
 		alertNode.position.copy(ALERT_POS)
 		world.add(alertNode)
 
@@ -293,10 +291,13 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 		world.add(beam)
 
 		/* Containment shell closing over h002 in the final act. */
-		const shell = new THREE.Mesh(
-			new THREE.IcosahedronGeometry(1, 1),
-			new THREE.MeshBasicMaterial({ color: ALARM, wireframe: true, transparent: true, opacity: 0 }),
-		)
+		const shellMat = new THREE.MeshBasicMaterial({
+			color: ALARM,
+			wireframe: true,
+			transparent: true,
+			opacity: 0,
+		})
+		const shell = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 1), shellMat)
 		shell.position.copy(ALERT_POS)
 		shell.scale.setScalar(0.01)
 		world.add(shell)
@@ -390,10 +391,12 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 		ro.observe(mount)
 
 		let lastAct = -1
+		let loggedError = false
 		const tmpV = new THREE.Vector3()
 		const timer = createTimer({
 			onUpdate: (t) => {
 				if (!visible) return
+				try {
 				const dt = Math.min(t.deltaTime / 1000, 0.05)
 				const time = t.currentTime / 1000
 
@@ -441,7 +444,7 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 
 				const pulse = 1 + fx.alertGlow * (0.12 * Math.sin(time * 4) + 0.5)
 				alertNode.scale.setScalar(pulse)
-				alertNode.material.opacity = 0.4 + fx.alertGlow * 0.55
+				alertMat.opacity = 0.4 + fx.alertGlow * 0.55
 
 				beam.scale.y = Math.max(fx.beam * 9, 0.01)
 				beamMat.opacity = fx.beam * 0.6
@@ -471,6 +474,16 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 				}
 
 				renderer.render(scene, camera)
+				} catch (err) {
+					// A throw inside this callback used to kill the render call at the
+					// bottom of the frame, leaving a blank canvas with no console trace
+					// anyone would connect to the hero. Log once, keep drawing.
+					if (!loggedError) {
+						loggedError = true
+						console.error('[hero3d] frame update failed:', err)
+					}
+					renderer.render(scene, camera)
+				}
 			},
 		})
 
