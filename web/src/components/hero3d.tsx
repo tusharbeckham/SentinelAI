@@ -305,3 +305,65 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			.then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
 			.then((emb: Embedding) => {
 				if (disposed) return
+				const n = emb.n
+				thresholdY = emb.thresholdY
+				pointMat.uniforms.uThresh.value = thresholdY
+
+				const pos = new Float32Array(emb.pos)
+				const scatter = new Float32Array(n * 3)
+				const color = new Float32Array(n * 3)
+				const pArr = new Float32Array(n)
+				const rank = new Float32Array(n)
+				const rnd = lcg(7)
+				const tmp = new THREE.Color()
+
+				for (let i = 0; i < n; i++) {
+					/* Act 1 opens as an unordered stream: a wide shell of raw records
+					   with no structure, which then collapses into the real manifold. */
+					const a = rnd() * Math.PI * 2
+					const b = Math.acos(2 * rnd() - 1)
+					const rr = 30 + rnd() * 46
+					scatter[i * 3] = Math.sin(b) * Math.cos(a) * rr
+					scatter[i * 3 + 1] = Math.cos(b) * rr * 0.42
+					scatter[i * 3 + 2] = Math.sin(b) * Math.sin(a) * rr
+
+					tmp.setHex(FAMILY_COLOR[emb.fam[i]] ?? FAMILY_COLOR[0])
+					color[i * 3] = tmp.r
+					color[i * 3 + 1] = tmp.g
+					color[i * 3 + 2] = tmp.b
+					pArr[i] = emb.p[i]
+					rank[i] = i === emb.rank1 ? 1 : 0
+				}
+
+				const geo = new THREE.BufferGeometry()
+				geo.setAttribute("position", new THREE.BufferAttribute(pos, 3))
+				geo.setAttribute("aScatter", new THREE.BufferAttribute(scatter, 3))
+				geo.setAttribute("aColor", new THREE.BufferAttribute(color, 3))
+				geo.setAttribute("aP", new THREE.BufferAttribute(pArr, 1))
+				geo.setAttribute("aRank", new THREE.BufferAttribute(rank, 1))
+				geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), 90)
+
+				const pts = new THREE.Points(geo, pointMat)
+				pts.frustumCulled = false
+				world.add(pts)
+
+				marker.position.set(pos[emb.rank1 * 3], pos[emb.rank1 * 3 + 1], pos[emb.rank1 * 3 + 2])
+				marker.visible = true
+				plane.visible = true
+				mount.style.transition = "opacity 900ms ease"
+				mount.style.opacity = "1"
+			})
+			.catch(() => {
+				if (!disposed) setFailed(true)
+			})
+
+		/*
+		 * Choreography reads the native scroll position directly instead of going
+		 * through a timeline library. The hero has to stay exactly in step with
+		 * the scrollbar -- no easing lag, no hijacked wheel -- and sampling the
+		 * section rect each frame is both simpler and impossible to desynchronise.
+		 */
+		const seg = (p: number, a: number, b: number) => clamp01((p - a) / Math.max(b - a, 1e-6))
+		const smooth = (t: number) => t * t * (3 - 2 * t)
+		const outCubic = (t: number) => 1 - Math.pow(1 - t, 3)
+
