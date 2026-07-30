@@ -42,3 +42,18 @@ Consequences that fall out for free:
 
 - 10 benign points sit visibly **above** the plane -- the false positives.
 - 20 attack points sit visibly **below** it -- the misses.
+- The plane counts reproduce the published operating point exactly:
+  precision `0.7959`, recall `0.6610`. The generator asserts this and fails
+  the build if it ever drifts.
+
+## Six acts
+
+| # | Act | What moves |
+| --- | --- | --- |
+| 01 | The corpus | 11,326 windows rain in from an unordered shell |
+| 02 | Feature space | they settle into the PCA manifold |
+| 03 | The score axis | `uLift` 0 to 1 raises the flat sheet into log-odds |
+| 04 | Fusion | the stacker equation sets the height |
+| 05 | The plane | threshold sweeps in; 49 ignite, 20 stay dark |
+| 06 | Response | rank 1 (h002) is caged and selected |
+
