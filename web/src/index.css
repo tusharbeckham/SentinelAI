@@ -373,3 +373,24 @@
 .hud-spin {
 	animation: hud-spin 64s linear infinite;
 }
+
+.hud-spin-rev {
+	animation: hud-spin-rev 96s linear infinite;
+}
+
+@keyframes hud-scan {
+	0% {
+		transform: translateY(120px);
+		opacity: 0;
+	}
+	14% {
+		opacity: 1;
+	}
+	86% {
+		opacity: 1;
+	}
+	100% {
+		transform: translateY(830px);
+		opacity: 0;
+	}
+}
