@@ -17,6 +17,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { createTimer, createTimeline, onScroll } from 'animejs'
 import { motion } from 'motion/react'
 import { useReducedMotion } from '@/components/anime'
@@ -29,9 +30,6 @@ const SAFE = 0x72bc8f
 const WATCH = 0xde9255
 const ALARM = 0xe97366
 const GRAPH = 0xbf8eda
-
-/** h002 -- the same entity the Explain section walks through. */
-const ALERT_POS = new THREE.Vector3(2.2, 0.6, 1.8)
 
 /** Deterministic PRNG (seed 7, like the pipeline) so the layout never changes. */
 function lcg(seed: number) {
@@ -52,52 +50,6 @@ function lcg(seed: number) {
 const hdr = (hex: number, k: number) => new THREE.Color(hex).multiplyScalar(k)
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v)
-
-type Layout = {
-	nodes: THREE.Vector3[]
-	swell: number[]
-	edges: Array<[number, number]>
-	alertEdges: Array<[number, number]>
-}
-
-function buildLayout(): Layout {
-	const rand = lcg(7)
-	const gauss = () => (rand() + rand() + rand() - 1.5) * 2.2
-	const nodes: THREE.Vector3[] = [ALERT_POS.clone()]
-	const clusters = [
-		new THREE.Vector3(0, 0, 0),
-		new THREE.Vector3(-9, 1, -4),
-		new THREE.Vector3(8, -0.5, 6),
-	]
-	for (let i = 0; i < 39; i++) {
-		const c = clusters[i % 3]
-		nodes.push(new THREE.Vector3(c.x + gauss(), c.y + gauss() * 0.6, c.z + gauss()))
-	}
-	const swell = nodes.map(() => 0.3 + rand() * 0.7)
-	const seen = new Set<string>()
-	const edges: Array<[number, number]> = []
-	const alertEdges: Array<[number, number]> = []
-	const push = (a: number, b: number) => {
-		if (a === b) return
-		const key = a < b ? a + '-' + b : b + '-' + a
-		if (seen.has(key)) return
-		seen.add(key)
-		if (a === 0 || b === 0) alertEdges.push([a, b])
-		else edges.push([a, b])
-	}
-	nodes.forEach((p, i) => {
-		const dists = nodes
-			.map((q, j) => ({ j, d: p.distanceToSquared(q) }))
-			.filter((e) => e.j !== i)
-			.sort((x, y) => x.d - y.d)
-		push(i, dists[0].j)
-		push(i, dists[1].j)
-	})
-	for (let k = 0; k < 10; k++) {
-		push(1 + Math.floor(rand() * 39), 1 + Math.floor(rand() * 39))
-	}
-	return { nodes, swell, edges, alertEdges }
-}
 
 type Act = {
 	n: string
@@ -217,167 +169,198 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 
 		const world = new THREE.Group()
 		scene.add(world)
-		const layout = buildLayout()
-
-		/* Host nodes: 39 instanced + the alert node kept separate so it can glow. */
-		const nodeGeo = new THREE.IcosahedronGeometry(0.22, 1)
-		// White base: the instance colour carries both hue and HDR intensity.
-		const nodeMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 })
-		const inst = new THREE.InstancedMesh(nodeGeo, nodeMat, layout.nodes.length - 1)
-		world.add(inst)
-		const dummy = new THREE.Object3D()
-		// Tint by subnet so the three clusters are legible before any label shows.
-		const CLUSTER_TINT = [SIGNAL, SAFE, GRAPH]
-		const tint = new THREE.Color()
-		for (let i = 1; i < layout.nodes.length; i++) {
-			tint.copy(hdr(CLUSTER_TINT[(i - 1) % 3], 1.35))
-			inst.setColorAt(i - 1, tint)
-		}
-		if (inst.instanceColor) inst.instanceColor.needsUpdate = true
-		const alertMat = new THREE.MeshBasicMaterial({ color: hdr(ALARM, 2.6), transparent: true, opacity: 0.4 })
-		const alertNode = new THREE.Mesh(new THREE.IcosahedronGeometry(0.3, 1), alertMat)
-		alertNode.position.copy(ALERT_POS)
-		world.add(alertNode)
-
-		/* Flow edges, with h002's edges on their own material so they can sever. */
-		const mkLines = (pairs: Array<[number, number]>, opacity: number) => {
-			const pos = new Float32Array(pairs.length * 6)
-			pairs.forEach(([a, b], i) => {
-				const p = layout.nodes[a]
-				const q = layout.nodes[b]
-				pos.set([p.x, p.y, p.z, q.x, q.y, q.z], i * 6)
-			})
-			const g = new THREE.BufferGeometry()
-			g.setAttribute('position', new THREE.BufferAttribute(pos, 3))
-			const m = new THREE.LineBasicMaterial({
-				color: SIGNAL,
-				transparent: true,
-				opacity,
-				blending: THREE.AdditiveBlending,
-				depthWrite: false,
-			})
-			const l = new THREE.LineSegments(g, m)
-			world.add(l)
-			return m
-		}
-		const edgeMat = mkLines(layout.edges, 0.28)
-		const alertEdgeMat = mkLines(layout.alertEdges, 0.4)
-		const allPairs = [...layout.edges, ...layout.alertEdges]
-
-		/* Flow particles: 600 points walking the edges. */
-		const P = 600
-		const pPos = new Float32Array(P * 3)
-		const pEdge = new Uint32Array(P)
-		const pT = new Float32Array(P)
-		const pSpeed = new Float32Array(P)
-		const prand = lcg(99)
-		for (let i = 0; i < P; i++) {
-			pEdge[i] = Math.floor(prand() * allPairs.length)
-			pT[i] = prand()
-			pSpeed[i] = 0.1 + prand() * 0.25
-		}
-		const pScale = new Float32Array(P)
-		for (let i = 0; i < P; i++) pScale[i] = 0.6 + prand() * 1.0
-		const pGeo = new THREE.BufferGeometry()
-		pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3))
-		pGeo.setAttribute('aScale', new THREE.BufferAttribute(pScale, 1))
 
 		/*
-		 * Point size is specified in world terms, not pixels: dividing the pixel
-		 * scale by view depth means a particle keeps its apparent size when the
-		 * window is resized or the page is opened on a 4K display. PointsMaterial
-		 * would have drawn hard squares, or cost a texture fetch per fragment to
-		 * round them off.
+		 * THE APERTURE -- design contract in web/HERO-3D-PLAN-V3.md.
+		 *
+		 * A lens is what this pipeline literally does: scattered rays in, one focal
+		 * point out. And the iris IS the alert budget -- stopping it down is what
+		 * raising the threshold does. So the hero is one machined instrument the
+		 * reader watches operate, not a field of drifting dots.
 		 */
-		const pixelScale = () =>
-			(Math.max(mount.clientHeight, 1) * 0.5) / Math.tan(((camera.fov * Math.PI) / 180) / 2)
-		const pMat = new THREE.ShaderMaterial({
-			uniforms: {
-				uColor: { value: hdr(SIGNAL, 2.2) },
-				uOpacity: { value: 0.85 },
-				uSize: { value: 0.05 },
-				uPixelScale: { value: pixelScale() },
-			},
-			vertexShader: `
-				uniform float uSize;
-				uniform float uPixelScale;
-				attribute float aScale;
-				void main() {
-					vec4 mv = modelViewMatrix * vec4(position, 1.0);
-					gl_PointSize = uSize * aScale * uPixelScale / max(-mv.z, 0.001);
-					gl_Position = projectionMatrix * mv;
-				}
-			`,
-			fragmentShader: `
-				uniform vec3 uColor;
-				uniform float uOpacity;
-				void main() {
-					float d = length(gl_PointCoord - vec2(0.5));
-					if (d > 0.5) discard;
-					// Tight core, wide halo -- the profile bloom reads best.
-					float a = pow(smoothstep(0.5, 0.0, d), 1.8);
-					gl_FragColor = vec4(uColor, a * uOpacity);
-				}
-			`,
+
+		/*
+		 * Metal and glass are only convincing if there is something to reflect.
+		 * RoomEnvironment is a procedural interior -- no asset, no network request --
+		 * prefiltered once into an env map. This is the single biggest difference
+		 * between "shaded" and "machined".
+		 */
+		const pmrem = new THREE.PMREMGenerator(renderer)
+		const envRT = pmrem.fromScene(new RoomEnvironment(), 0.04)
+		scene.environment = envRT.texture
+		scene.environmentIntensity = 0.3
+
+		const keyLight = new THREE.DirectionalLight(0xdce8ff, 2.1)
+		keyLight.position.set(7, 9, 12)
+		scene.add(keyLight)
+		const rimLight = new THREE.DirectionalLight(SIGNAL, 1.35)
+		rimLight.position.set(-9, -4, -7)
+		scene.add(rimLight)
+		scene.add(new THREE.AmbientLight(0x141a24, 1.4))
+
+		const metal = (c: number, roughness: number) =>
+			new THREE.MeshStandardMaterial({ color: c, metalness: 0.94, roughness })
+
+		/* --- Housing: two barrel sections the optic sits between. --- */
+		const barrelGeo = new THREE.CylinderGeometry(5.1, 5.1, 1.4, 128, 1, true)
+		barrelGeo.rotateX(Math.PI / 2)
+		const barrelMat = metal(0x15181d, 0.3)
+		barrelMat.side = THREE.DoubleSide
+		for (const z of [-3.0, 3.0]) {
+			const m = new THREE.Mesh(barrelGeo, barrelMat)
+			m.position.z = z
+			world.add(m)
+		}
+		const knurlMat = metal(0x24282f, 0.2)
+		for (const z of [-3.7, -2.3, 2.3, 3.7]) {
+			const r = new THREE.Mesh(new THREE.TorusGeometry(5.12, 0.1, 12, 180), knurlMat)
+			r.position.z = z
+			world.add(r)
+		}
+
+		/*
+		 * --- Iris: nine blades on nine pivots. ---
+		 * Each blade is an extruded Shape with a bevel; the bevel is what catches the
+		 * key light along the blade edge and makes the assembly read as machined
+		 * rather than as flat cutouts.
+		 */
+		const BLADES = 9
+		const bladeShape = new THREE.Shape()
+		bladeShape.moveTo(0, 0)
+		bladeShape.quadraticCurveTo(2.7, 0.55, 5.0, 0.25)
+		bladeShape.quadraticCurveTo(3.6, 3.1, 0.25, 4.7)
+		bladeShape.quadraticCurveTo(0.06, 2.0, 0, 0)
+		const bladeGeo = new THREE.ExtrudeGeometry(bladeShape, {
+			depth: 0.1,
+			bevelEnabled: true,
+			bevelSize: 0.04,
+			bevelThickness: 0.035,
+			bevelSegments: 2,
+			curveSegments: 28,
+		})
+		const bladeMat = metal(0x2b3038, 0.16)
+		const bladePivots: THREE.Group[] = []
+		const bladeBase: number[] = []
+		for (let i = 0; i < BLADES; i++) {
+			const a = (i / BLADES) * Math.PI * 2
+			const pivot = new THREE.Group()
+			pivot.position.set(Math.cos(a) * 5.0, Math.sin(a) * 5.0, 0)
+			const blade = new THREE.Mesh(bladeGeo, bladeMat)
+			// Stagger in depth so the blades overlap like a real iris instead of z-fighting.
+			blade.position.z = -0.05 + i * 0.012
+			pivot.add(blade)
+			bladePivots.push(pivot)
+			bladeBase.push(a + Math.PI)
+			world.add(pivot)
+		}
+		const IRIS_OPEN = 1.02
+		const IRIS_SHUT = 0.2
+
+		/* --- Three lens elements, one per detector leg. --- */
+		const LEG_Z = [-6.5, 0, 6.5]
+		const LEG_C = [SIGNAL, SAFE, GRAPH]
+		const lensGeo = new THREE.SphereGeometry(3.9, 96, 48)
+		const bezelGeo = new THREE.TorusGeometry(3.88, 0.16, 14, 180)
+		const bezelMat = metal(0x1d2128, 0.24)
+		const lensMats: THREE.MeshPhysicalMaterial[] = []
+		const lensGroups: THREE.Group[] = []
+		for (let i = 0; i < 3; i++) {
+			const mat = new THREE.MeshPhysicalMaterial({
+				color: new THREE.Color(LEG_C[i]).lerp(new THREE.Color(0xffffff), 0.62),
+				metalness: 0,
+				roughness: 0.02,
+				// thickness is the property that actually sells glass; ior 1.46 is crown.
+				transmission: 1,
+				thickness: 1.8,
+				ior: 1.46,
+				clearcoat: 1,
+				clearcoatRoughness: 0.03,
+				transparent: true,
+				emissive: new THREE.Color(LEG_C[i]),
+				emissiveIntensity: 0,
+			})
+			const element = new THREE.Mesh(lensGeo, mat)
+			element.scale.set(1, 1, 0.12)
+			const g = new THREE.Group()
+			g.add(element)
+			g.add(new THREE.Mesh(bezelGeo, bezelMat))
+			g.position.z = LEG_Z[i]
+			lensMats.push(mat)
+			lensGroups.push(g)
+			world.add(g)
+		}
+
+		/* --- Rays: one instanced draw call, authored above the bloom threshold. --- */
+		const RAYS = 340
+		const rayGeo = new THREE.CylinderGeometry(0.02, 0.02, 1, 6, 1, true)
+		rayGeo.translate(0, 0.5, 0)
+		const rayMat = new THREE.MeshBasicMaterial({
 			transparent: true,
+			opacity: 0.95,
 			blending: THREE.AdditiveBlending,
 			depthWrite: false,
 		})
-		const points = new THREE.Points(pGeo, pMat)
-		world.add(points)
+		const rays = new THREE.InstancedMesh(rayGeo, rayMat, RAYS)
+		rays.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
+		rays.frustumCulled = false
+		world.add(rays)
 
-		/* Detector rings: one per leg, converging on h002 during fusion. */
-		const rings = new THREE.Group()
-		const ringDefs = [
-			{ r: 6.2, c: SIGNAL, tilt: 1.15 },
-			{ r: 7.4, c: SAFE, tilt: 0.75 },
-			{ r: 8.6, c: GRAPH, tilt: 1.5 },
-		]
-		const ringMats: THREE.MeshBasicMaterial[] = []
-		const ringMeshes: THREE.Mesh[] = []
-		ringDefs.forEach((d) => {
-			const m = new THREE.MeshBasicMaterial({ color: hdr(d.c, 1.6), transparent: true, opacity: 0, depthWrite: false })
-			ringMats.push(m)
-			const t = new THREE.Mesh(new THREE.TorusGeometry(d.r, 0.02, 8, 128), m)
-			t.rotation.x = d.tilt
-			ringMeshes.push(t)
-			rings.add(t)
+		const BAND_TINT = [SIGNAL, 0x7fb2ee, SAFE, WATCH, GRAPH, 0x9ad2ff]
+		const rr = lcg(11)
+		const rayOrigin: THREE.Vector3[] = []
+		const rayFar: THREE.Vector3[] = []
+		const rayT = new Float32Array(RAYS)
+		const raySpeed = new Float32Array(RAYS)
+		const rayRank = new Float32Array(RAYS)
+		const rayBand = new Uint8Array(RAYS)
+		const bandColor = new THREE.Color()
+		for (let i = 0; i < RAYS; i++) {
+			const a = rr() * Math.PI * 2
+			// sqrt keeps the disc of origins uniform instead of crowding the axis
+			const rad = 1.4 + Math.sqrt(rr()) * 4.4
+			rayOrigin.push(new THREE.Vector3(Math.cos(a) * rad, Math.sin(a) * rad, -26 - rr() * 10))
+			rayFar.push(new THREE.Vector3(Math.cos(a) * rad, Math.sin(a) * rad, 14))
+			rayT[i] = rr()
+			raySpeed[i] = 0.11 + rr() * 0.17
+			rayRank[i] = rr()
+			rayBand[i] = Math.floor(rr() * 6)
+			bandColor.copy(hdr(BAND_TINT[rayBand[i]], 2.0))
+			rays.setColorAt(i, bandColor)
+		}
+		if (rays.instanceColor) rays.instanceColor.needsUpdate = true
+		const FOCUS = new THREE.Vector3(0, 0, 9.2)
+		const RAY_UP = new THREE.Vector3(0, 1, 0)
+		const rayA = new THREE.Vector3()
+		const rayB = new THREE.Vector3()
+		const rayEnd = new THREE.Vector3()
+		const rayDir = new THREE.Vector3()
+		const dummy = new THREE.Object3D()
+
+		/* --- The focal core: what survives the aperture. --- */
+		const coreMat = new THREE.MeshBasicMaterial({
+			color: hdr(ALARM, 2.8),
+			transparent: true,
+			opacity: 0,
 		})
-		const RING_HOME = new THREE.Vector3(0, 1.2, 0)
-		rings.position.copy(RING_HOME)
-		world.add(rings)
+		const core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.34, 3), coreMat)
+		core.position.copy(FOCUS)
+		world.add(core)
 
-		/* Threshold plane: amber grid that slides in at the gate's height. */
-		const grid = new THREE.GridHelper(26, 26, WATCH, WATCH)
+		/* --- Sensor plane behind the focus: the instrument reticle. --- */
+		const grid = new THREE.PolarGridHelper(6.4, 9, 5, 96, WATCH, WATCH)
 		const gridMat = grid.material as THREE.LineBasicMaterial
 		gridMat.transparent = true
 		gridMat.opacity = 0
 		gridMat.depthWrite = false
-		grid.position.y = ALERT_POS.y + 2.2
+		grid.rotation.x = Math.PI / 2
+		grid.position.z = FOCUS.z + 2.4
 		world.add(grid)
 
-		/* Alert beam rising from h002 during fusion. */
-		const beamGeo = new THREE.CylinderGeometry(0.03, 0.03, 1, 8, 1, true)
-		beamGeo.translate(0, 0.5, 0)
-		const beamMat = new THREE.MeshBasicMaterial({
-			color: ALARM,
-			transparent: true,
-			opacity: 0,
-			blending: THREE.AdditiveBlending,
-			depthWrite: false,
-			side: THREE.DoubleSide,
-		})
-		const beam = new THREE.Mesh(beamGeo, beamMat)
-		beam.position.copy(ALERT_POS)
-		beam.scale.y = 0.01
-		world.add(beam)
-
-		/* Containment shell closing over h002 in the final act. */
 		/*
-		 * Fresnel rather than a wireframe sphere: the field glows along its
-		 * silhouette and stays clear through the middle, so the contained host is
-		 * still readable inside its own containment. A wireframe would have drawn
-		 * a cage over the very thing the act is about.
+		 * --- Containment field. ---
+		 * Fresnel rather than a wireframe: the field glows along its silhouette and
+		 * stays clear through the middle, so the contained host is still readable
+		 * inside its own containment.
 		 */
 		const shellMat = new THREE.ShaderMaterial({
 			uniforms: {
@@ -412,78 +395,116 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 			side: THREE.DoubleSide,
 		})
 		const shell = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 3), shellMat)
-		shell.position.copy(ALERT_POS)
+		shell.position.copy(FOCUS)
 		shell.scale.setScalar(0.01)
 		world.add(shell)
 
-		/* Radar sweep line for the features act. */
-		const sweepGeo = new THREE.BufferGeometry().setFromPoints([
-			new THREE.Vector3(0, 0.5, 0),
-			new THREE.Vector3(10, 0.5, 0),
-		])
-		const sweepMat = new THREE.LineBasicMaterial({
-			color: SIGNAL,
+		/* --- Dust: atmosphere only, deliberately dim. --- */
+		const P = 260
+		const pPos = new Float32Array(P * 3)
+		const pScale = new Float32Array(P)
+		const prand = lcg(99)
+		for (let i = 0; i < P; i++) {
+			const a = prand() * Math.PI * 2
+			const rad = 1 + prand() * 8
+			pPos.set([Math.cos(a) * rad, Math.sin(a) * rad, -24 + prand() * 38], i * 3)
+			pScale[i] = 0.5 + prand() * 0.9
+		}
+		const pGeo = new THREE.BufferGeometry()
+		pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3))
+		pGeo.setAttribute('aScale', new THREE.BufferAttribute(pScale, 1))
+
+		/*
+		 * Point size is world-relative, not pixel-relative: dividing the pixel scale
+		 * by view depth keeps apparent size stable across resizes and 4K displays.
+		 */
+		const pixelScale = () =>
+			(Math.max(mount.clientHeight, 1) * 0.5) / Math.tan(((camera.fov * Math.PI) / 180) / 2)
+		const pMat = new THREE.ShaderMaterial({
+			uniforms: {
+				uColor: { value: hdr(SIGNAL, 1.4) },
+				uOpacity: { value: 0 },
+				uSize: { value: 0.05 },
+				uPixelScale: { value: pixelScale() },
+			},
+			vertexShader: `
+				uniform float uSize;
+				uniform float uPixelScale;
+				attribute float aScale;
+				void main() {
+					vec4 mv = modelViewMatrix * vec4(position, 1.0);
+					gl_PointSize = uSize * aScale * uPixelScale / max(-mv.z, 0.001);
+					gl_Position = projectionMatrix * mv;
+				}
+			`,
+			fragmentShader: `
+				uniform vec3 uColor;
+				uniform float uOpacity;
+				void main() {
+					float d = length(gl_PointCoord - vec2(0.5));
+					if (d > 0.5) discard;
+					float a = pow(smoothstep(0.5, 0.0, d), 1.8);
+					gl_FragColor = vec4(uColor, a * uOpacity);
+				}
+			`,
 			transparent: true,
-			opacity: 0,
 			blending: THREE.AdditiveBlending,
 			depthWrite: false,
 		})
-		const sweep = new THREE.Line(sweepGeo, sweepMat)
-		world.add(sweep)
+		const dust = new THREE.Points(pGeo, pMat)
+		world.add(dust)
 
 		/*
-		 * Choreography. anime.js animates plain JS objects; a createTimer render
-		 * loop copies them into the three.js scene. The scrub is an onScroll
-		 * observer with smooth sync -- the page scrolls natively, the timeline
-		 * simply tracks its position. No wheel hijacking.
+		 * Choreography. anime.js animates plain JS objects; a createTimer render loop
+		 * copies them into the scene. The scrub is an onScroll observer with smooth
+		 * sync -- the page scrolls natively, the timeline just tracks it.
 		 */
 		const cam = { x: 0, y: 6, z: 26 }
-		const tgt = { x: 0, y: 1, z: 0 }
+		const tgt = { x: 0, y: 0, z: 0 }
 		const fx = {
-			particleSpeed: 1,
-			edgeAlpha: 0.28,
-			nodeSwell: 0,
-			ringOpacity: 0,
-			alertGlow: 0,
-			ringConverge: 0,
-			beam: 0,
-			prob: 0,
-			gridOpacity: 0,
-			dimOthers: 0,
+			rayFlow: 1,
+			rayConverge: 0,
+			band: 0,
+			lensSpread: 1,
+			legA: 0,
+			legB: 0,
+			legC: 0,
+			iris: 1,
+			irisPass: 1,
+			focus: 0,
 			shell: 0,
-			sweep: 0,
-			alertEdgeFade: 0,
+			gridOpacity: 0,
+			dust: 0.3,
+			prob: 0,
 		}
 
 		const tl = createTimeline({
 			defaults: { ease: 'inOut(3)' },
 			autoplay: onScroll({
 				target: section,
-				// Map progress 0..1 to exactly the pinned range: the timeline starts
-				// when the section's top reaches the viewport top and completes when
-				// its bottom reaches the viewport bottom. The defaults ('end start' /
-				// 'start end') would burn the first ~15% of the timeline while the
-				// section is still approaching the viewport.
 				enter: 'top top',
 				leave: 'bottom bottom',
 				sync: 0.18,
 			}),
 		})
-		tl.add(cam, { x: 10, y: 4, z: 18, duration: 960 }, 600)
-			.add(fx, { particleSpeed: 3, edgeAlpha: 0.55, duration: 960 }, 600)
-			.add(cam, { x: -12, y: 8, z: 14, duration: 960 }, 1560)
-			.add(fx, { nodeSwell: 1, sweep: 0.5, particleSpeed: 1.4, edgeAlpha: 0.4, duration: 960 }, 1560)
-			.add(cam, { x: 0, y: 14, z: 20, duration: 960 }, 2520)
-			.add(fx, { ringOpacity: 1, alertGlow: 1, sweep: 0, nodeSwell: 0.4, duration: 960 }, 2520)
-			.add(cam, { x: 6, y: 3, z: 10, duration: 900 }, 3480)
-			.add(tgt, { x: ALERT_POS.x, y: ALERT_POS.y, z: ALERT_POS.z, duration: 900 }, 3480)
-			.add(fx, { ringConverge: 1, beam: 1, prob: 0.9866137, duration: 900, ease: 'out(3)' }, 3480)
-			.add(cam, { x: 0, y: 10, z: 16, duration: 900 }, 4380)
-			.add(tgt, { x: ALERT_POS.x, y: ALERT_POS.y + 1.6, z: ALERT_POS.z, duration: 900 }, 4380)
-			.add(fx, { gridOpacity: 0.35, dimOthers: 1, duration: 900 }, 4380)
-			.add(cam, { x: 4, y: 2, z: 8, duration: 840 }, 5160)
-			.add(tgt, { x: ALERT_POS.x, y: ALERT_POS.y, z: ALERT_POS.z, duration: 840 }, 5160)
-			.add(fx, { shell: 1, alertEdgeFade: 1, duration: 840, ease: 'out(4)' }, 5160)
+		tl.add(cam, { x: 2, y: 3, z: 19, duration: 960 }, 600)
+			.add(fx, { rayFlow: 2.6, dust: 1, duration: 960 }, 600)
+			.add(cam, { x: -9, y: 4, z: 12, duration: 960 }, 1560)
+			.add(fx, { band: 1, rayFlow: 1.8, duration: 960 }, 1560)
+			.add(cam, { x: 0, y: 0.8, z: 17, duration: 960 }, 2520)
+			.add(fx, { legA: 1, legB: 1, legC: 1, duration: 960 }, 2520)
+			.add(cam, { x: 7, y: 5, z: 11, duration: 900 }, 3480)
+			.add(
+				fx,
+				{ lensSpread: 0, rayConverge: 1, focus: 0.55, prob: 0.9866137, duration: 900, ease: 'out(3)' },
+				3480,
+			)
+			.add(cam, { x: 0, y: 1.4, z: 13.5, duration: 900 }, 4380)
+			.add(tgt, { x: 0, y: 0, z: 2, duration: 900 }, 4380)
+			.add(fx, { iris: 0, irisPass: 0.16, gridOpacity: 0.5, duration: 900 }, 4380)
+			.add(cam, { x: 2.6, y: 1.1, z: 15.5, duration: 840 }, 5160)
+			.add(tgt, { x: FOCUS.x, y: FOCUS.y, z: FOCUS.z, duration: 840 }, 5160)
+			.add(fx, { shell: 1, focus: 1, duration: 840, ease: 'out(4)' }, 5160)
 
 		let visible = true
 		const io = new IntersectionObserver(
@@ -524,63 +545,70 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 				camera.position.set(cam.x, cam.y, cam.z)
 				camera.lookAt(tgt.x, tgt.y, tgt.z)
 
-				for (let i = 1; i < layout.nodes.length; i++) {
-					const p = layout.nodes[i]
-					dummy.position.copy(p)
-					dummy.scale.setScalar(1 + fx.nodeSwell * layout.swell[i] * 1.4)
-					dummy.updateMatrix()
-					inst.setMatrixAt(i - 1, dummy.matrix)
+				/* Iris: one angle drives all nine pivots. Closing it IS raising the gate. */
+				const irisA = IRIS_SHUT + (IRIS_OPEN - IRIS_SHUT) * fx.iris
+				for (let i = 0; i < BLADES; i++) {
+					bladePivots[i].rotation.z = bladeBase[i] - irisA
 				}
-				inst.instanceMatrix.needsUpdate = true
-				nodeMat.opacity = 0.85 * (1 - fx.dimOthers * 0.8)
 
-				edgeMat.opacity = fx.edgeAlpha * (1 - fx.dimOthers * 0.7)
-				alertEdgeMat.opacity = 0.4 * (1 - fx.alertEdgeFade * 0.94)
+				/* The three elements stack into one optic during fusion. */
+				const legGlow = [fx.legA, fx.legB, fx.legC]
+				for (let i = 0; i < 3; i++) {
+					lensGroups[i].position.z = LEG_Z[i] * fx.lensSpread
+					lensMats[i].emissiveIntensity = legGlow[i] * 0.55
+				}
 
-				for (let i = 0; i < P; i++) {
-					let tt = pT[i] + pSpeed[i] * fx.particleSpeed * dt
-					let e = pEdge[i]
-					if (tt >= 1) {
-						tt = 0
-						e = Math.floor(Math.random() * allPairs.length)
-						pEdge[i] = e
+				/* Rays: travel, band, converge, and die at the blade plane if stopped. */
+				for (let i = 0; i < RAYS; i++) {
+					let t = rayT[i] + raySpeed[i] * fx.rayFlow * dt
+					if (t >= 1) t -= 1
+					rayT[i] = t
+
+					const origin = rayOrigin[i]
+					// Fan the six feature bands onto their own radii.
+					const bandK = 1 + (rayBand[i] - 2.5) * 0.1 * fx.band
+					tmpV.set(origin.x * bandK, origin.y * bandK, origin.z)
+					rayEnd.lerpVectors(rayFar[i], FOCUS, fx.rayConverge)
+
+					const tail = t < 0.05 ? 0 : t - 0.05
+					rayA.lerpVectors(tmpV, rayEnd, tail)
+					rayB.lerpVectors(tmpV, rayEnd, t)
+
+					// Rays the aperture rejects stop at z = 0 rather than fading in mid-air.
+					const span = rayEnd.z - tmpV.z
+					const gateT = span === 0 ? 1 : (0 - tmpV.z) / span
+					const alive = rayRank[i] <= fx.irisPass || t < gateT
+
+					rayDir.subVectors(rayB, rayA)
+					const len = rayDir.length()
+					if (!alive || len < 1e-5) {
+						dummy.scale.set(0, 0, 0)
+						dummy.position.copy(rayA)
+						dummy.quaternion.identity()
+					} else {
+						dummy.position.copy(rayA)
+						dummy.quaternion.setFromUnitVectors(RAY_UP, rayDir.divideScalar(len))
+						dummy.scale.set(1, len, 1)
 					}
-					pT[i] = tt
-					const pair = allPairs[e]
-					tmpV.lerpVectors(layout.nodes[pair[0]], layout.nodes[pair[1]], tt)
-					pPos.set([tmpV.x, tmpV.y, tmpV.z], i * 3)
+					dummy.updateMatrix()
+					rays.setMatrixAt(i, dummy.matrix)
 				}
-				pGeo.attributes.position.needsUpdate = true
-				pMat.uniforms.uOpacity.value = 0.85 * (1 - fx.dimOthers * 0.5)
+				rays.instanceMatrix.needsUpdate = true
 
-				ringMeshes[0].rotation.z += dt * 0.35
-				ringMeshes[1].rotation.z -= dt * 0.25
-				ringMeshes[2].rotation.z += dt * 0.18
-				const c = fx.ringConverge
-				rings.position.lerpVectors(RING_HOME, ALERT_POS, c)
-				rings.scale.setScalar(1 - c * 0.7)
-				ringMats.forEach((m) => {
-					m.opacity = fx.ringOpacity * 0.9
-				})
+				core.scale.setScalar(0.4 + fx.focus * (1.1 + 0.12 * Math.sin(time * 5)))
+				coreMat.opacity = fx.focus
 
-				const pulse = 1 + fx.alertGlow * (0.12 * Math.sin(time * 4) + 0.5)
-				alertNode.scale.setScalar(pulse)
-				alertMat.opacity = 0.4 + fx.alertGlow * 0.55
-
-				beam.scale.y = Math.max(fx.beam * 9, 0.01)
-				beamMat.opacity = fx.beam * 0.6
-
-				gridMat.opacity = fx.gridOpacity
-				grid.rotation.y += dt * 0.05
-
-				shell.scale.setScalar(Math.max(fx.shell * 3, 0.01))
+				shell.scale.setScalar(Math.max(fx.shell * 2.6, 0.01))
 				shellMat.uniforms.uOpacity.value = fx.shell * 0.9
 				shell.rotation.y += dt * 0.4
 
-				sweepMat.opacity = fx.sweep
-				sweep.rotation.y = time * 1.4
+				gridMat.opacity = fx.gridOpacity
+				grid.rotation.y += dt * 0.06
 
-				world.rotation.y += dt * 0.03
+				pMat.uniforms.uOpacity.value = 0.35 * fx.dust
+				dust.rotation.z += dt * 0.03
+
+				world.rotation.z += dt * 0.02
 
 				if (probRef.current) probRef.current.textContent = fx.prob.toFixed(4)
 
@@ -672,6 +700,9 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 	return (
 		<section id="top" ref={sectionRef} className="relative scroll-mt-24 h-[560vh]">
 			<div className="sticky top-0 h-screen overflow-hidden">
+				{/* Handoff: the canvas fades out at the end of the pinned range, so
+				    without a bridge the console below would simply appear. */}
+				<div className="handoff-veil pointer-events-none absolute inset-x-0 bottom-0 z-30 h-44" />
 				{/* The Grid. Purely decorative: every fact is also in the HTML below. */}
 				<div
 					ref={mountRef}
@@ -752,19 +783,17 @@ function TitleBlock({
 	return (
 		<div className={cn('mx-auto w-full max-w-4xl px-6', compact && 'select-none')}>
 			<div className="flex flex-col items-center text-center">
-				<span className="panel kicker inline-flex items-center gap-2 px-3 py-1.5 text-ink-dim">
-					<span className="h-1.5 w-1.5 rounded-full bg-signal" />
-					hybrid intrusion detection
-				</span>
-
 				{/*
 				 * One DOM instance of every word, at full contrast. The gradient is
 				 * on the fill, not a second stacked copy -- the mistake that made the
 				 * earlier lens hero render four ghosted titles at once.
 				 */}
-				<h1 className="mt-7 text-[clamp(2.75rem,7.6vw,5.5rem)]">
-					<span className="block bg-gradient-to-b from-white via-white to-[#8d99a9] bg-clip-text text-transparent">
-						SentinelAI
+				<h1 className="text-[clamp(2.75rem,7.6vw,5.5rem)]">
+					<span className="block">
+						<span className="bg-gradient-to-b from-white via-white to-[#8d99a9] bg-clip-text text-transparent">
+							Sentinel
+						</span>
+						<span className="ai-gradient">AI</span>
 					</span>
 					<span className="mt-4 block text-[clamp(1.1rem,2.5vw,1.9rem)] font-normal leading-[1.2] tracking-[-0.02em] text-ink-dim">
 						anomaly detection built around
