@@ -331,3 +331,15 @@
 		transition: none;
 	}
 }
+
+/* --- Instrument graticule: the SVG layer etched over the hero canvas. ---
+ * Strokes live here rather than as SVG attributes so the whole overlay retunes
+ * with the theme tokens, and so prefers-reduced-motion can stop it in one rule.
+ */
+.hud-line {
+	stroke: var(--color-line-strong);
+}
+
+.hud-line-faint {
+	stroke: color-mix(in srgb, var(--color-signal) 34%, transparent);
+}
