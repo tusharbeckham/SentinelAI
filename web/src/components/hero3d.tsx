@@ -674,3 +674,64 @@ function TitleBlock({
 function LiveChip({ status }: { status: LiveStatus }) {
 	const map: Record<LiveStatus, { text: string; color: string }> = {
 		unknown: { text: 'probing scorer', color: 'var(--color-ink-faint)' },
+		online: { text: 'live scorer online', color: 'var(--color-safe)' },
+		offline: { text: 'static artifacts only', color: 'var(--color-watch)' },
+	}
+	const v = map[status]
+	return (
+		<span className="panel inline-flex items-center gap-2 px-2.5 py-1">
+			<motion.span
+				className="h-2 w-2 rounded-full"
+				style={{ backgroundColor: v.color }}
+				animate={status === 'online' ? { opacity: [1, 0.35, 1] } : undefined}
+				transition={{ duration: 2, repeat: Infinity }}
+			/>
+			<span style={{ color: v.color }}>{v.text}</span>
+		</span>
+	)
+}
+
+function ActCard({
+	act,
+	live,
+	probRef,
+	prob,
+}: {
+	act: Act
+	live: boolean
+	probRef?: RefObject<HTMLSpanElement | null>
+	prob?: string
+}) {
+	return (
+		<article
+			className="panel border-l-2 p-5 backdrop-blur-sm"
+			style={{ borderLeftColor: act.color, backgroundColor: 'color-mix(in srgb, var(--color-surface) 82%, transparent)' }}
+		>
+			<div className="flex items-baseline justify-between gap-3">
+				<span className="text-[12px] font-medium tracking-widest text-ink-faint">
+					ACT {act.n} / 06
+				</span>
+				<span
+					className="h-1.5 w-1.5 rounded-full transition-opacity"
+					style={{ backgroundColor: act.color, opacity: live ? 1 : 0.4 }}
+				/>
+			</div>
+			<h3 className="mt-2 text-xl font-semibold" style={{ color: act.color }}>
+				{act.name}
+			</h3>
+			<p className="mt-2 text-[15px] leading-relaxed text-ink-dim">{act.body}</p>
+			{act.id === 'fusion' ? (
+				<p className="tabular mt-3 text-2xl font-semibold text-ink">
+					p = <span ref={probRef}>{prob ?? '0.0000'}</span>
+				</p>
+			) : null}
+			<div className="mt-3 flex flex-wrap gap-1.5">
+				{act.chips.map((c) => (
+					<span key={c} className="tabular rounded-md bg-canvas px-2 py-1 text-[12px] text-ink-dim">
+						{c}
+					</span>
+				))}
+			</div>
+		</article>
+	)
+}
