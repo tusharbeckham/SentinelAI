@@ -83,3 +83,19 @@ All of it in one fixed `viewBox="0 0 1600 900"` with `preserveAspectRatio=
 
 A radial mask fades the entire overlay toward the edges, so the graticule never
 fights the corners of the frame.
+
+## Acceptance checklist
+
+- [x] The hero is visibly different **at scroll offset zero**, not at 42 percent.
+- [x] Lattice idles at 0.34 from the first frame rather than igniting at Act 3.
+- [x] Graticule is fixed to the viewport, never parallaxed with the camera.
+- [x] All strokes are hairline-exact at any DPR.
+- [x] baseFrequency is static; the loop is driven by hueRotate 0 to 360.
+- [x] stitchTiles=noStitch is set.
+- [x] Overlay is `pointer-events-none` and `aria-hidden`, so it is invisible to
+      assistive tech and never intercepts a click.
+- [x] `prefers-reduced-motion` stops every ring, the scan, and the focus
+      transition.
+- [x] CSS brace balance verified as part of the build gate. This is new, and it
+      exists because a previous release shipped a broken stylesheet that neither
+      tsc nor esbuild could possibly have caught.
