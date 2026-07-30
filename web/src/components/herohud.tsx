@@ -130,3 +130,21 @@ export function HeroHud({ act, className }: Props) {
 				</g>
 
 				{/* Outer bearing ring: counter-rotating, dashed, deliberately slow. */}
+				<g className="hud-spin" style={{ transformOrigin: "800px 450px" }}>
+					<circle
+						cx={CX}
+						cy={CY}
+						r="300"
+						fill="none"
+						className="hud-line-faint"
+						strokeWidth="1"
+						strokeDasharray="2 14"
+					/>
+				</g>
+				<g className="hud-spin-rev" style={{ transformOrigin: "800px 450px" }}>
+					<circle
+						cx={CX}
+						cy={CY}
+						r="274"
+						fill="none"
+						className="hud-line-faint"
