@@ -52,3 +52,21 @@ def main() -> None:
     for j in range(X.shape[1]):
         if np.abs(X[:, j]).max() > 1000:
             X[:, j] = np.sign(X[:, j]) * np.log1p(np.abs(X[:, j]))
+            compressed += 1
+
+    mu = X.mean(axis=0)
+    sd = X.std(axis=0)
+    sd[sd == 0] = 1.0
+    Z = np.clip((X - mu) / sd, -5, 5)
+
+    # PCA by SVD on the centred matrix.
+    Zc = Z - Z.mean(axis=0)
+    U, S, _ = np.linalg.svd(Zc, full_matrices=False)
+    pcs = U[:, :2] * S[:2]
+    var = (S**2) / (S**2).sum()
+
+    # Scale to world units by the 99th percentile so a handful of extreme
+    # windows cannot flatten the rest of the cloud into a dot.
+    xs, zs = pcs[:, 0], pcs[:, 1]
+    k = 9.0 / np.percentile(np.abs(pcs), 99)
+    xs = np.clip(xs * k, -16, 16)
