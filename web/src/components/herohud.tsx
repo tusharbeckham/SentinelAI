@@ -184,3 +184,17 @@ export function HeroHud({ act, className }: Props) {
 					strokeWidth="1.6"
 					fill="none"
 				>
+					<path className="hud-line" d="M -168 -122 L -168 -168 L -122 -168" transform="translate(800 450)" />
+					<path className="hud-line" d="M 168 -122 L 168 -168 L 122 -168" transform="translate(800 450)" />
+					<path className="hud-line" d="M -168 122 L -168 168 L -122 168" transform="translate(800 450)" />
+					<path className="hud-line" d="M 168 122 L 168 168 L 122 168" transform="translate(800 450)" />
+				</g>
+
+				{/* Sweeping scan band, displaced by the turbulence field. */}
+				<g className="hud-scan" filter="url(#sentinel-shimmer)">
+					<rect x="0" y="-60" width="1600" height="120" fill="url(#sentinel-scan)" />
+				</g>
+
+				{/* Instrument readout. Monospace, small, never competing with the title. */}
+				<g className="hud-text" fontSize="15" letterSpacing="2.4">
+					<text x="96" y="210">MODE {r.mode}</text>
