@@ -114,3 +114,15 @@ Two deliberate interaction choices:
 
 `useReducedMotion()` is honoured: with `prefers-reduced-motion` set, the panel
 is written to its final state in one pass rather than animated.
+
+## The hero
+
+The landing scene is not decoration. It plots every window in the held-out
+test set: horizontal axes are the first two principal components of the forty
+features, height is the model log-odds, and colour is the ground-truth attack
+family. Height being the score makes the operating threshold an exact
+horizontal plane, so the false positives sitting above it and the missed
+attacks stranded below it are visible directly.
+
+Regenerate the projection with `python scripts/make_embedding.py`, then
+`npm run sync-data`. Design rationale lives in `HERO-3D-PLAN-V5.md`.
