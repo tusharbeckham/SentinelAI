@@ -1,37 +1,59 @@
 /**
- * NetworkHero -- the scroll-driven 3D hero ("The Grid") for the SentinelAI console.
- * Design + choreography contract: web/HERO-3D-PLAN.md (six acts, one per pipeline
- * stage: telemetry -> features -> legs -> fusion -> threshold -> response).
+ * NetworkHero -- the scroll-driven hero for the SentinelAI console.
  *
- * Rules inherited from the lens-hero failure:
- *  - exactly one DOM instance of every piece of text, always at full contrast;
- *  - motion lives in the WebGL scene and in card opacity/translate -- never on words;
- *  - the scrub follows the native scroll position (anime.js onScroll, sync 0.18);
- *    the wheel is never hijacked, the scrollbar always works;
- *  - every number in the callouts is a frozen copy of an artifacts/ value; the
- *    Explain section below remains the live, regenerated source of truth.
+ * THE SUBJECT IS THE MODEL, NOT A MACHINE.
+ *
+ * Earlier versions rendered an imaginary optical instrument. It was pretty and
+ * it was meaningless: nothing on screen came from the pipeline, so it could
+ * have fronted any product at all. This version renders the one thing that is
+ * actually ours -- the scored test set, drawn in the space the model sees.
+ *
+ * The geometry is literal:
+ *   x, z  PCA of the 40 standardised features (PC1 22.5%, PC2 12.5% of variance)
+ *   y     the model log-odds for that window
+ *
+ * Because the vertical axis IS the score, the operating threshold is not a
+ * metaphor -- it is an exact horizontal plane at logit(0.6303). Everything
+ * above it fires, everything below waits. Colour is ground truth. So the
+ * central problem of the whole project becomes visible as geometry: the ten
+ * benign points above the plane are the false positives an analyst pays for,
+ * and the twenty coloured points stranded below it are the attacks we miss.
+ *
+ * The projection is recomputed from artifacts/scored_test_windows.csv into
+ * public/data/embedding.json, and it reconciles with the reported operating
+ * point exactly: 49 alerts, precision 0.7959, recall 0.6610.
  */
-import { useEffect, useRef, useState, type RefObject } from 'react'
-import * as THREE from 'three'
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
-import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
-import { createTimer, createTimeline, onScroll } from 'animejs'
-import { motion } from 'motion/react'
-import { useReducedMotion } from '@/components/anime'
-import { cn } from '@/lib/cn'
-import { HeroHud } from '@/components/herohud'
-import type { Bundle, LiveStatus } from '@/lib/data'
+import { useEffect, useRef, useState, type RefObject } from "react"
+import * as THREE from "three"
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js"
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js"
+import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js"
+import { motion } from "motion/react"
+import { useReducedMotion } from "@/components/anime"
+import { cn } from "@/lib/cn"
+import { HeroHud } from "@/components/herohud"
+import type { Bundle, LiveStatus } from "@/lib/data"
 
 const CANVAS = 0x0a0b0d
-const SIGNAL = 0x5e9fe8
-const SAFE = 0x72bc8f
 const WATCH = 0xde9255
 const ALARM = 0xe97366
-const GRAPH = 0xbf8eda
+
+/*
+ * Ground-truth palette, ordered to match families[] in embedding.json.
+ * Benign is deliberately desaturated slate rather than a colour: 11,257 of the
+ * 11,326 points are benign, so anything saturated would drown the six attack
+ * families that are the only reason to look at this at all.
+ */
+const FAMILY_COLOR: number[] = [
+	0x39414f, // benign
+	0xe97366, // brute_force
+	0xbf8eda, // dns_tunnel
+	0xde9255, // dos
+	0xe0b15a, // exfil
+	0x5e9fe8, // lateral_movement
+	0x72bc8f, // portscan
+]
 
 /** Deterministic PRNG (seed 7, like the pipeline) so the layout never changes. */
 function lcg(seed: number) {
@@ -42,15 +64,7 @@ function lcg(seed: number) {
 	}
 }
 
-/*
- * Bloom is selective *by threshold*, not by layer: with the pass threshold at
- * 1.0, only colours whose channels exceed 1 glow. So authoring a material above
- * or below 1.0 is the art direction -- above means "evidence", below means
- * "scaffolding". This avoids the official selective-bloom recipe entirely, which
- * darkens every other material and renders the scene a second time each frame.
- */
 const hdr = (hex: number, k: number) => new THREE.Color(hex).multiplyScalar(k)
-
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v)
 
 type Act = {
@@ -64,59 +78,68 @@ type Act = {
 
 const ACTS: Act[] = [
 	{
-		n: '01',
-		id: 'telemetry',
-		name: 'Telemetry',
-		color: 'var(--color-signal)',
-		body: 'Zeek-style flow records and Windows auth events, windowed every 300 seconds. The grid you are flying through is the dataset itself.',
-		chips: ['563,619 flows', '49,535 auth events', '45,340 host-windows'],
+		n: "01",
+		id: "windows",
+		name: "The corpus",
+		color: "var(--color-signal)",
+		body: "Every point is one host-window from the held-out test split -- five minutes of one machine, described by forty features. Nothing here is decorative; the cloud is the evaluation set.",
+		chips: ["11,326 windows", "40 features", "300s each"],
 	},
 	{
-		n: '02',
-		id: 'features',
-		name: 'Features',
-		color: 'var(--color-signal)',
-		body: 'Forty features per host-window across six bands. Nodes swell by how much signal their window carries; z-scores are measured against each entity\u2019s own baseline.',
-		chips: ['40 features', '6 bands', 'per-entity baselines'],
+		n: "02",
+		id: "manifold",
+		name: "Feature space",
+		color: "var(--color-signal)",
+		body: "Projected onto two principal components. Normal behaviour collapses into one dense sheet because most windows look alike -- which is exactly why this problem is hard, and why accuracy is a worthless metric here.",
+		chips: ["PC1 22.5% var", "PC2 12.5% var", "11,257 benign"],
 	},
 	{
-		n: '03',
-		id: 'legs',
-		name: 'Detector legs',
-		color: 'var(--color-graph)',
-		body: 'Three detectors score every window alone. Their disagreement is the point \u2014 h002 ignites as all three start seeing something.',
-		chips: ['isolation forest \u00b7 AP 0.298', 'gradient boosting \u00b7 AP 0.858', 'graph leg \u00b7 AP 0.039'],
+		n: "03",
+		id: "lift",
+		name: "The score axis",
+		color: "var(--color-graph)",
+		body: "Height becomes the model log-odds. The sheet lifts, and structure invisible in feature space appears: suspicion runs close to orthogonal to position.",
+		chips: ["log-odds \u221210.40 to +4.30", "isolation forest + GBDT + graph"],
 	},
 	{
-		n: '04',
-		id: 'fusion',
-		name: 'Fusion',
-		color: 'var(--color-safe)',
-		body: 'A calibrated logistic stacker fuses the legs on standardised scores \u2014 the exact arithmetic the Explain section reproduces. Watch the probability land.',
-		chips: ['0.3425\u00b7z_if + 1.1009\u00b7z_gb + 0.1135\u00b7z_g \u2212 8.434'],
+		n: "04",
+		id: "fusion",
+		name: "Fusion",
+		color: "var(--color-safe)",
+		body: "A calibrated logistic stacker sets that height -- the exact arithmetic the Explain section reproduces line by line.",
+		chips: ["0.3425\u00B7z_if + 1.1009\u00B7z_gb + 0.1135\u00B7z_g \u2212 8.434"],
 	},
 	{
-		n: '05',
-		id: 'threshold',
-		name: 'Threshold',
-		color: 'var(--color-watch)',
-		body: 'The gate is set by the analyst\u2019s budget, not by a flattering AUC. Above the amber plane fires; below it waits. This alert outranked everything.',
-		chips: ['threshold 0.6303', '49.8 alerts/day', 'recall 0.661', 'rank #1 of 11,326'],
+		n: "05",
+		id: "threshold",
+		name: "The plane",
+		color: "var(--color-watch)",
+		body: "The gate is set by the analyst budget, not by a flattering AUC. Look at what it costs: ten benign points sit above the plane, and twenty real attacks are stranded below it. That is the honest picture.",
+		chips: ["threshold 0.6303", "49 fire", "39 true / 10 false", "20 missed"],
 	},
 	{
-		n: '06',
-		id: 'response',
-		name: 'Response',
-		color: 'var(--color-alarm)',
-		body: 'Policy-driven SOAR playbooks act on what crossed the gate \u2014 every decision hash-chained into the audit log.',
-		chips: ['auto_contain \u2192 rate_limit_src_at_edge', '50 decisions', 'chain valid'],
+		n: "06",
+		id: "response",
+		name: "Response",
+		color: "var(--color-alarm)",
+		body: "One point stands highest: h002, rank 1 of 11,326. Policy-driven playbooks act on what crossed the gate, every decision hash-chained into the audit log.",
+		chips: ["h002 \u00B7 p = 0.9866", "auto_contain", "chain valid"],
 	},
 ]
 
 /** Progress boundaries where acts 1..6 begin (act 0 is the title). */
 const ACT_BOUNDARIES = [0.1, 0.26, 0.42, 0.58, 0.73, 0.86]
 
-export function NetworkHero({ report, live }: { report: Bundle['report']; live: LiveStatus }) {
+type Embedding = {
+	n: number
+	thresholdY: number
+	rank1: number
+	pos: number[]
+	p: number[]
+	fam: number[]
+}
+
+export function NetworkHero({ report, live }: { report: Bundle["report"]; live: LiveStatus }) {
 	const reduced = useReducedMotion()
 	const sectionRef = useRef<HTMLElement | null>(null)
 	const mountRef = useRef<HTMLDivElement | null>(null)
@@ -133,724 +156,338 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 
 		let renderer: THREE.WebGLRenderer
 		try {
-			renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' })
+			renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" })
 		} catch {
 			setFailed(true)
 			return
 		}
 		renderer.setPixelRatio(Math.min(window.devicePixelRatio, mount.clientWidth < 768 ? 1.5 : 2))
-		renderer.setSize(mount.clientWidth, mount.clientHeight)
+		renderer.setSize(mount.clientWidth, Math.max(mount.clientHeight, 1))
+		renderer.toneMapping = THREE.ACESFilmicToneMapping
+		renderer.toneMappingExposure = 1.06
+		renderer.outputColorSpace = THREE.SRGBColorSpace
 		mount.appendChild(renderer.domElement)
 
 		const scene = new THREE.Scene()
 		scene.background = new THREE.Color(CANVAS)
-		scene.fog = new THREE.FogExp2(CANVAS, 0.026)
-		const camera = new THREE.PerspectiveCamera(50, mount.clientWidth / Math.max(mount.clientHeight, 1), 0.1, 120)
-		camera.position.set(0, 6, 26)
-
-		/*
-		 * ACES rolls the HDR highlights off instead of clipping them flat, which is
-		 * what makes the glow read as light rather than as a blurred sprite.
-		 */
-		renderer.toneMapping = THREE.ACESFilmicToneMapping
-		renderer.toneMappingExposure = 1.05
-		renderer.outputColorSpace = THREE.SRGBColorSpace
+		scene.fog = new THREE.FogExp2(CANVAS, 0.021)
+		const camera = new THREE.PerspectiveCamera(50, mount.clientWidth / Math.max(mount.clientHeight, 1), 0.1, 260)
+		camera.position.set(0, 3.2, 34)
 
 		const composer = new EffectComposer(renderer)
 		composer.addPass(new RenderPass(scene, camera))
+		/*
+		 * Bloom threshold 1.0 makes glow opt-in by authoring: a colour blooms only
+		 * if a channel exceeds 1. Alerted points are pushed above 1 in the shader
+		 * and benign points sit far below, so ignition reads as light rather than
+		 * as a blur smeared over everything.
+		 */
 		const bloom = new UnrealBloomPass(
 			new THREE.Vector2(mount.clientWidth, Math.max(mount.clientHeight, 1)),
-			0.85,
-			0.55,
+			0.72,
+			0.6,
 			1,
 		)
 		composer.addPass(bloom)
-		/*
-		 * Final grade. Bloom alone still reads as a clean CG render; what sells a
-		 * *photograph* of an instrument is the lens and the sensor being imperfect.
-		 * Three cheap, physically motivated defects, all pure fragment math:
-		 *   - lateral chromatic aberration that scales with r^2, because real glass
-		 *     only splits colour toward the edge of the field;
-		 *   - a vignette, because the barrel occludes off-axis rays;
-		 *   - sensor grain, applied here (pre-tone-map) so it lives in the midtones
-		 *     rather than getting crushed into the blacks.
-		 */
-		const gradePass = new ShaderPass({
-			uniforms: {
-				tDiffuse: { value: null },
-				uTime: { value: 0 },
-				uAmount: { value: 1 },
-			},
-			vertexShader: `
-				varying vec2 vUv;
-				void main() {
-					vUv = uv;
-					gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-				}`,
-			fragmentShader: `
-				uniform sampler2D tDiffuse;
-				uniform float uTime;
-				uniform float uAmount;
-				varying vec2 vUv;
-				float hash(vec2 p) {
-					return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
-				}
-				void main() {
-					vec2 d = vUv - 0.5;
-					float r = length(d);
-					vec2 off = d * r * r * 0.0042 * uAmount;
-					vec4 c;
-					c.r = texture2D(tDiffuse, vUv + off).r;
-					c.g = texture2D(tDiffuse, vUv).g;
-					c.b = texture2D(tDiffuse, vUv - off).b;
-					c.a = 1.0;
-					c.rgb *= mix(1.0, smoothstep(0.96, 0.26, r), 0.8 * uAmount);
-					float g = hash(vUv * 920.0 + fract(uTime) * 97.0) - 0.5;
-					c.rgb += g * 0.016 * uAmount;
-					gl_FragColor = c;
-				}`,
-		})
-		composer.addPass(gradePass)
-		// Without OutputPass the composer skips tone mapping and the sRGB
-		// conversion the plain renderer does: the single most common bloom bug.
 		composer.addPass(new OutputPass())
 
 		const world = new THREE.Group()
 		scene.add(world)
 
-		/*
-		 * THE APERTURE -- design contract in web/HERO-3D-PLAN-V3.md.
-		 *
-		 * A lens is what this pipeline literally does: scattered rays in, one focal
-		 * point out. And the iris IS the alert budget -- stopping it down is what
-		 * raising the threshold does. So the hero is one machined instrument the
-		 * reader watches operate, not a field of drifting dots.
-		 */
+		const fx = { settle: 0, lift: 0, ignite: 0, plane: 0, focus: 0, spin: 0, size: 2.05 }
+		let thresholdY = 0.224
+		let disposed = false
 
-		/*
-		 * Metal and glass are only convincing if there is something to reflect.
-		 * RoomEnvironment is a procedural interior -- no asset, no network request --
-		 * prefiltered once into an env map. This is the single biggest difference
-		 * between "shaded" and "machined".
-		 */
-		const pmrem = new THREE.PMREMGenerator(renderer)
-		const envRT = pmrem.fromScene(new RoomEnvironment(), 0.04)
-		scene.environment = envRT.texture
-		scene.environmentIntensity = 0.3
-
-		const keyLight = new THREE.DirectionalLight(0xdce8ff, 2.1)
-		keyLight.position.set(7, 9, 12)
-		scene.add(keyLight)
-		const rimLight = new THREE.DirectionalLight(SIGNAL, 1.35)
-		rimLight.position.set(-9, -4, -7)
-		scene.add(rimLight)
-		scene.add(new THREE.AmbientLight(0x141a24, 1.4))
-
-		/*
-		 * Machined-surface normal map, generated into a canvas at runtime -- no asset,
-		 * no request. Perfectly smooth metal is the tell that a render is synthetic:
-		 * real turned aluminium carries lathe grooves plus a fine random grain, and
-		 * both show up as *moving highlights* the moment the camera travels. Encoded
-		 * tangent-space: R/G carry the surface slope, B points up.
-		 */
-		const makeMachinedNormal = () => {
-			const S = 512
-			const cv = document.createElement('canvas')
-			cv.width = S
-			cv.height = S
-			const ctx = cv.getContext('2d')
-			if (!ctx) return null
-			const img = ctx.createImageData(S, S)
-			const d = img.data
-			let seed = 20260730
-			const rnd = () => {
-				seed = (seed * 1664525 + 1013904223) >>> 0
-				return seed / 4294967296
-			}
-			for (let y = 0; y < S; y++) {
-				// One groove profile per row, so the brushing runs in a single direction.
-				const groove = Math.sin(y * 0.85) * 0.5 + Math.sin(y * 3.9) * 0.16 + Math.sin(y * 11.3) * 0.05
-				for (let x = 0; x < S; x++) {
-					const i = (y * S + x) * 4
-					const grain = rnd() - 0.5
-					d[i] = 128 + grain * 40
-					d[i + 1] = 128 + (groove * 46 + grain * 10)
-					d[i + 2] = 255
-					d[i + 3] = 255
-				}
-			}
-			ctx.putImageData(img, 0, 0)
-			const tex = new THREE.CanvasTexture(cv)
-			tex.wrapS = THREE.RepeatWrapping
-			tex.wrapT = THREE.RepeatWrapping
-			tex.repeat.set(6, 6)
-			return tex
-		}
-		const machined = makeMachinedNormal()
-
-		const metal = (c: number, roughness: number) => {
-			const m = new THREE.MeshStandardMaterial({ color: c, metalness: 0.94, roughness })
-			if (machined) {
-				m.normalMap = machined
-				m.normalScale = new THREE.Vector2(0.32, 0.32)
-			}
-			return m
-		}
-
-		/* --- Housing: two barrel sections the optic sits between. --- */
-		const barrelGeo = new THREE.CylinderGeometry(5.1, 5.1, 1.4, 128, 1, true)
-		barrelGeo.rotateX(Math.PI / 2)
-		const barrelMat = metal(0x15181d, 0.3)
-		barrelMat.side = THREE.DoubleSide
-		for (const z of [-3.0, 3.0]) {
-			const m = new THREE.Mesh(barrelGeo, barrelMat)
-			m.position.z = z
-			world.add(m)
-		}
-		const knurlMat = metal(0x24282f, 0.2)
-		for (const z of [-3.7, -2.3, 2.3, 3.7]) {
-			const r = new THREE.Mesh(new THREE.TorusGeometry(5.12, 0.1, 12, 180), knurlMat)
-			r.position.z = z
-			world.add(r)
-		}
-
-		/*
-		 * --- Iris: nine blades on nine pivots. ---
-		 * Each blade is an extruded Shape with a bevel; the bevel is what catches the
-		 * key light along the blade edge and makes the assembly read as machined
-		 * rather than as flat cutouts.
-		 */
-		const BLADES = 9
-		const bladeShape = new THREE.Shape()
-		bladeShape.moveTo(0, 0)
-		bladeShape.quadraticCurveTo(2.7, 0.55, 5.0, 0.25)
-		bladeShape.quadraticCurveTo(3.6, 3.1, 0.25, 4.7)
-		bladeShape.quadraticCurveTo(0.06, 2.0, 0, 0)
-		const bladeGeo = new THREE.ExtrudeGeometry(bladeShape, {
-			depth: 0.1,
-			bevelEnabled: true,
-			bevelSize: 0.04,
-			bevelThickness: 0.035,
-			bevelSegments: 2,
-			curveSegments: 28,
-		})
-		const bladeMat = metal(0x2b3038, 0.16)
-		const bladePivots: THREE.Group[] = []
-		const bladeBase: number[] = []
-		for (let i = 0; i < BLADES; i++) {
-			const a = (i / BLADES) * Math.PI * 2
-			const pivot = new THREE.Group()
-			pivot.position.set(Math.cos(a) * 5.0, Math.sin(a) * 5.0, 0)
-			const blade = new THREE.Mesh(bladeGeo, bladeMat)
-			// Stagger in depth so the blades overlap like a real iris instead of z-fighting.
-			blade.position.z = -0.05 + i * 0.012
-			pivot.add(blade)
-			bladePivots.push(pivot)
-			bladeBase.push(a + Math.PI)
-			world.add(pivot)
-		}
-		const IRIS_OPEN = 1.02
-		const IRIS_SHUT = 0.2
-
-		/* --- Three lens elements, one per detector leg. --- */
-		const LEG_Z = [-6.5, 0, 6.5]
-		const LEG_C = [SIGNAL, SAFE, GRAPH]
-		const lensGeo = new THREE.SphereGeometry(3.9, 96, 48)
-		const bezelGeo = new THREE.TorusGeometry(3.88, 0.16, 14, 180)
-		const bezelMat = metal(0x1d2128, 0.24)
-		const lensMats: THREE.MeshPhysicalMaterial[] = []
-		const lensGroups: THREE.Group[] = []
-		for (let i = 0; i < 3; i++) {
-			const mat = new THREE.MeshPhysicalMaterial({
-				color: new THREE.Color(LEG_C[i]).lerp(new THREE.Color(0xffffff), 0.62),
-				metalness: 0,
-				roughness: 0.02,
-				// thickness is the property that actually sells glass; ior 1.46 is crown.
-				transmission: 1,
-				thickness: 1.8,
-				ior: 1.46,
-				clearcoat: 1,
-				clearcoatRoughness: 0.03,
-				transparent: true,
-				emissive: new THREE.Color(LEG_C[i]),
-				emissiveIntensity: 0,
-			})
-			const element = new THREE.Mesh(lensGeo, mat)
-			element.scale.set(1, 1, 0.12)
-			const g = new THREE.Group()
-			g.add(element)
-			g.add(new THREE.Mesh(bezelGeo, bezelMat))
-			g.position.z = LEG_Z[i]
-			lensMats.push(mat)
-			lensGroups.push(g)
-			world.add(g)
-		}
-
-		/*
-		 * --- Activation lattice: the AI half of the instrument. ---
-		 *
-		 * Each optical element carries a grid of cells on its face. That is not
-		 * decoration: three stacked grids, lighting in sequence, IS a forward pass,
-		 * and each grid is the feature map of one detector leg. The optic focuses
-		 * light; the lattice is what the model actually computes while it does.
-		 *
-		 * They are children of the lens groups, so when the three elements stack into
-		 * one optic at fusion the three feature maps superimpose -- which is exactly
-		 * what the stacker does to the three leg scores.
-		 */
-		const GRID = 13
-		const CELL_PITCH = 0.5
-		const cellGeo = new THREE.BoxGeometry(0.2, 0.2, 0.05)
-		const latMeshes: THREE.InstancedMesh[] = []
-		const latPos: Array<Float32Array> = []
-		const tmpC = new THREE.Color()
-		for (let l = 0; l < 3; l++) {
-			const xs: number[] = []
-			const ys: number[] = []
-			for (let gx = 0; gx < GRID; gx++) {
-				for (let gy = 0; gy < GRID; gy++) {
-					const x = (gx - (GRID - 1) / 2) * CELL_PITCH
-					const y = (gy - (GRID - 1) / 2) * CELL_PITCH
-					// Clip to the clear aperture so the map reads as circular, like the element.
-					if (Math.sqrt(x * x + y * y) > 3.25) continue
-					xs.push(x)
-					ys.push(y)
-				}
-			}
-			const n = xs.length
-			const buf = new Float32Array(n * 2)
-			const cellMat = new THREE.MeshBasicMaterial({
-				transparent: true,
-				blending: THREE.AdditiveBlending,
-				depthWrite: false,
-			})
-			const im = new THREE.InstancedMesh(cellGeo, cellMat, n)
-			im.frustumCulled = false
-			const od = new THREE.Object3D()
-			for (let i = 0; i < n; i++) {
-				buf[i * 2] = xs[i]
-				buf[i * 2 + 1] = ys[i]
-				// Sit just proud of the glass so the cells are not swallowed by transmission.
-				od.position.set(xs[i], ys[i], 0.16)
-				od.updateMatrix()
-				im.setMatrixAt(i, od.matrix)
-				im.setColorAt(i, tmpC.setRGB(0, 0, 0))
-			}
-			im.instanceMatrix.needsUpdate = true
-			lensGroups[l].add(im)
-			latMeshes.push(im)
-			latPos.push(buf)
-		}
-
-		/* --- Rays: one instanced draw call, authored above the bloom threshold. --- */
-		const RAYS = 340
-		const rayGeo = new THREE.CylinderGeometry(0.02, 0.02, 1, 6, 1, true)
-		rayGeo.translate(0, 0.5, 0)
-		const rayMat = new THREE.MeshBasicMaterial({
+		const pointMat = new THREE.ShaderMaterial({
 			transparent: true,
-			opacity: 0.95,
-			blending: THREE.AdditiveBlending,
 			depthWrite: false,
+			blending: THREE.AdditiveBlending,
+			uniforms: {
+				uSettle: { value: 0 },
+				uLift: { value: 0 },
+				uIgnite: { value: 0 },
+				uFocus: { value: 0 },
+				uThresh: { value: thresholdY },
+				uSize: { value: 2.05 },
+				uTime: { value: 0 },
+				uDpr: { value: renderer.getPixelRatio() },
+			},
+			vertexShader: [
+				"uniform float uSettle; uniform float uLift; uniform float uIgnite;",
+				"uniform float uThresh; uniform float uSize; uniform float uTime;",
+				"uniform float uFocus; uniform float uDpr;",
+				"attribute vec3 aScatter; attribute vec3 aColor; attribute float aP; attribute float aRank;",
+				"varying vec3 vColor; varying float vP; varying float vAlert; varying float vRank;",
+				"void main() {",
+				"  vec3 target = position;",
+				"  target.y *= uLift;",
+				"  vec3 p = mix(aScatter, target, uSettle);",
+				"  float ph = aP * 43.0 + aRank * 7.0;",
+				"  p += vec3(sin(uTime * 0.35 + ph), sin(uTime * 0.29 + ph * 1.7), cos(uTime * 0.31 + ph)) * 0.055;",
+				"  float above = step(uThresh * uLift, target.y);",
+				"  vAlert = above * uIgnite;",
+				"  vColor = aColor; vP = aP; vRank = aRank;",
+				"  vec4 mv = modelViewMatrix * vec4(p, 1.0);",
+				"  float grow = 1.0 + vAlert * 1.9 + aRank * uFocus * 5.0;",
+				"  gl_PointSize = uSize * uDpr * grow * (46.0 / max(-mv.z, 0.6));",
+				"  gl_Position = projectionMatrix * mv;",
+				"}",
+			].join("\n"),
+			fragmentShader: [
+				"varying vec3 vColor; varying float vP; varying float vAlert; varying float vRank;",
+				"void main() {",
+				"  vec2 d = gl_PointCoord - vec2(0.5);",
+				"  float r = length(d);",
+				"  if (r > 0.5) discard;",
+				"  float core = smoothstep(0.5, 0.04, r);",
+				"  float halo = smoothstep(0.5, 0.22, r) * 0.4;",
+				"  vec3 c = vColor * (0.30 + 0.85 * vP);",
+				"  c = mix(c, c * 3.6 + vec3(0.22, 0.12, 0.05), vAlert);",
+				"  c += vColor * vRank * 2.4;",
+				"  float a = (core + halo) * (0.30 + 0.62 * vP + vAlert * 0.5);",
+				"  gl_FragColor = vec4(c, a);",
+				"}",
+			].join("\n"),
 		})
-		const rays = new THREE.InstancedMesh(rayGeo, rayMat, RAYS)
-		rays.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
-		rays.frustumCulled = false
-		world.add(rays)
-
-		const BAND_TINT = [SIGNAL, 0x7fb2ee, SAFE, WATCH, GRAPH, 0x9ad2ff]
-		const rr = lcg(11)
-		const rayOrigin: THREE.Vector3[] = []
-		const rayFar: THREE.Vector3[] = []
-		const rayT = new Float32Array(RAYS)
-		const raySpeed = new Float32Array(RAYS)
-		const rayRank = new Float32Array(RAYS)
-		const rayBand = new Uint8Array(RAYS)
-		const bandColor = new THREE.Color()
-		for (let i = 0; i < RAYS; i++) {
-			const a = rr() * Math.PI * 2
-			// sqrt keeps the disc of origins uniform instead of crowding the axis
-			const rad = 1.4 + Math.sqrt(rr()) * 4.4
-			rayOrigin.push(new THREE.Vector3(Math.cos(a) * rad, Math.sin(a) * rad, -26 - rr() * 10))
-			rayFar.push(new THREE.Vector3(Math.cos(a) * rad, Math.sin(a) * rad, 14))
-			rayT[i] = rr()
-			raySpeed[i] = 0.11 + rr() * 0.17
-			rayRank[i] = rr()
-			rayBand[i] = Math.floor(rr() * 6)
-			bandColor.copy(hdr(BAND_TINT[rayBand[i]], 2.0))
-			rays.setColorAt(i, bandColor)
-		}
-		if (rays.instanceColor) rays.instanceColor.needsUpdate = true
-		const FOCUS = new THREE.Vector3(0, 0, 9.2)
-		const RAY_UP = new THREE.Vector3(0, 1, 0)
-		const rayA = new THREE.Vector3()
-		const rayB = new THREE.Vector3()
-		const rayEnd = new THREE.Vector3()
-		const rayDir = new THREE.Vector3()
-		const dummy = new THREE.Object3D()
-
-		/* --- The focal core: what survives the aperture. --- */
-		const coreMat = new THREE.MeshBasicMaterial({
-			color: hdr(ALARM, 2.8),
-			transparent: true,
-			opacity: 0,
-		})
-		const core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.34, 3), coreMat)
-		core.position.copy(FOCUS)
-		world.add(core)
-
-		/* --- Sensor plane behind the focus: the instrument reticle. --- */
-		const grid = new THREE.PolarGridHelper(6.4, 9, 5, 96, WATCH, WATCH)
-		const gridMat = grid.material as THREE.LineBasicMaterial
-		gridMat.transparent = true
-		gridMat.opacity = 0
-		gridMat.depthWrite = false
-		grid.rotation.x = Math.PI / 2
-		grid.position.z = FOCUS.z + 2.4
-		world.add(grid)
 
 		/*
-		 * --- Containment field. ---
-		 * Fresnel rather than a wireframe: the field glows along its silhouette and
-		 * stays clear through the middle, so the contained host is still readable
-		 * inside its own containment.
+		 * The threshold plane, drawn as a shader grid rather than a solid quad so
+		 * the cloud stays readable through it. An opaque plane would hide the
+		 * false negatives underneath, and those are the entire point of showing it.
 		 */
-		const shellMat = new THREE.ShaderMaterial({
-			uniforms: {
-				uColor: { value: hdr(ALARM, 2.4) },
-				uOpacity: { value: 0 },
-				uPower: { value: 2.4 },
-			},
-			vertexShader: `
-				varying vec3 vNormalView;
-				varying vec3 vViewDir;
-				void main() {
-					vec4 mv = modelViewMatrix * vec4(position, 1.0);
-					vNormalView = normalize(normalMatrix * normal);
-					vViewDir = normalize(-mv.xyz);
-					gl_Position = projectionMatrix * mv;
-				}
-			`,
-			fragmentShader: `
-				uniform vec3 uColor;
-				uniform float uOpacity;
-				uniform float uPower;
-				varying vec3 vNormalView;
-				varying vec3 vViewDir;
-				void main() {
-					float f = 1.0 - abs(dot(normalize(vNormalView), normalize(vViewDir)));
-					gl_FragColor = vec4(uColor, pow(f, uPower) * uOpacity);
-				}
-			`,
+		const planeMat = new THREE.ShaderMaterial({
 			transparent: true,
-			blending: THREE.AdditiveBlending,
 			depthWrite: false,
 			side: THREE.DoubleSide,
-		})
-		const shell = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 3), shellMat)
-		shell.position.copy(FOCUS)
-		shell.scale.setScalar(0.01)
-		world.add(shell)
-
-		/* --- Dust: atmosphere only, deliberately dim. --- */
-		const P = 260
-		const pPos = new Float32Array(P * 3)
-		const pScale = new Float32Array(P)
-		const prand = lcg(99)
-		for (let i = 0; i < P; i++) {
-			const a = prand() * Math.PI * 2
-			const rad = 1 + prand() * 8
-			pPos.set([Math.cos(a) * rad, Math.sin(a) * rad, -24 + prand() * 38], i * 3)
-			pScale[i] = 0.5 + prand() * 0.9
-		}
-		const pGeo = new THREE.BufferGeometry()
-		pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3))
-		pGeo.setAttribute('aScale', new THREE.BufferAttribute(pScale, 1))
-
-		/*
-		 * Point size is world-relative, not pixel-relative: dividing the pixel scale
-		 * by view depth keeps apparent size stable across resizes and 4K displays.
-		 */
-		const pixelScale = () =>
-			(Math.max(mount.clientHeight, 1) * 0.5) / Math.tan(((camera.fov * Math.PI) / 180) / 2)
-		const pMat = new THREE.ShaderMaterial({
-			uniforms: {
-				uColor: { value: hdr(SIGNAL, 1.4) },
-				uOpacity: { value: 0 },
-				uSize: { value: 0.05 },
-				uPixelScale: { value: pixelScale() },
-			},
-			vertexShader: `
-				uniform float uSize;
-				uniform float uPixelScale;
-				attribute float aScale;
-				void main() {
-					vec4 mv = modelViewMatrix * vec4(position, 1.0);
-					gl_PointSize = uSize * aScale * uPixelScale / max(-mv.z, 0.001);
-					gl_Position = projectionMatrix * mv;
-				}
-			`,
-			fragmentShader: `
-				uniform vec3 uColor;
-				uniform float uOpacity;
-				void main() {
-					float d = length(gl_PointCoord - vec2(0.5));
-					if (d > 0.5) discard;
-					float a = pow(smoothstep(0.5, 0.0, d), 1.8);
-					gl_FragColor = vec4(uColor, a * uOpacity);
-				}
-			`,
-			transparent: true,
 			blending: THREE.AdditiveBlending,
-			depthWrite: false,
+			uniforms: { uOpacity: { value: 0 }, uTime: { value: 0 }, uTint: { value: new THREE.Color(WATCH) } },
+			vertexShader: [
+				"varying vec2 vUv;",
+				"void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
+			].join("\n"),
+			fragmentShader: [
+				"uniform float uOpacity; uniform float uTime; uniform vec3 uTint;",
+				"varying vec2 vUv;",
+				"void main() {",
+				"  vec2 g = abs(fract(vUv * 26.0) - 0.5) / fwidth(vUv * 26.0);",
+				"  float line = 1.0 - min(min(g.x, g.y), 1.0);",
+				"  float rad = 1.0 - smoothstep(0.18, 0.5, length(vUv - vec2(0.5)));",
+				"  float sweep = 0.55 + 0.45 * sin(uTime * 0.8 + vUv.x * 6.0);",
+				"  float a = (line * 0.55 + 0.035) * rad * uOpacity * sweep;",
+				"  gl_FragColor = vec4(uTint * (1.4 + line * 1.6), a);",
+				"}",
+			].join("\n"),
 		})
-		const dust = new THREE.Points(pGeo, pMat)
-		world.add(dust)
+
+		const plane = new THREE.Mesh(new THREE.PlaneGeometry(46, 46, 1, 1), planeMat)
+		plane.rotation.x = -Math.PI / 2
+		plane.visible = false
+		world.add(plane)
+
+		/* Rank-1 marker: a caged point, so the eye can find h002 immediately. */
+		const marker = new THREE.Group()
+		const ringA = new THREE.Mesh(
+			new THREE.TorusGeometry(0.85, 0.012, 8, 96),
+			new THREE.MeshBasicMaterial({ color: hdr(ALARM, 2.6), transparent: true, opacity: 0 }),
+		)
+		ringA.rotation.x = -Math.PI / 2
+		const ringB = new THREE.Mesh(
+			new THREE.TorusGeometry(0.55, 0.01, 8, 96),
+			new THREE.MeshBasicMaterial({ color: hdr(ALARM, 2.2), transparent: true, opacity: 0 }),
+		)
+		marker.add(ringA, ringB)
+		marker.visible = false
+		world.add(marker)
+
+		/* Load the projected corpus. Until it arrives the hero simply stays dark. */
+		const ac = new AbortController()
+		fetch(new URL("data/embedding.json", document.baseURI).toString(), { signal: ac.signal })
+			.then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+			.then((emb: Embedding) => {
+				if (disposed) return
+				const n = emb.n
+				thresholdY = emb.thresholdY
+				pointMat.uniforms.uThresh.value = thresholdY
+
+				const pos = new Float32Array(emb.pos)
+				const scatter = new Float32Array(n * 3)
+				const color = new Float32Array(n * 3)
+				const pArr = new Float32Array(n)
+				const rank = new Float32Array(n)
+				const rnd = lcg(7)
+				const tmp = new THREE.Color()
+
+				for (let i = 0; i < n; i++) {
+					/* Act 1 opens as an unordered stream: a wide shell of raw records
+					   with no structure, which then collapses into the real manifold. */
+					const a = rnd() * Math.PI * 2
+					const b = Math.acos(2 * rnd() - 1)
+					const rr = 30 + rnd() * 46
+					scatter[i * 3] = Math.sin(b) * Math.cos(a) * rr
+					scatter[i * 3 + 1] = Math.cos(b) * rr * 0.42
+					scatter[i * 3 + 2] = Math.sin(b) * Math.sin(a) * rr
+
+					tmp.setHex(FAMILY_COLOR[emb.fam[i]] ?? FAMILY_COLOR[0])
+					color[i * 3] = tmp.r
+					color[i * 3 + 1] = tmp.g
+					color[i * 3 + 2] = tmp.b
+					pArr[i] = emb.p[i]
+					rank[i] = i === emb.rank1 ? 1 : 0
+				}
+
+				const geo = new THREE.BufferGeometry()
+				geo.setAttribute("position", new THREE.BufferAttribute(pos, 3))
+				geo.setAttribute("aScatter", new THREE.BufferAttribute(scatter, 3))
+				geo.setAttribute("aColor", new THREE.BufferAttribute(color, 3))
+				geo.setAttribute("aP", new THREE.BufferAttribute(pArr, 1))
+				geo.setAttribute("aRank", new THREE.BufferAttribute(rank, 1))
+				geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), 90)
+
+				const pts = new THREE.Points(geo, pointMat)
+				pts.frustumCulled = false
+				world.add(pts)
+
+				marker.position.set(pos[emb.rank1 * 3], pos[emb.rank1 * 3 + 1], pos[emb.rank1 * 3 + 2])
+				marker.visible = true
+				plane.visible = true
+				mount.style.transition = "opacity 900ms ease"
+				mount.style.opacity = "1"
+			})
+			.catch(() => {
+				if (!disposed) setFailed(true)
+			})
 
 		/*
-		 * Choreography. anime.js animates plain JS objects; a createTimer render loop
-		 * copies them into the scene. The scrub is an onScroll observer with smooth
-		 * sync -- the page scrolls natively, the timeline just tracks it.
+		 * Choreography reads the native scroll position directly instead of going
+		 * through a timeline library. The hero has to stay exactly in step with
+		 * the scrollbar -- no easing lag, no hijacked wheel -- and sampling the
+		 * section rect each frame is both simpler and impossible to desynchronise.
 		 */
-		const cam = { x: 0, y: 6, z: 26 }
-		const tgt = { x: 0, y: 0, z: 0 }
-		const fx = {
-			rayFlow: 1,
-			rayConverge: 0,
-			band: 0,
-			lensSpread: 1,
-			legA: 0,
-			legB: 0,
-			legC: 0,
-			iris: 1,
-			irisPass: 1,
-			focus: 0,
-			shell: 0,
-			gridOpacity: 0,
-			dust: 0.3,
-			prob: 0,
-			lattice: 0.34,
-			grade: 1,
+		const seg = (p: number, a: number, b: number) => clamp01((p - a) / Math.max(b - a, 1e-6))
+		const smooth = (t: number) => t * t * (3 - 2 * t)
+		const outCubic = (t: number) => 1 - Math.pow(1 - t, 3)
+
+		const CAM: Array<{ p: number; pos: [number, number, number]; look: [number, number, number] }> = [
+			{ p: 0.0, pos: [0, 3.2, 34], look: [0, 0, 0] },
+			{ p: 0.18, pos: [6.5, 2.2, 24], look: [0, 0, 0] },
+			{ p: 0.36, pos: [-10, 1.1, 16], look: [0, 0.4, 0] },
+			{ p: 0.54, pos: [-4, 7.5, 19], look: [0, 1.2, 0] },
+			{ p: 0.72, pos: [9, 5.2, 18], look: [0, 1.6, 0] },
+			{ p: 0.88, pos: [2.5, 3.4, 12], look: [0, 1.9, 0] },
+			{ p: 1.0, pos: [0.8, 2.6, 9.5], look: [0, 2.0, 0] },
+		]
+		const camPos = new THREE.Vector3(0, 3.2, 34)
+		const camLook = new THREE.Vector3(0, 0, 0)
+
+		function sampleCam(p: number) {
+			let i = 0
+			while (i < CAM.length - 2 && p > CAM[i + 1].p) i++
+			const a = CAM[i]
+			const b = CAM[i + 1]
+			const t = smooth(clamp01((p - a.p) / Math.max(b.p - a.p, 1e-6)))
+			camPos.set(
+				a.pos[0] + (b.pos[0] - a.pos[0]) * t,
+				a.pos[1] + (b.pos[1] - a.pos[1]) * t,
+				a.pos[2] + (b.pos[2] - a.pos[2]) * t,
+			)
+			camLook.set(
+				a.look[0] + (b.look[0] - a.look[0]) * t,
+				a.look[1] + (b.look[1] - a.look[1]) * t,
+				a.look[2] + (b.look[2] - a.look[2]) * t,
+			)
 		}
 
-		const tl = createTimeline({
-			defaults: { ease: 'inOut(3)' },
-			autoplay: onScroll({
-				target: section,
-				enter: 'top top',
-				leave: 'bottom bottom',
-				sync: 0.18,
-			}),
+		let progress = 0
+		let currentAct = -1
+
+		function readScroll() {
+			const rect = section.getBoundingClientRect()
+			const span = Math.max(rect.height - window.innerHeight, 1)
+			progress = clamp01(-rect.top / span)
+
+			fx.settle = outCubic(seg(progress, 0.015, 0.19))
+			fx.lift = smooth(seg(progress, 0.33, 0.58))
+			fx.plane = smooth(seg(progress, 0.58, 0.7))
+			fx.ignite = smooth(seg(progress, 0.66, 0.8))
+			fx.focus = smooth(seg(progress, 0.84, 0.96))
+			fx.spin = progress
+			fx.size = 2.05 + fx.focus * 0.5
+
+			const fade = smooth(seg(progress, 0.05, 0.13))
+			if (titleRef.current) {
+				titleRef.current.style.opacity = String(1 - fade)
+				titleRef.current.style.transform = "translateY(" + (-fade * 40).toFixed(2) + "px)"
+				titleRef.current.style.pointerEvents = fade > 0.6 ? "none" : "auto"
+			}
+
+			if (probRef.current) {
+				const k = smooth(seg(progress, 0.5, 0.64))
+				probRef.current.textContent = (0.9866137 * k).toFixed(4)
+			}
+
+			let a = 0
+			for (let i = 0; i < ACT_BOUNDARIES.length; i++) if (progress >= ACT_BOUNDARIES[i]) a = i + 1
+			if (a !== currentAct) {
+				currentAct = a
+				setAct(a)
+			}
+		}
+
+		readScroll()
+		window.addEventListener("scroll", readScroll, { passive: true })
+
+		const clock = new THREE.Clock()
+		renderer.setAnimationLoop(() => {
+			const t = clock.getElapsedTime()
+			pointMat.uniforms.uTime.value = t
+			pointMat.uniforms.uSettle.value = fx.settle
+			pointMat.uniforms.uLift.value = fx.lift
+			pointMat.uniforms.uIgnite.value = fx.ignite
+			pointMat.uniforms.uFocus.value = fx.focus
+			pointMat.uniforms.uSize.value = fx.size
+			planeMat.uniforms.uTime.value = t
+			planeMat.uniforms.uOpacity.value = fx.plane
+
+			/* A slow idle yaw so the cloud has depth before the reader scrolls. */
+			world.rotation.y = t * 0.035 + fx.spin * 1.15
+
+			plane.position.y = thresholdY * fx.lift
+			marker.scale.setScalar(0.6 + fx.focus * 1.5)
+			marker.rotation.z = t * 0.6
+			for (const child of marker.children) {
+				const m = (child as THREE.Mesh).material as THREE.MeshBasicMaterial
+				m.opacity = fx.focus
+			}
+
+			sampleCam(progress)
+			camera.position.lerp(camPos, 0.085)
+			camera.lookAt(camLook)
+			composer.render()
 		})
-		tl.add(cam, { x: 2, y: 3, z: 19, duration: 960 }, 600)
-			.add(fx, { rayFlow: 2.6, dust: 1, duration: 960 }, 600)
-			.add(cam, { x: -9, y: 4, z: 12, duration: 960 }, 1560)
-			.add(fx, { band: 1, rayFlow: 1.8, duration: 960 }, 1560)
-			.add(cam, { x: 0, y: 0.8, z: 17, duration: 960 }, 2520)
-			.add(fx, { legA: 1, legB: 1, legC: 1, lattice: 1, duration: 960 }, 2520)
-			.add(cam, { x: 7, y: 5, z: 11, duration: 900 }, 3480)
-			.add(
-				fx,
-				{ lensSpread: 0, rayConverge: 1, focus: 0.55, prob: 0.9866137, duration: 900, ease: 'out(3)' },
-				3480,
-			)
-			.add(cam, { x: 0, y: 1.4, z: 13.5, duration: 900 }, 4380)
-			.add(tgt, { x: 0, y: 0, z: 2, duration: 900 }, 4380)
-			.add(fx, { iris: 0, irisPass: 0.16, gridOpacity: 0.5, duration: 900 }, 4380)
-			.add(cam, { x: 2.6, y: 1.1, z: 15.5, duration: 840 }, 5160)
-			.add(tgt, { x: FOCUS.x, y: FOCUS.y, z: FOCUS.z, duration: 840 }, 5160)
-			.add(fx, { shell: 1, focus: 1, duration: 840, ease: 'out(4)' }, 5160)
 
-		let visible = true
-		const io = new IntersectionObserver(
-			(entries) => {
-				visible = entries[0]?.isIntersecting ?? true
-			},
-			{ threshold: 0.02 },
-		)
-		io.observe(mount)
-
-		const ro = new ResizeObserver(() => {
+		const onResize = () => {
 			const w = mount.clientWidth
 			const h = Math.max(mount.clientHeight, 1)
-			const dpr = Math.min(window.devicePixelRatio, w < 768 ? 1.5 : 2)
-			renderer.setSize(w, h)
-			renderer.setPixelRatio(dpr)
-			// The composer keeps its own render targets: resizing the renderer
-			// alone leaves the bloom sampling a stale buffer.
-			composer.setSize(w, h)
-			composer.setPixelRatio(dpr)
-			bloom.setSize(w, h)
-			pMat.uniforms.uPixelScale.value = pixelScale()
 			camera.aspect = w / h
 			camera.updateProjectionMatrix()
-		})
-		ro.observe(mount)
-
-		let lastAct = -1
-		let loggedError = false
-		const tmpV = new THREE.Vector3()
-		const timer = createTimer({
-			onUpdate: (t) => {
-				if (!visible) return
-				try {
-				const dt = Math.min(t.deltaTime / 1000, 0.05)
-				const time = t.currentTime / 1000
-
-				camera.position.set(cam.x, cam.y, cam.z)
-				camera.lookAt(tgt.x, tgt.y, tgt.z)
-
-				/* Iris: one angle drives all nine pivots. Closing it IS raising the gate. */
-				const irisA = IRIS_SHUT + (IRIS_OPEN - IRIS_SHUT) * fx.iris
-				for (let i = 0; i < BLADES; i++) {
-					bladePivots[i].rotation.z = bladeBase[i] - irisA
-				}
-
-				/* The three elements stack into one optic during fusion. */
-				const legGlow = [fx.legA, fx.legB, fx.legC]
-				for (let i = 0; i < 3; i++) {
-					lensGroups[i].position.z = LEG_Z[i] * fx.lensSpread
-					lensMats[i].emissiveIntensity = legGlow[i] * 0.55
-				}
-
-				/*
-				 * Feature maps. Each cell is a travelling-wave activation raised to a power,
-				 * which keeps most of the grid dark and a few cells hot -- activations are
-				 * sparse, and a uniformly lit grid would read as a keyboard, not a tensor.
-				 * Only the instance colours change per frame; the matrices are written once.
-				 */
-				for (let l = 0; l < 3; l++) {
-					const im = latMeshes[l]
-					const buf = latPos[l]
-					const gate = fx.lattice * (0.28 + 0.72 * legGlow[l])
-					const n = buf.length / 2
-					for (let i = 0; i < n; i++) {
-						const x = buf[i * 2]
-						const y = buf[i * 2 + 1]
-						const wave =
-							0.5 +
-							0.5 *
-								Math.sin(time * 1.6 + x * 0.95 + y * 0.55 + l * 2.1) *
-								Math.cos(time * 0.9 - y * 0.8 + l * 1.3)
-						const a = wave * wave * wave * gate
-						tmpC.setHex(LEG_C[l]).multiplyScalar(a * 2.4)
-						im.setColorAt(i, tmpC)
-					}
-					if (im.instanceColor) im.instanceColor.needsUpdate = true
-				}
-
-				gradePass.uniforms.uTime.value = time
-				gradePass.uniforms.uAmount.value = fx.grade
-
-				/* Rays: travel, band, converge, and die at the blade plane if stopped. */
-				for (let i = 0; i < RAYS; i++) {
-					let t = rayT[i] + raySpeed[i] * fx.rayFlow * dt
-					if (t >= 1) t -= 1
-					rayT[i] = t
-
-					const origin = rayOrigin[i]
-					// Fan the six feature bands onto their own radii.
-					const bandK = 1 + (rayBand[i] - 2.5) * 0.1 * fx.band
-					tmpV.set(origin.x * bandK, origin.y * bandK, origin.z)
-					rayEnd.lerpVectors(rayFar[i], FOCUS, fx.rayConverge)
-
-					const tail = t < 0.05 ? 0 : t - 0.05
-					rayA.lerpVectors(tmpV, rayEnd, tail)
-					rayB.lerpVectors(tmpV, rayEnd, t)
-
-					// Rays the aperture rejects stop at z = 0 rather than fading in mid-air.
-					const span = rayEnd.z - tmpV.z
-					const gateT = span === 0 ? 1 : (0 - tmpV.z) / span
-					const alive = rayRank[i] <= fx.irisPass || t < gateT
-
-					rayDir.subVectors(rayB, rayA)
-					const len = rayDir.length()
-					if (!alive || len < 1e-5) {
-						dummy.scale.set(0, 0, 0)
-						dummy.position.copy(rayA)
-						dummy.quaternion.identity()
-					} else {
-						dummy.position.copy(rayA)
-						dummy.quaternion.setFromUnitVectors(RAY_UP, rayDir.divideScalar(len))
-						dummy.scale.set(1, len, 1)
-					}
-					dummy.updateMatrix()
-					rays.setMatrixAt(i, dummy.matrix)
-				}
-				rays.instanceMatrix.needsUpdate = true
-
-				core.scale.setScalar(0.4 + fx.focus * (1.1 + 0.12 * Math.sin(time * 5)))
-				coreMat.opacity = fx.focus
-
-				shell.scale.setScalar(Math.max(fx.shell * 2.6, 0.01))
-				shellMat.uniforms.uOpacity.value = fx.shell * 0.9
-				shell.rotation.y += dt * 0.4
-
-				gridMat.opacity = fx.gridOpacity
-				grid.rotation.y += dt * 0.06
-
-				pMat.uniforms.uOpacity.value = 0.35 * fx.dust
-				dust.rotation.z += dt * 0.03
-
-				world.rotation.z += dt * 0.02
-
-				if (probRef.current) probRef.current.textContent = fx.prob.toFixed(4)
-
-				const prog = tl.progress
-
-				/*
-				 * Layer choreography. The scene used to be drawn under the title
-				 * from the very first frame, so the node field read as noise behind
-				 * the words. Now the first screen belongs to the title alone: the
-				 * canvas only fades up once the reader has actually scrolled, and it
-				 * fades back out before the section ends so the Explain console
-				 * arrives on clean canvas instead of colliding with the grid.
-				 */
-				const sceneFade = clamp01((prog - 0.035) / 0.075) * (1 - clamp01((prog - 0.9) / 0.1))
-				const sceneStr = sceneFade.toFixed(3)
-				if (mount.style.opacity !== sceneStr) mount.style.opacity = sceneStr
-
-				const titleEl = titleRef.current
-				if (titleEl) {
-					const show = 1 - clamp01((prog - 0.012) / 0.055)
-					const away = 1 - show
-					titleEl.style.opacity = show.toFixed(3)
-					titleEl.style.transform =
-						'translate3d(0,' + (-30 * away).toFixed(1) + 'px,0) scale(' + (1 - 0.05 * away).toFixed(4) + ')'
-					titleEl.style.filter = away > 0.001 ? 'blur(' + (8 * away).toFixed(2) + 'px)' : 'none'
-					titleEl.style.pointerEvents = show < 0.06 ? 'none' : 'auto'
-				}
-				let idx = 0
-				for (let b = 0; b < ACT_BOUNDARIES.length; b++) {
-					if (prog >= ACT_BOUNDARIES[b]) idx = b + 1
-				}
-				if (idx !== lastAct) {
-					lastAct = idx
-					setAct(idx)
-				}
-
-				composer.render()
-				} catch (err) {
-					// A throw inside this callback used to kill the render call at the
-					// bottom of the frame, leaving a blank canvas with no console trace
-					// anyone would connect to the hero. Log once, keep drawing.
-					if (!loggedError) {
-						loggedError = true
-						console.error('[hero3d] frame update failed:', err)
-					}
-					composer.render()
-				}
-			},
-		})
+			renderer.setSize(w, h)
+			composer.setSize(w, h)
+			bloom.setSize(w, h)
+			pointMat.uniforms.uDpr.value = renderer.getPixelRatio()
+			readScroll()
+		}
+		window.addEventListener("resize", onResize)
 
 		return () => {
-			io.disconnect()
-			ro.disconnect()
-			timer.revert()
-			tl.revert()
-			scene.traverse((obj) => {
-				const mesh = obj as THREE.Mesh
-				if (mesh.geometry) mesh.geometry.dispose()
-				const mat = mesh.material as THREE.Material | THREE.Material[] | undefined
+			disposed = true
+			ac.abort()
+			renderer.setAnimationLoop(null)
+			window.removeEventListener("scroll", readScroll)
+			window.removeEventListener("resize", onResize)
+			scene.traverse((o) => {
+				const any = o as THREE.Mesh
+				if (any.geometry) any.geometry.dispose()
+				const mat = any.material as THREE.Material | THREE.Material[] | undefined
 				if (Array.isArray(mat)) mat.forEach((m) => m.dispose())
 				else if (mat) mat.dispose()
 			})
@@ -887,7 +524,7 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 				    without a bridge the console below would simply appear. */}
 				<div className="handoff-veil pointer-events-none absolute inset-x-0 bottom-0 z-30 h-44" />
 
-				{/* Vector graticule over the raster image the instrument forms. */}
+				{/* Instrument chrome: axis triad, readouts, ground-truth key. */}
 				<HeroHud act={act} className="pointer-events-none absolute inset-0 z-10 h-full w-full" />
 				{/* The Grid. Purely decorative: every fact is also in the HTML below. */}
 				<div
@@ -895,7 +532,7 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 					className="canvas-feather absolute inset-0"
 					style={{ opacity: 0 }}
 					role="img"
-					aria-label="Animated 3D network of forty hosts. As you scroll, the camera flies through the detection pipeline: telemetry, features, three detector rings, fusion, the threshold plane, and containment of the alerted host."
+					aria-label="Animated 3D scatter plot of the 11,326 held-out test windows. Horizontal axes are the first two principal components of the 40 features; height is the model log-odds. Colour is the ground-truth attack family. As you scroll, the points settle from a raw stream into the feature manifold, rise into score space, and a horizontal threshold plane sweeps to 0.6303, leaving 49 points above it: 39 true detections and 10 false positives, with 20 attacks left below."
 				/>
 
 				{/* Act 0 -- the title. One DOM instance, full contrast, crossfades out. */}
