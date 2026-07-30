@@ -17,6 +17,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { createTimer, createTimeline, onScroll } from 'animejs'
 import { motion } from 'motion/react'
@@ -163,6 +164,52 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 			1,
 		)
 		composer.addPass(bloom)
+		/*
+		 * Final grade. Bloom alone still reads as a clean CG render; what sells a
+		 * *photograph* of an instrument is the lens and the sensor being imperfect.
+		 * Three cheap, physically motivated defects, all pure fragment math:
+		 *   - lateral chromatic aberration that scales with r^2, because real glass
+		 *     only splits colour toward the edge of the field;
+		 *   - a vignette, because the barrel occludes off-axis rays;
+		 *   - sensor grain, applied here (pre-tone-map) so it lives in the midtones
+		 *     rather than getting crushed into the blacks.
+		 */
+		const gradePass = new ShaderPass({
+			uniforms: {
+				tDiffuse: { value: null },
+				uTime: { value: 0 },
+				uAmount: { value: 1 },
+			},
+			vertexShader: `
+				varying vec2 vUv;
+				void main() {
+					vUv = uv;
+					gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+				}`,
+			fragmentShader: `
+				uniform sampler2D tDiffuse;
+				uniform float uTime;
+				uniform float uAmount;
+				varying vec2 vUv;
+				float hash(vec2 p) {
+					return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+				}
+				void main() {
+					vec2 d = vUv - 0.5;
+					float r = length(d);
+					vec2 off = d * r * r * 0.0042 * uAmount;
+					vec4 c;
+					c.r = texture2D(tDiffuse, vUv + off).r;
+					c.g = texture2D(tDiffuse, vUv).g;
+					c.b = texture2D(tDiffuse, vUv - off).b;
+					c.a = 1.0;
+					c.rgb *= mix(1.0, smoothstep(0.96, 0.26, r), 0.8 * uAmount);
+					float g = hash(vUv * 920.0 + fract(uTime) * 97.0) - 0.5;
+					c.rgb += g * 0.016 * uAmount;
+					gl_FragColor = c;
+				}`,
+		})
+		composer.addPass(gradePass)
 		// Without OutputPass the composer skips tone mapping and the sRGB
 		// conversion the plain renderer does: the single most common bloom bug.
 		composer.addPass(new OutputPass())
@@ -198,8 +245,56 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 		scene.add(rimLight)
 		scene.add(new THREE.AmbientLight(0x141a24, 1.4))
 
-		const metal = (c: number, roughness: number) =>
-			new THREE.MeshStandardMaterial({ color: c, metalness: 0.94, roughness })
+		/*
+		 * Machined-surface normal map, generated into a canvas at runtime -- no asset,
+		 * no request. Perfectly smooth metal is the tell that a render is synthetic:
+		 * real turned aluminium carries lathe grooves plus a fine random grain, and
+		 * both show up as *moving highlights* the moment the camera travels. Encoded
+		 * tangent-space: R/G carry the surface slope, B points up.
+		 */
+		const makeMachinedNormal = () => {
+			const S = 512
+			const cv = document.createElement('canvas')
+			cv.width = S
+			cv.height = S
+			const ctx = cv.getContext('2d')
+			if (!ctx) return null
+			const img = ctx.createImageData(S, S)
+			const d = img.data
+			let seed = 20260730
+			const rnd = () => {
+				seed = (seed * 1664525 + 1013904223) >>> 0
+				return seed / 4294967296
+			}
+			for (let y = 0; y < S; y++) {
+				// One groove profile per row, so the brushing runs in a single direction.
+				const groove = Math.sin(y * 0.85) * 0.5 + Math.sin(y * 3.9) * 0.16 + Math.sin(y * 11.3) * 0.05
+				for (let x = 0; x < S; x++) {
+					const i = (y * S + x) * 4
+					const grain = rnd() - 0.5
+					d[i] = 128 + grain * 40
+					d[i + 1] = 128 + (groove * 46 + grain * 10)
+					d[i + 2] = 255
+					d[i + 3] = 255
+				}
+			}
+			ctx.putImageData(img, 0, 0)
+			const tex = new THREE.CanvasTexture(cv)
+			tex.wrapS = THREE.RepeatWrapping
+			tex.wrapT = THREE.RepeatWrapping
+			tex.repeat.set(6, 6)
+			return tex
+		}
+		const machined = makeMachinedNormal()
+
+		const metal = (c: number, roughness: number) => {
+			const m = new THREE.MeshStandardMaterial({ color: c, metalness: 0.94, roughness })
+			if (machined) {
+				m.normalMap = machined
+				m.normalScale = new THREE.Vector2(0.32, 0.32)
+			}
+			return m
+		}
 
 		/* --- Housing: two barrel sections the optic sits between. --- */
 		const barrelGeo = new THREE.CylinderGeometry(5.1, 5.1, 1.4, 128, 1, true)
@@ -288,6 +383,62 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 			lensMats.push(mat)
 			lensGroups.push(g)
 			world.add(g)
+		}
+
+		/*
+		 * --- Activation lattice: the AI half of the instrument. ---
+		 *
+		 * Each optical element carries a grid of cells on its face. That is not
+		 * decoration: three stacked grids, lighting in sequence, IS a forward pass,
+		 * and each grid is the feature map of one detector leg. The optic focuses
+		 * light; the lattice is what the model actually computes while it does.
+		 *
+		 * They are children of the lens groups, so when the three elements stack into
+		 * one optic at fusion the three feature maps superimpose -- which is exactly
+		 * what the stacker does to the three leg scores.
+		 */
+		const GRID = 13
+		const CELL_PITCH = 0.5
+		const cellGeo = new THREE.BoxGeometry(0.2, 0.2, 0.05)
+		const latMeshes: THREE.InstancedMesh[] = []
+		const latPos: Array<Float32Array> = []
+		const tmpC = new THREE.Color()
+		for (let l = 0; l < 3; l++) {
+			const xs: number[] = []
+			const ys: number[] = []
+			for (let gx = 0; gx < GRID; gx++) {
+				for (let gy = 0; gy < GRID; gy++) {
+					const x = (gx - (GRID - 1) / 2) * CELL_PITCH
+					const y = (gy - (GRID - 1) / 2) * CELL_PITCH
+					// Clip to the clear aperture so the map reads as circular, like the element.
+					if (Math.sqrt(x * x + y * y) > 3.25) continue
+					xs.push(x)
+					ys.push(y)
+				}
+			}
+			const n = xs.length
+			const buf = new Float32Array(n * 2)
+			const cellMat = new THREE.MeshBasicMaterial({
+				transparent: true,
+				blending: THREE.AdditiveBlending,
+				depthWrite: false,
+			})
+			const im = new THREE.InstancedMesh(cellGeo, cellMat, n)
+			im.frustumCulled = false
+			const od = new THREE.Object3D()
+			for (let i = 0; i < n; i++) {
+				buf[i * 2] = xs[i]
+				buf[i * 2 + 1] = ys[i]
+				// Sit just proud of the glass so the cells are not swallowed by transmission.
+				od.position.set(xs[i], ys[i], 0.16)
+				od.updateMatrix()
+				im.setMatrixAt(i, od.matrix)
+				im.setColorAt(i, tmpC.setRGB(0, 0, 0))
+			}
+			im.instanceMatrix.needsUpdate = true
+			lensGroups[l].add(im)
+			latMeshes.push(im)
+			latPos.push(buf)
 		}
 
 		/* --- Rays: one instanced draw call, authored above the bloom threshold. --- */
@@ -476,6 +627,8 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 			gridOpacity: 0,
 			dust: 0.3,
 			prob: 0,
+			lattice: 0,
+			grade: 1,
 		}
 
 		const tl = createTimeline({
@@ -492,7 +645,7 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 			.add(cam, { x: -9, y: 4, z: 12, duration: 960 }, 1560)
 			.add(fx, { band: 1, rayFlow: 1.8, duration: 960 }, 1560)
 			.add(cam, { x: 0, y: 0.8, z: 17, duration: 960 }, 2520)
-			.add(fx, { legA: 1, legB: 1, legC: 1, duration: 960 }, 2520)
+			.add(fx, { legA: 1, legB: 1, legC: 1, lattice: 1, duration: 960 }, 2520)
 			.add(cam, { x: 7, y: 5, z: 11, duration: 900 }, 3480)
 			.add(
 				fx,
@@ -557,6 +710,35 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 					lensGroups[i].position.z = LEG_Z[i] * fx.lensSpread
 					lensMats[i].emissiveIntensity = legGlow[i] * 0.55
 				}
+
+				/*
+				 * Feature maps. Each cell is a travelling-wave activation raised to a power,
+				 * which keeps most of the grid dark and a few cells hot -- activations are
+				 * sparse, and a uniformly lit grid would read as a keyboard, not a tensor.
+				 * Only the instance colours change per frame; the matrices are written once.
+				 */
+				for (let l = 0; l < 3; l++) {
+					const im = latMeshes[l]
+					const buf = latPos[l]
+					const gate = fx.lattice * (0.28 + 0.72 * legGlow[l])
+					const n = buf.length / 2
+					for (let i = 0; i < n; i++) {
+						const x = buf[i * 2]
+						const y = buf[i * 2 + 1]
+						const wave =
+							0.5 +
+							0.5 *
+								Math.sin(time * 1.6 + x * 0.95 + y * 0.55 + l * 2.1) *
+								Math.cos(time * 0.9 - y * 0.8 + l * 1.3)
+						const a = wave * wave * wave * gate
+						tmpC.setHex(LEG_C[l]).multiplyScalar(a * 2.4)
+						im.setColorAt(i, tmpC)
+					}
+					if (im.instanceColor) im.instanceColor.needsUpdate = true
+				}
+
+				gradePass.uniforms.uTime.value = time
+				gradePass.uniforms.uAmount.value = fx.grade
 
 				/* Rays: travel, band, converge, and die at the blade plane if stopped. */
 				for (let i = 0; i < RAYS; i++) {
