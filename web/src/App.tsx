@@ -62,6 +62,10 @@ export default function App() {
 	const [active, setActive] = useState('top')
 	const [extras, setExtras] = useState<Extras>({})
 	const [huntPreset, setHuntPreset] = useState<string | undefined>(undefined)
+	// Tabs are only offered for sections that really mounted: optional
+	// artifacts (trace, entity risk, hunt index) may legitimately be absent,
+	// and a tab that scrolls nowhere is worse than no tab.
+	const [present, setPresent] = useState<string[]>([])
 
 	useEffect(() => {
 		loadBundle()
@@ -75,23 +79,56 @@ export default function App() {
 		return () => ctrl.abort()
 	}, [])
 
-	// Scroll spy: which section is in the upper half of the viewport.
+	/*
+	 * Scroll spy. An IntersectionObserver was the wrong instrument here: its
+	 * callback only carries entries whose visibility *changed*, so "topmost
+	 * intersecting entry" was computed over a partial set. Worse, a tall
+	 * section that began above the fold (the 560vh hero, Explain, Hunt) has a
+	 * hugely negative top and therefore outranked every short <header> anchor
+	 * below it -- the pill stuck on Overview, and clicking Explain scrolled
+	 * correctly but snapped the highlight straight back.
+	 *
+	 * Measure the anchors directly instead: the active section is the last one
+	 * whose anchor has passed under the dock. Same rule the reader's eye uses.
+	 */
 	useEffect(() => {
-		const obs = new IntersectionObserver(
-			(entries) => {
-				const top = entries
-					.filter((e) => e.isIntersecting)
-					.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0]
-				if (top?.target.id) setActive(top.target.id)
-			},
-			{ rootMargin: '-10% 0px -60% 0px' },
-		)
-		for (const s of SECTIONS) {
-			const el = document.getElementById(s.id)
-			if (el) obs.observe(el)
+		if (!bundle) return
+		const read = () => {
+			const line = 132
+			const seen: string[] = []
+			let current = SECTIONS[0].id
+			for (const s of SECTIONS) {
+				const el = document.getElementById(s.id)
+				if (!el) continue
+				seen.push(s.id)
+				if (el.getBoundingClientRect().top <= line) current = s.id
+			}
+			// The final section is often too short to ever reach the line.
+			const atEnd =
+				window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4
+			if (atEnd && seen.length) current = seen[seen.length - 1]
+			setActive(current)
+			setPresent((prev) =>
+				prev.length === seen.length && prev.every((v, i) => v === seen[i]) ? prev : seen,
+			)
 		}
-		return () => obs.disconnect()
-	}, [bundle])
+		let raf = 0
+		const schedule = () => {
+			if (raf) return
+			raf = requestAnimationFrame(() => {
+				raf = 0
+				read()
+			})
+		}
+		read()
+		window.addEventListener('scroll', schedule, { passive: true })
+		window.addEventListener('resize', schedule)
+		return () => {
+			window.removeEventListener('scroll', schedule)
+			window.removeEventListener('resize', schedule)
+			if (raf) cancelAnimationFrame(raf)
+		}
+	}, [bundle, extras])
 
 	if (error) {
 		return (
@@ -99,7 +136,7 @@ export default function App() {
 				<h1 className="text-2xl font-semibold">Artifacts not loaded</h1>
 				<p className="mt-3 text-ink-dim">{error}</p>
 				<pre className="panel mt-4 overflow-x-auto p-4 text-[14px]">
-					{'python -m sentinelai.pipeline --out artifacts --budget 50\ncd web && pnpm sync-data && pnpm dev'}
+					{'python -m sentinelai.pipeline --out artifacts --budget 50\ncd web && npm run sync-data && npm run dev'}
 				</pre>
 			</main>
 		)
@@ -122,7 +159,7 @@ export default function App() {
 	// The palette carries sections first, then saved hunts, so a reviewer can run
 	// a real query without having to learn the grammar first.
 	const paletteItems: PaletteItem[] = [
-		...SECTIONS.map((s) => ({
+		...SECTIONS.filter((s) => !present.length || present.includes(s.id)).map((s) => ({
 			id: `jump-${s.id}`,
 			label: `Go to ${s.label}`,
 			hint: 'section',
@@ -149,7 +186,7 @@ export default function App() {
 			</a>
 
 			<Dock
-				items={SECTIONS}
+				items={present.length ? SECTIONS.filter((s) => present.includes(s.id)) : SECTIONS}
 				active={active}
 				onSelect={(id) => {
 					document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
