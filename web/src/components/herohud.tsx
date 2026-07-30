@@ -166,3 +166,21 @@ export function HeroHud({ act, className }: Props) {
 							opacity={t.major ? 0.85 : 0.4}
 						/>
 					))}
+				</g>
+
+				{/* Crosshair, broken at the centre so it never crosses the subject. */}
+				<g className="hud-line" strokeWidth="1">
+					<line x1={CX - 214} y1={CY} x2={CX - 58} y2={CY} />
+					<line x1={CX + 58} y1={CY} x2={CX + 214} y2={CY} />
+					<line x1={CX} y1={CY - 214} x2={CX} y2={CY - 58} />
+					<line x1={CX} y1={CY + 58} x2={CX} y2={CY + 214} />
+				</g>
+
+				{/* Focus corners: the four marks that close in as the iris stops down. */}
+				<g
+					className="hud-focus"
+					data-act={act}
+					style={{ transformOrigin: "800px 450px" }}
+					strokeWidth="1.6"
+					fill="none"
+				>
