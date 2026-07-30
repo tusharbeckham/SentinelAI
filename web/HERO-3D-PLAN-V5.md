@@ -12,3 +12,18 @@ Three concrete failures, all visible in one screenshot:
    Readouts pinned at `y=210` and `y=234` landed directly on the line
    "anomaly detection built around the analyst budget".
 2. **The rings read as noise.** Faint dotted arcs floating behind live text
+   are not an instrument, they are visual litter.
+3. **The lens was invisible.** Dark glass on a `#0a0b0d` canvas is a smudge.
+
+Underneath all three sits one root cause: the brief said the animejs lens was
+a cool *idea*, and it was read as a literal subject. Three versions were spent
+polishing an object nobody asked for. A lens has nothing to do with intrusion
+detection; it was decoration wearing a technical costume.
+
+## The v5 thesis
+
+Render the model, not a machine. The only thing worth putting on this page is
+the thing the project actually produces: 11,326 scored windows and a decision
+boundary that costs something.
+
+## Geometry
