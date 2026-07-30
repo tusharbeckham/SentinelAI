@@ -182,3 +182,65 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 		 * and benign points sit far below, so ignition reads as light rather than
 		 * as a blur smeared over everything.
 		 */
+		const bloom = new UnrealBloomPass(
+			new THREE.Vector2(mount.clientWidth, Math.max(mount.clientHeight, 1)),
+			0.72,
+			0.6,
+			1,
+		)
+		composer.addPass(bloom)
+		composer.addPass(new OutputPass())
+
+		const world = new THREE.Group()
+		scene.add(world)
+
+		const fx = { settle: 0, lift: 0, ignite: 0, plane: 0, focus: 0, spin: 0, size: 2.05 }
+		let thresholdY = 0.224
+		let disposed = false
+
+		const pointMat = new THREE.ShaderMaterial({
+			transparent: true,
+			depthWrite: false,
+			blending: THREE.AdditiveBlending,
+			uniforms: {
+				uSettle: { value: 0 },
+				uLift: { value: 0 },
+				uIgnite: { value: 0 },
+				uFocus: { value: 0 },
+				uThresh: { value: thresholdY },
+				uSize: { value: 2.05 },
+				uTime: { value: 0 },
+				uDpr: { value: renderer.getPixelRatio() },
+			},
+			vertexShader: [
+				"uniform float uSettle; uniform float uLift; uniform float uIgnite;",
+				"uniform float uThresh; uniform float uSize; uniform float uTime;",
+				"uniform float uFocus; uniform float uDpr;",
+				"attribute vec3 aScatter; attribute vec3 aColor; attribute float aP; attribute float aRank;",
+				"varying vec3 vColor; varying float vP; varying float vAlert; varying float vRank;",
+				"void main() {",
+				"  vec3 target = position;",
+				"  target.y *= uLift;",
+				"  vec3 p = mix(aScatter, target, uSettle);",
+				"  float ph = aP * 43.0 + aRank * 7.0;",
+				"  p += vec3(sin(uTime * 0.35 + ph), sin(uTime * 0.29 + ph * 1.7), cos(uTime * 0.31 + ph)) * 0.055;",
+				"  float above = step(uThresh * uLift, target.y);",
+				"  vAlert = above * uIgnite;",
+				"  vColor = aColor; vP = aP; vRank = aRank;",
+				"  vec4 mv = modelViewMatrix * vec4(p, 1.0);",
+				"  float grow = 1.0 + vAlert * 1.9 + aRank * uFocus * 5.0;",
+				"  gl_PointSize = uSize * uDpr * grow * (46.0 / max(-mv.z, 0.6));",
+				"  gl_Position = projectionMatrix * mv;",
+				"}",
+			].join("\n"),
+			fragmentShader: [
+				"varying vec3 vColor; varying float vP; varying float vAlert; varying float vRank;",
+				"void main() {",
+				"  vec2 d = gl_PointCoord - vec2(0.5);",
+				"  float r = length(d);",
+				"  if (r > 0.5) discard;",
+				"  float core = smoothstep(0.5, 0.04, r);",
+				"  float halo = smoothstep(0.5, 0.22, r) * 0.4;",
+				"  vec3 c = vColor * (0.30 + 0.85 * vP);",
+				"  c = mix(c, c * 3.6 + vec3(0.22, 0.12, 0.05), vAlert);",
+				"  c += vColor * vRank * 2.4;",
