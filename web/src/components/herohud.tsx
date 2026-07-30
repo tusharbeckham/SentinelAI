@@ -57,3 +57,22 @@ export function HeroHud({ act, className }: Props) {
 	)
 
 	const r = READOUTS[Math.min(act, READOUTS.length - 1)]
+
+	return (
+		<svg
+			className={className}
+			viewBox="0 0 1600 900"
+			preserveAspectRatio="xMidYMid slice"
+			aria-hidden="true"
+			focusable="false"
+		>
+			<defs>
+				{/*
+				  * Perlin turbulence displacing a straight edge is what makes the scan
+				  * band read as heat shimmer rather than as a gradient rectangle.
+				  * stitchTiles=noStitch matters: without it the noise field cannot be
+				  * animated continuously without tearing at tile seams.
+				  */}
+				<filter id="sentinel-shimmer" x="-20%" y="-20%" width="140%" height="140%">
+					<feTurbulence
+						type="fractalNoise"
