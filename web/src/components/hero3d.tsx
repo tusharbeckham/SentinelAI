@@ -244,3 +244,64 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				"  vec3 c = vColor * (0.30 + 0.85 * vP);",
 				"  c = mix(c, c * 3.6 + vec3(0.22, 0.12, 0.05), vAlert);",
 				"  c += vColor * vRank * 2.4;",
+				"  float a = (core + halo) * (0.30 + 0.62 * vP + vAlert * 0.5);",
+				"  gl_FragColor = vec4(c, a);",
+				"}",
+			].join("\n"),
+		})
+
+		/*
+		 * The threshold plane, drawn as a shader grid rather than a solid quad so
+		 * the cloud stays readable through it. An opaque plane would hide the
+		 * false negatives underneath, and those are the entire point of showing it.
+		 */
+		const planeMat = new THREE.ShaderMaterial({
+			transparent: true,
+			depthWrite: false,
+			side: THREE.DoubleSide,
+			blending: THREE.AdditiveBlending,
+			uniforms: { uOpacity: { value: 0 }, uTime: { value: 0 }, uTint: { value: new THREE.Color(WATCH) } },
+			vertexShader: [
+				"varying vec2 vUv;",
+				"void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
+			].join("\n"),
+			fragmentShader: [
+				"uniform float uOpacity; uniform float uTime; uniform vec3 uTint;",
+				"varying vec2 vUv;",
+				"void main() {",
+				"  vec2 g = abs(fract(vUv * 26.0) - 0.5) / fwidth(vUv * 26.0);",
+				"  float line = 1.0 - min(min(g.x, g.y), 1.0);",
+				"  float rad = 1.0 - smoothstep(0.18, 0.5, length(vUv - vec2(0.5)));",
+				"  float sweep = 0.55 + 0.45 * sin(uTime * 0.8 + vUv.x * 6.0);",
+				"  float a = (line * 0.55 + 0.035) * rad * uOpacity * sweep;",
+				"  gl_FragColor = vec4(uTint * (1.4 + line * 1.6), a);",
+				"}",
+			].join("\n"),
+		})
+
+		const plane = new THREE.Mesh(new THREE.PlaneGeometry(46, 46, 1, 1), planeMat)
+		plane.rotation.x = -Math.PI / 2
+		plane.visible = false
+		world.add(plane)
+
+		/* Rank-1 marker: a caged point, so the eye can find h002 immediately. */
+		const marker = new THREE.Group()
+		const ringA = new THREE.Mesh(
+			new THREE.TorusGeometry(0.85, 0.012, 8, 96),
+			new THREE.MeshBasicMaterial({ color: hdr(ALARM, 2.6), transparent: true, opacity: 0 }),
+		)
+		ringA.rotation.x = -Math.PI / 2
+		const ringB = new THREE.Mesh(
+			new THREE.TorusGeometry(0.55, 0.01, 8, 96),
+			new THREE.MeshBasicMaterial({ color: hdr(ALARM, 2.2), transparent: true, opacity: 0 }),
+		)
+		marker.add(ringA, ringB)
+		marker.visible = false
+		world.add(marker)
+
+		/* Load the projected corpus. Until it arrives the hero simply stays dark. */
+		const ac = new AbortController()
+		fetch(new URL("data/embedding.json", document.baseURI).toString(), { signal: ac.signal })
+			.then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+			.then((emb: Embedding) => {
+				if (disposed) return
