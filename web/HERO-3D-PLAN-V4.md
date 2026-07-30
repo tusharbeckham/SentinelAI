@@ -60,3 +60,26 @@ ruins this kind of effect:
 
 > Do not animate baseFrequency. It looks weird and there is no way to loop it.
 > Add an feColorMatrix hue-rotate from 0 to 360 instead.
+
+## What the graticule contains
+
+All of it in one fixed `viewBox="0 0 1600 900"` with `preserveAspectRatio=
+"xMidYMid slice"`, so it crops like a photograph instead of stretching.
+
+1. **Frame brackets** — four corner marks, the classic viewfinder crop.
+2. **Bearing rings** — two dashed circles counter-rotating at 64s and 96s.
+   Deliberately far slower than feels right in isolation; anything faster reads
+   as a loading spinner. The motion should only be detectable against the
+   static ticks.
+3. **Graduated tick ring** — 72 ticks, every sixth major, as on a real dial.
+4. **Broken crosshair** — gapped at the centre so it never crosses the subject.
+5. **Focus corners** — four marks that close in act by act. This is the aperture
+   stopping down, expressed in vector so the marks stay hairline sharp while
+   they travel. Driven purely by a `data-act` attribute and CSS transitions, so
+   there is zero per-frame JavaScript cost.
+6. **Scan band** — the turbulence-displaced sweep described above.
+7. **Readouts** — MODE, a per-act note, ACT n of 06, and an f-stop that closes
+   as the acts advance.
+
+A radial mask fades the entire overlay toward the edges, so the graticule never
+fights the corners of the frame.
