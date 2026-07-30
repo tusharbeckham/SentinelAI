@@ -76,3 +76,21 @@ export function HeroHud({ act, className }: Props) {
 				<filter id="sentinel-shimmer" x="-20%" y="-20%" width="140%" height="140%">
 					<feTurbulence
 						type="fractalNoise"
+						baseFrequency="0.012 0.05"
+						numOctaves="2"
+						stitchTiles="noStitch"
+						result="noise"
+					>
+						{/*
+						  * Animating baseFrequency cannot loop -- the field is resampled
+						  * every frame and jumps on repeat. Rotating hue on the noise is
+						  * the standard trick: 0 to 360 is seamless by construction.
+						  */}
+					</feTurbulence>
+					<feColorMatrix in="noise" type="hueRotate" values="0" result="spun">
+						<animate
+							attributeName="values"
+							from="0"
+							to="360"
+							dur="9s"
+							repeatCount="indefinite"
