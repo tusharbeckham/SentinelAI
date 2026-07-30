@@ -886,6 +886,9 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 				{/* Handoff: the canvas fades out at the end of the pinned range, so
 				    without a bridge the console below would simply appear. */}
 				<div className="handoff-veil pointer-events-none absolute inset-x-0 bottom-0 z-30 h-44" />
+
+				{/* Vector graticule over the raster image the instrument forms. */}
+				<HeroHud act={act} className="pointer-events-none absolute inset-0 z-10 h-full w-full" />
 				{/* The Grid. Purely decorative: every fact is also in the HTML below. */}
 				<div
 					ref={mountRef}
