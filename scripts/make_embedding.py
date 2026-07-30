@@ -106,3 +106,20 @@ def main() -> None:
         "note": "x,z = PCA of 40 standardised features; y = model log-odds * %.2f" % SCALE,
         "variance": {"pc1": round(float(var[0]), 4), "pc2": round(float(var[1]), 4)},
         "thresholdY": round(float(math.log(TH / (1 - TH)) * SCALE), 6),
+        "threshold": TH,
+        "families": fams,
+        "counts": {"TP": tp, "FP": fp, "FN": fn, "TN": tn, "above": tp + fp},
+        "rank1": rank1,
+        "pos": [round(float(v), 4) for v in pos],
+        "p": [round(float(v), 4) for v in p],
+        "fam": fam,
+    }
+    OUT.write_text(json.dumps(payload, separators=(",", ":")))
+    print(
+        "wrote %s  n=%d  pc1=%.4f pc2=%.4f  compressed=%d  above=%d (tp=%d fp=%d) fn=%d"
+        % (OUT, payload["n"], var[0], var[1], compressed, tp + fp, tp, fp, fn)
+    )
+
+
+if __name__ == "__main__":
+    main()
