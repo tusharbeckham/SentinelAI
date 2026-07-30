@@ -29,6 +29,7 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js"
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js"
+import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js"
 import { motion } from "motion/react"
 import { useReducedMotion } from "@/components/anime"
 import { cn } from "@/lib/cn"
@@ -189,12 +190,60 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			1,
 		)
 		composer.addPass(bloom)
+		/*
+		 * Final grade. Bloom alone looks synthetic; a camera adds aberration,
+		 * falloff and noise. This pass also owns both transitions, so the fade to
+		 * and from black happens after everything else is composited.
+		 */
+		const grade = new ShaderPass({
+			uniforms: {
+				tDiffuse: { value: null },
+				uTime: { value: 0 },
+				uFade: { value: 0 },
+				uOutro: { value: 0 },
+				uRes: { value: new THREE.Vector2(1, 1) },
+			},
+			vertexShader: [
+				"varying vec2 vUv;",
+				"void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
+			].join("\n"),
+			fragmentShader: [
+				"uniform sampler2D tDiffuse; uniform float uTime; uniform float uFade;",
+				"uniform float uOutro; uniform vec2 uRes;",
+				"varying vec2 vUv;",
+				"float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }",
+				"void main() {",
+				"  vec2 uv = vUv;",
+				"  vec2 off = uv - vec2(0.5);",
+				"  float rr = dot(off, off);",
+				"  /* Lateral chromatic aberration: real lenses fail to focus every wavelength",
+				"     on one plane, and the error grows with distance from the axis. Scaling by",
+				"     r^2 keeps the centre clean and only smears the extreme corners. */",
+				"  float ca = (0.0016 + uOutro * 0.0075) * rr;",
+				"  vec3 c;",
+				"  c.r = texture2D(tDiffuse, uv - off * ca).r;",
+				"  c.g = texture2D(tDiffuse, uv).g;",
+				"  c.b = texture2D(tDiffuse, uv + off * ca).b;",
+				"  /* Vignette, cos^4-ish rather than a hard ring. */",
+				"  float vig = smoothstep(1.05, 0.28, length(off) * 1.42);",
+				"  c *= mix(0.55, 1.0, vig);",
+				"  /* Animated grain, scaled by luminance so it lives in the shadows where a",
+				"     sensor actually shows noise, instead of speckling the bright points. */",
+				"  float lum = dot(c, vec3(0.2126, 0.7152, 0.0722));",
+				"  float n = hash(uv * uRes + fract(uTime) * 91.7) - 0.5;",
+				"  c += n * 0.030 * (1.0 - smoothstep(0.0, 0.55, lum));",
+				"  c *= uFade * (1.0 - uOutro * 0.92);",
+				"  gl_FragColor = vec4(c, 1.0);",
+				"}",
+			].join("\n"),
+		})
+		composer.addPass(grade)
 		composer.addPass(new OutputPass())
 
 		const world = new THREE.Group()
 		scene.add(world)
 
-		const fx = { settle: 0, lift: 0, ignite: 0, plane: 0, focus: 0, spin: 0, size: 2.05 }
+		const fx = { settle: 0, lift: 0, ignite: 0, plane: 0, focus: 0, spin: 0, size: 2.05, intro: 0, outro: 0 }
 		let thresholdY = 0.224
 		let disposed = false
 
@@ -211,40 +260,66 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				uSize: { value: 2.05 },
 				uTime: { value: 0 },
 				uDpr: { value: renderer.getPixelRatio() },
+				uIntro: { value: 0 },
+				uOutro: { value: 0 },
 			},
 			vertexShader: [
 				"uniform float uSettle; uniform float uLift; uniform float uIgnite;",
 				"uniform float uThresh; uniform float uSize; uniform float uTime;",
-				"uniform float uFocus; uniform float uDpr;",
+				"uniform float uFocus; uniform float uDpr; uniform float uIntro; uniform float uOutro;",
 				"attribute vec3 aScatter; attribute vec3 aColor; attribute float aP; attribute float aRank;",
 				"varying vec3 vColor; varying float vP; varying float vAlert; varying float vRank;",
+				"varying float vDepth; varying float vTw; varying float vFade;",
 				"void main() {",
 				"  vec3 target = position;",
 				"  target.y *= uLift;",
-				"  vec3 p = mix(aScatter, target, uSettle);",
+				"  /* Intro: the cloud condenses out of a wide shell, staggered per point so it",
+				"     arrives as a sweep rather than one synchronised snap. */",
+				"  float stagger = clamp(uIntro * 1.45 - aP * 0.30 - fract(aRank + aP * 17.0) * 0.15, 0.0, 1.0);",
+				"  float arrive = stagger * stagger * (3.0 - 2.0 * stagger);",
+				"  vec3 p = mix(aScatter, target, uSettle * arrive);",
 				"  float ph = aP * 43.0 + aRank * 7.0;",
 				"  p += vec3(sin(uTime * 0.35 + ph), sin(uTime * 0.29 + ph * 1.7), cos(uTime * 0.31 + ph)) * 0.055;",
+				"  /* Outro: the field exhales upward and thins, handing off to the page. */",
+				"  p.y += uOutro * (5.0 + aP * 9.0);",
+				"  p.xz *= 1.0 + uOutro * 0.22;",
 				"  float above = step(uThresh * uLift, target.y);",
 				"  vAlert = above * uIgnite;",
 				"  vColor = aColor; vP = aP; vRank = aRank;",
+				"  vTw = 0.82 + 0.18 * sin(uTime * 1.7 + ph * 2.3);",
+				"  vFade = arrive * (1.0 - uOutro);",
 				"  vec4 mv = modelViewMatrix * vec4(p, 1.0);",
+				"  vDepth = -mv.z;",
 				"  float grow = 1.0 + vAlert * 1.9 + aRank * uFocus * 5.0;",
-				"  gl_PointSize = uSize * uDpr * grow * (46.0 / max(-mv.z, 0.6));",
+				"  gl_PointSize = uSize * uDpr * grow * (46.0 / max(-mv.z, 0.6)) * (0.35 + 0.65 * arrive);",
 				"  gl_Position = projectionMatrix * mv;",
 				"}",
 			].join("\n"),
 			fragmentShader: [
+				"uniform float uOutro;",
 				"varying vec3 vColor; varying float vP; varying float vAlert; varying float vRank;",
+				"varying float vDepth; varying float vTw; varying float vFade;",
 				"void main() {",
 				"  vec2 d = gl_PointCoord - vec2(0.5);",
 				"  float r = length(d);",
 				"  if (r > 0.5) discard;",
-				"  float core = smoothstep(0.5, 0.04, r);",
-				"  float halo = smoothstep(0.5, 0.22, r) * 0.4;",
-				"  vec3 c = vColor * (0.30 + 0.85 * vP);",
+				"  /* A gaussian profile instead of a hard disc. Real emissive points have no",
+				"     edge, and the smooth falloff is what stops 11k sprites reading as",
+				"     confetti. Core plus wide skirt approximates an airy disc cheaply. */",
+				"  float g = exp(-r * r * 15.0);",
+				"  float core = exp(-r * r * 62.0);",
+				"  float skirt = exp(-r * r * 5.2) * 0.30;",
+				"  vec3 c = vColor * (0.30 + 0.85 * vP) * vTw;",
+				"  /* Hot centres desaturate toward white, the way a bright emitter clips. */",
+				"  c += vec3(core) * (0.20 + 0.75 * vP) * (0.35 + vAlert);",
 				"  c = mix(c, c * 3.6 + vec3(0.22, 0.12, 0.05), vAlert);",
 				"  c += vColor * vRank * 2.4;",
-				"  float a = (core + halo) * (0.30 + 0.62 * vP + vAlert * 0.5);",
+				"  /* Aerial perspective: distance drinks intensity, so the far side of the",
+				"     cloud recedes instead of competing with the near side. */",
+				"  float atmo = exp(-max(vDepth - 12.0, 0.0) * 0.030);",
+				"  c *= mix(0.35, 1.0, atmo);",
+				"  float a = (g + skirt + core * 0.6) * (0.26 + 0.60 * vP + vAlert * 0.5);",
+				"  a *= atmo * vFade * (1.0 - uOutro * 0.85);",
 				"  gl_FragColor = vec4(c, a);",
 				"}",
 			].join("\n"),
@@ -298,6 +373,35 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 		marker.add(ringA, ringB)
 		marker.visible = false
 		world.add(marker)
+
+		/*
+		 * Dust. Sparse, unlit, parked in world space so it does not spin with the
+		 * cloud -- the differential motion is what sells depth. Without it the
+		 * background is a flat void and the camera moves read as a zoom.
+		 */
+		const dustN = 700
+		const dustPos = new Float32Array(dustN * 3)
+		const dustRnd = lcg(19)
+		for (let i = 0; i < dustN; i++) {
+			const rr = 22 + dustRnd() * 54
+			const th = dustRnd() * Math.PI * 2
+			const ph = Math.acos(2 * dustRnd() - 1)
+			dustPos[i * 3] = rr * Math.sin(ph) * Math.cos(th)
+			dustPos[i * 3 + 1] = rr * Math.cos(ph) * 0.45
+			dustPos[i * 3 + 2] = rr * Math.sin(ph) * Math.sin(th)
+		}
+		const dustGeo = new THREE.BufferGeometry()
+		dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3))
+		const dustMat = new THREE.PointsMaterial({
+			color: 0x2b3340,
+			size: 0.055,
+			transparent: true,
+			opacity: 0,
+			depthWrite: false,
+			blending: THREE.AdditiveBlending,
+		})
+		const dust = new THREE.Points(dustGeo, dustMat)
+		scene.add(dust)
 
 		/* Load the projected corpus. Until it arrives the hero simply stays dark. */
 		const ac = new AbortController()
@@ -412,6 +516,8 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			fx.focus = smooth(seg(progress, 0.84, 0.96))
 			fx.spin = progress
 			fx.size = 2.05 + fx.focus * 0.5
+			/* Exit: the last 4% of the section dissolves the scene into the page. */
+			fx.outro = smooth(seg(progress, 0.955, 1.0))
 
 			const fade = smooth(seg(progress, 0.05, 0.13))
 			if (titleRef.current) {
@@ -445,6 +551,15 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			pointMat.uniforms.uIgnite.value = fx.ignite
 			pointMat.uniforms.uFocus.value = fx.focus
 			pointMat.uniforms.uSize.value = fx.size
+			/* Entry: a 1.9s condense from the shell, independent of scroll. */
+			fx.intro = outCubic(clamp01((t - 0.12) / 1.9))
+			pointMat.uniforms.uIntro.value = fx.intro
+			pointMat.uniforms.uOutro.value = fx.outro
+			grade.uniforms.uTime.value = t
+			grade.uniforms.uFade.value = fx.intro
+			grade.uniforms.uOutro.value = fx.outro
+			dustMat.opacity = 0.5 * fx.intro * (1 - fx.outro)
+			dust.rotation.y = t * 0.012
 			planeMat.uniforms.uTime.value = t
 			planeMat.uniforms.uOpacity.value = fx.plane
 
@@ -474,6 +589,7 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			composer.setSize(w, h)
 			bloom.setSize(w, h)
 			pointMat.uniforms.uDpr.value = renderer.getPixelRatio()
+			grade.uniforms.uRes.value.set(w * renderer.getPixelRatio(), h * renderer.getPixelRatio())
 			readScroll()
 		}
 		window.addEventListener("resize", onResize)
@@ -491,6 +607,7 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				if (Array.isArray(mat)) mat.forEach((m) => m.dispose())
 				else if (mat) mat.dispose()
 			})
+			grade.material.dispose()
 			composer.dispose()
 			renderer.dispose()
 			if (renderer.domElement.parentNode === mount) mount.removeChild(renderer.domElement)
