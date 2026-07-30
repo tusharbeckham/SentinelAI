@@ -116,3 +116,17 @@ export function HeroHud({ act, className }: Props) {
 					<stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
 				</radialGradient>
 				<mask id="sentinel-vignette">
+					<rect x="0" y="0" width="1600" height="900" fill="url(#sentinel-fade)" />
+				</mask>
+			</defs>
+
+			<g mask="url(#sentinel-vignette)">
+				{/* Frame brackets. Fixed to the eyepiece, so they never move. */}
+				<g className="hud-line" strokeWidth="1.5" fill="none">
+					<path d="M 96 172 L 96 116 L 152 116" />
+					<path d="M 1504 172 L 1504 116 L 1448 116" />
+					<path d="M 96 728 L 96 784 L 152 784" />
+					<path d="M 1504 728 L 1504 784 L 1448 784" />
+				</g>
+
+				{/* Outer bearing ring: counter-rotating, dashed, deliberately slow. */}
