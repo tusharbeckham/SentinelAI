@@ -27,3 +27,18 @@ the thing the project actually produces: 11,326 scored windows and a decision
 boundary that costs something.
 
 ## Geometry
+
+| Axis | Meaning |
+| --- | --- |
+| x | PC1 of the 40 standardised features (22.5% of variance) |
+| z | PC2 (12.5%) |
+| y | model log-odds |
+| colour | ground-truth attack family |
+| size | probability, plus ignition above the threshold |
+
+Height being the score is the whole trick. It makes the operating threshold an
+**exact horizontal plane** at `logit(0.6303) = 0.5337`, not a metaphor for one.
+Consequences that fall out for free:
+
+- 10 benign points sit visibly **above** the plane -- the false positives.
+- 20 attack points sit visibly **below** it -- the misses.
