@@ -490,3 +490,64 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				const mat = any.material as THREE.Material | THREE.Material[] | undefined
 				if (Array.isArray(mat)) mat.forEach((m) => m.dispose())
 				else if (mat) mat.dispose()
+			})
+			composer.dispose()
+			renderer.dispose()
+			if (renderer.domElement.parentNode === mount) mount.removeChild(renderer.domElement)
+		}
+	}, [reduced])
+
+	const showScene = !reduced && !failed
+
+	/*
+	 * Reduced motion (or no WebGL): the same story as a static page -- one
+	 * composed title, then every act card stacked in order. Nothing is hidden
+	 * behind an interaction the reader chose not to have.
+	 */
+	if (!showScene) {
+		return (
+			<section id="top" className="scroll-mt-24">
+				<TitleBlock report={report} live={live} />
+				<div className="mx-auto mt-12 grid max-w-3xl gap-4">
+					{ACTS.map((a) => (
+						<ActCard key={a.id} act={a} live probRef={probRef} prob="0.9866" />
+					))}
+				</div>
+			</section>
+		)
+	}
+
+	return (
+		<section id="top" ref={sectionRef} className="relative scroll-mt-24 h-[560vh]">
+			<div className="sticky top-0 h-screen overflow-hidden">
+				{/* Handoff: the canvas fades out at the end of the pinned range, so
+				    without a bridge the console below would simply appear. */}
+				<div className="handoff-veil pointer-events-none absolute inset-x-0 bottom-0 z-30 h-44" />
+
+				{/* Instrument chrome: axis triad, readouts, ground-truth key. */}
+				<HeroHud act={act} className="pointer-events-none absolute inset-0 z-10 h-full w-full" />
+				{/* The Grid. Purely decorative: every fact is also in the HTML below. */}
+				<div
+					ref={mountRef}
+					className="canvas-feather absolute inset-0"
+					style={{ opacity: 0 }}
+					role="img"
+					aria-label="Animated 3D scatter plot of the 11,326 held-out test windows. Horizontal axes are the first two principal components of the 40 features; height is the model log-odds. Colour is the ground-truth attack family. As you scroll, the points settle from a raw stream into the feature manifold, rise into score space, and a horizontal threshold plane sweeps to 0.6303, leaving 49 points above it: 39 true detections and 10 false positives, with 20 attacks left below."
+				/>
+
+				{/* Act 0 -- the title. One DOM instance, full contrast, crossfades out. */}
+				<div
+					ref={titleRef}
+					className="absolute inset-0 flex items-center justify-center will-change-transform"
+				>
+					<div className="title-scrim absolute inset-0" aria-hidden />
+					<div className="relative w-full">
+						<TitleBlock report={report} live={live} compact />
+					</div>
+				</div>
+
+				{/* Acts 1-6 -- one card at a time, alternating edges. */}
+				{ACTS.map((a, i) => (
+					<div
+						key={a.id}
+						className={cn(
