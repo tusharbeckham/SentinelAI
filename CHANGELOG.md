@@ -3,6 +3,15 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v2.1.1 -- Kaggle input discovery
+
+### Fixed
+
+- The notebook hardcoded `/kaggle/input/sentinelai-scored/...`, which throws
+  `FileNotFoundError` because Kaggle rewrites dataset folder names on upload.
+  It now globs `/kaggle/input`, lists what it finds, and selects the scored file.
+- An unmounted dataset now reports what to click instead of a pandas traceback.
+
 ## v2.1.0 -- Realism pass
 
 ### Added
