@@ -551,3 +551,65 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 					<div
 						key={a.id}
 						className={cn(
+							'absolute top-1/2 w-[min(340px,82vw)] -translate-y-1/2 transition-all duration-[620ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
+							i % 2 === 0 ? 'left-[clamp(16px,6vw,96px)]' : 'right-[clamp(16px,6vw,96px)]',
+							act === i + 1
+								? 'translate-y-[-50%] scale-100 opacity-100 blur-none'
+								: 'pointer-events-none translate-y-[calc(-50%+20px)] scale-[0.97] opacity-0 blur-[3px]',
+						)}
+					>
+						<ActCard act={a} live={act === i + 1} probRef={probRef} />
+					</div>
+				))}
+
+				{/* Progress rail */}
+				<div className="absolute right-4 top-1/2 flex -translate-y-1/2 flex-col gap-2" aria-hidden>
+					{ACTS.map((a, i) => (
+						<span
+							key={a.id}
+							className="h-1.5 w-1.5 rounded-full transition-all duration-300"
+							style={{
+								backgroundColor: act === i + 1 ? a.color : 'var(--color-line-strong)',
+								transform: act === i + 1 ? 'scale(1.6)' : undefined,
+							}}
+						/>
+					))}
+				</div>
+
+				<a
+					href="#explain"
+					className="panel absolute bottom-5 left-1/2 -translate-x-1/2 px-3 py-1.5 text-[13px] text-ink-dim transition-colors hover:text-ink"
+				>
+					skip to the console &darr;
+				</a>
+			</div>
+		</section>
+	)
+}
+
+function TitleBlock({
+	report,
+	live,
+	compact = false,
+}: {
+	report: Bundle['report']
+	live: LiveStatus
+	compact?: boolean
+}) {
+	/* Frozen copies of the corpus figures the hero flies through. */
+	const stats = [
+		{ k: 'flows', v: '563,619' },
+		{ k: 'auth events', v: '49,535' },
+		{ k: 'hosts', v: '40' },
+		{ k: 'days observed', v: '4' },
+	]
+	return (
+		<div className={cn('mx-auto w-full max-w-4xl px-6', compact && 'select-none')}>
+			<div className="flex flex-col items-center text-center">
+				{/*
+				 * One DOM instance of every word, at full contrast. The gradient is
+				 * on the fill, not a second stacked copy -- the mistake that made the
+				 * earlier lens hero render four ghosted titles at once.
+				 */}
+				<h1 className="text-[clamp(2.75rem,7.6vw,5.5rem)]">
+					<span className="block">
