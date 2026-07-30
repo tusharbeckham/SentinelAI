@@ -66,9 +66,10 @@ it is:
 /kaggle/input/sentinelai-scored/scored_test_windows.csv
 ```
 
-If Kaggle slugged the name differently (it lowercases and hyphenates), **fix the `CSV`
-variable in cell 2 to match**. This is the single most common reason the notebook fails,
-and it fails immediately on the `read_csv` line rather than silently.
+You do **not** need to edit any path. Kaggle renames dataset folders -- lowercasing,
+hyphenating, and sometimes appending a suffix -- so the notebook globs
+`/kaggle/input/**/*.csv`, prints everything it can see, and picks the scored file. If
+nothing is mounted it says so in plain language instead of throwing a traceback.
 
 ## Step 6 - Run it
 
@@ -132,7 +133,8 @@ claim the HUD makes about precision and recall stops being checkable.
 
 | Symptom | Cause |
 |---|---|
-| `FileNotFoundError` | `CSV` path does not match the mounted slug -- see Step 5 |
+| `Nothing is mounted` | The dataset is not attached: sidebar > + Add Input > Datasets |
+| Wrong CSV picked | Detach other datasets, or rename yours to contain `scored` |
 | `ModuleNotFoundError: cuml` | Accelerator is not set to GPU; it will fall back to CPU if Internet is on |
 | `AssertionError: precision drifted` | Wrong CSV, or rows were filtered -- do not ship it |
 | Hero still looks identical | You copied to `artifacts/` but skipped `npm run sync-data` |
