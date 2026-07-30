@@ -5,3 +5,8 @@
 // esbuild, as we invoke it, does not parse CSS either. Tailwind is the only
 // component that does, and it only runs under the dev server or a full build,
 // so the break reached a human before it reached a check.
+
+import { readFileSync } from "node:fs"
+import { globSync } from "node:fs"
+
+const files = globSync("src/**/*.css")
