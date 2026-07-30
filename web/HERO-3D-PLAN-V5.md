@@ -57,3 +57,18 @@ Consequences that fall out for free:
 | 05 | The plane | threshold sweeps in; 49 ignite, 20 stay dark |
 | 06 | Response | rank 1 (h002) is caged and selected |
 
+## Rendering notes
+
+- One `THREE.Points` with a custom `ShaderMaterial`. 11,326 points is trivial;
+  the point-cloud performance literature is about millions, so no Potree or
+  LOD machinery is warranted here.
+- Family colour is computed on the CPU into an `aColor` attribute rather than
+  branching through a palette in the shader.
+- Bloom threshold is `1.0`, so glow is opt-in by authoring: only alerted points
+  are pushed above 1 and therefore only they bloom.
+- Additive blending, `depthWrite: false`. On a dense benign core, depth-sorted
+  alpha produces popping; additive does not.
+- The threshold plane is a shader grid, not a solid quad, because an opaque
+  sheet would hide the false negatives underneath -- the entire point of it.
+
+## HUD rules (learned the hard way)
