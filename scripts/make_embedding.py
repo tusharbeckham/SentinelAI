@@ -70,3 +70,21 @@ def main() -> None:
     xs, zs = pcs[:, 0], pcs[:, 1]
     k = 9.0 / np.percentile(np.abs(pcs), 99)
     xs = np.clip(xs * k, -16, 16)
+    zs = np.clip(zs * k, -16, 16)
+
+    p = df["probability"].to_numpy(dtype="float64")
+    p = np.clip(p, 1e-9, 1 - 1e-9)
+    logit = np.log(p / (1 - p))
+    ys = logit * SCALE
+
+    fams = sorted(df["attack"].fillna("benign").astype(str).unique())
+    fam_idx = {f: i for i, f in enumerate(fams)}
+    fam = [fam_idx[f] for f in df["attack"].fillna("benign").astype(str)]
+
+    is_attack = df["label"].to_numpy() == 1
+    fires = p >= TH
+    tp = int((fires & is_attack).sum())
+    fp = int((fires & ~is_attack).sum())
+    fn = int((~fires & is_attack).sum())
+    tn = int((~fires & ~is_attack).sum())
+
