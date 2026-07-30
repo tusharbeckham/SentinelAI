@@ -94,3 +94,25 @@ export function HeroHud({ act, className }: Props) {
 							to="360"
 							dur="9s"
 							repeatCount="indefinite"
+						/>
+					</feColorMatrix>
+					<feDisplacementMap
+						in="SourceGraphic"
+						in2="spun"
+						scale="14"
+						xChannelSelector="R"
+						yChannelSelector="G"
+					/>
+				</filter>
+
+				<linearGradient id="sentinel-scan" x1="0" y1="0" x2="0" y2="1">
+					<stop offset="0%" stopColor="var(--color-signal)" stopOpacity="0" />
+					<stop offset="50%" stopColor="var(--color-signal)" stopOpacity="0.5" />
+					<stop offset="100%" stopColor="var(--color-signal)" stopOpacity="0" />
+				</linearGradient>
+
+				<radialGradient id="sentinel-fade" cx="0.5" cy="0.5" r="0.5">
+					<stop offset="55%" stopColor="#ffffff" stopOpacity="1" />
+					<stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+				</radialGradient>
+				<mask id="sentinel-vignette">
