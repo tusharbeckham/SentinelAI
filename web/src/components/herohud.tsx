@@ -22,3 +22,19 @@ import { useMemo } from "react"
 type Props = { act: number; className?: string }
 
 const TICKS = 72
+const CX = 800
+const CY = 450
+
+/* Readouts are keyed to the six acts so the graticule annotates what the
+ * scene is doing rather than repeating the headline copy. */
+const READOUTS: Array<{ mode: string; note: string }> = [
+	{ mode: "ACQUIRE", note: "563,619 flows inbound" },
+	{ mode: "BAND", note: "40 features / 6 bands" },
+	{ mode: "RESOLVE", note: "3 detector legs live" },
+	{ mode: "FUSE", note: "stacker weights applied" },
+	{ mode: "STOP DOWN", note: "budget 50 alerts/day" },
+	{ mode: "CONTAIN", note: "auto_contain armed" },
+]
+
+export function HeroHud({ act, className }: Props) {
+	/* Tick geometry is deterministic, so it is built once and never rebuilt. */
