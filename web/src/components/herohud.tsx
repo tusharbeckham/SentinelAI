@@ -52,3 +52,30 @@ const READOUTS: Array<Array<[string, string]>> = [
 	],
 	[
 		["stacker", "logistic, calibrated"],
+		["p rank 1", "0.9866"],
+	],
+	[
+		["threshold", "0.6303"],
+		["above plane", "49 = 39 true + 10 false"],
+		["missed", "20"],
+		["precision / recall", "0.796 / 0.661"],
+	],
+	[
+		["alert", "AL-1767491700-h002"],
+		["action", "auto_contain"],
+		["audit chain", "valid"],
+	],
+]
+
+export function HeroHud({ act, className }: Props) {
+	const rows = READOUTS[Math.min(Math.max(act, 0), READOUTS.length - 1)] ?? []
+	const on = act > 0
+
+	return (
+		<div className={cn("hud-text select-none", className)} aria-hidden="true">
+			{/* Corner brackets -- a frame, not a dial. Static, so they never read
+			    as spinning decoration competing with the scene. */}
+			<motion.div
+				className="absolute inset-6 hidden md:block"
+				initial={false}
+				animate={{ opacity: on ? 0.5 : 0.16 }}
