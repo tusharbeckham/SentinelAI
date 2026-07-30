@@ -3,6 +3,22 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v2.1.2 -- UMAP no longer stalls on CPU
+
+### Fixed
+
+- Passing `random_state` to umap-learn silently disables parallelism. On the
+  CPU fallback that turned a two minute job into a half hour stall. The CPU
+  path now runs multi-threaded with `init=pca` and `n_epochs=200`.
+- The GPU and CPU branches announce which one ran, and the cell reports its
+  wall time, so a silent fallback is visible instead of looking like a hang.
+
+### Notes
+
+- The CPU layout is no longer bit-reproducible. This cannot affect any reported
+  metric: UMAP only sets x and z, while height is the model log-odds. The
+  precision 0.7959 and recall 0.6610 asserts still hold exactly.
+
 ## v2.1.1 -- Kaggle input discovery
 
 ### Fixed
