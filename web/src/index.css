@@ -426,3 +426,26 @@
 	transform: scale(0.92);
 	opacity: 0.85;
 }
+
+.hud-focus[data-act="4"] {
+	transform: scale(0.8);
+	opacity: 1;
+}
+
+.hud-focus[data-act="5"],
+.hud-focus[data-act="6"] {
+	transform: scale(0.72);
+	opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.hud-spin,
+	.hud-spin-rev,
+	.hud-scan {
+		animation: none;
+	}
+
+	.hud-focus {
+		transition: none;
+	}
+}
