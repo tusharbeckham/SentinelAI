@@ -34,3 +34,21 @@ TH = 0.6303419959358633
 # World units per unit of log-odds. Tuned so the full -10.4..+4.3 range is a
 # readable column rather than a skyscraper.
 SCALE = 0.42
+# Identity and outcome columns are not features.
+DROP = {"entity", "win", "attack", "label", "baseline_cutoff", "probability"}
+
+
+def main() -> None:
+    df = pd.read_csv(CSV)
+    feats = [c for c in df.columns if c not in DROP]
+    X = df[feats].to_numpy(dtype="float64")
+    X = np.nan_to_num(X, nan=0.0, posinf=0.0, neginf=0.0)
+
+    # Byte and packet counters span six orders of magnitude. Left raw they own
+    # every principal component and the projection becomes a plot of traffic
+    # volume, not of behaviour. Signed log1p compresses them without discarding
+    # direction.
+    compressed = 0
+    for j in range(X.shape[1]):
+        if np.abs(X[:, j]).max() > 1000:
+            X[:, j] = np.sign(X[:, j]) * np.log1p(np.abs(X[:, j]))
