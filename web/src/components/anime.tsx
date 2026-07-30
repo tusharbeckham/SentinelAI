@@ -23,6 +23,7 @@ import {
 	useRef,
 	useState,
 	type CSSProperties,
+	type PointerEvent,
 	type ReactNode,
 } from 'react'
 import { cn } from '@/lib/cn'
@@ -215,7 +216,7 @@ export function MagneticButton({
 	const ref = useRef<HTMLButtonElement | null>(null)
 	const reduced = useReducedMotion()
 
-	const move = (event: React.PointerEvent<HTMLButtonElement>) => {
+	const move = (event: PointerEvent<HTMLButtonElement>) => {
 		const el = ref.current
 		if (!el || reduced) return
 		const box = el.getBoundingClientRect()
@@ -430,7 +431,7 @@ export function TiltPanel({
 	const ref = useRef<HTMLDivElement | null>(null)
 	const reduced = useReducedMotion()
 
-	const move = (event: React.PointerEvent<HTMLDivElement>) => {
+	const move = (event: PointerEvent<HTMLDivElement>) => {
 		const el = ref.current
 		if (!el || reduced) return
 		const box = el.getBoundingClientRect()
