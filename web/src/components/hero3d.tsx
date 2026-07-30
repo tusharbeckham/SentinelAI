@@ -628,7 +628,7 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 			gridOpacity: 0,
 			dust: 0.3,
 			prob: 0,
-			lattice: 0,
+			lattice: 0.34,
 			grade: 1,
 		}
 
