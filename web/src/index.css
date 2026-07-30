@@ -357,3 +357,19 @@
 		transform: rotate(360deg);
 	}
 }
+
+@keyframes hud-spin-rev {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(-360deg);
+	}
+}
+
+/* Deliberately far slower than feels right in isolation. Instrument rings that
+ * spin at a readable speed look like a loading spinner; at this rate the motion
+ * is only detectable against the static ticks, which is what reads as machined. */
+.hud-spin {
+	animation: hud-spin 64s linear infinite;
+}
