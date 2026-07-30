@@ -59,3 +59,65 @@ const FAMILY_COLOR: number[] = [
 function lcg(seed: number) {
 	let s = seed >>> 0
 	return () => {
+		s = (s * 1664525 + 1013904223) >>> 0
+		return s / 4294967296
+	}
+}
+
+const hdr = (hex: number, k: number) => new THREE.Color(hex).multiplyScalar(k)
+const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v)
+
+type Act = {
+	n: string
+	id: string
+	name: string
+	color: string
+	body: string
+	chips: string[]
+}
+
+const ACTS: Act[] = [
+	{
+		n: "01",
+		id: "windows",
+		name: "The corpus",
+		color: "var(--color-signal)",
+		body: "Every point is one host-window from the held-out test split -- five minutes of one machine, described by forty features. Nothing here is decorative; the cloud is the evaluation set.",
+		chips: ["11,326 windows", "40 features", "300s each"],
+	},
+	{
+		n: "02",
+		id: "manifold",
+		name: "Feature space",
+		color: "var(--color-signal)",
+		body: "Projected onto two principal components. Normal behaviour collapses into one dense sheet because most windows look alike -- which is exactly why this problem is hard, and why accuracy is a worthless metric here.",
+		chips: ["PC1 22.5% var", "PC2 12.5% var", "11,257 benign"],
+	},
+	{
+		n: "03",
+		id: "lift",
+		name: "The score axis",
+		color: "var(--color-graph)",
+		body: "Height becomes the model log-odds. The sheet lifts, and structure invisible in feature space appears: suspicion runs close to orthogonal to position.",
+		chips: ["log-odds \u221210.40 to +4.30", "isolation forest + GBDT + graph"],
+	},
+	{
+		n: "04",
+		id: "fusion",
+		name: "Fusion",
+		color: "var(--color-safe)",
+		body: "A calibrated logistic stacker sets that height -- the exact arithmetic the Explain section reproduces line by line.",
+		chips: ["0.3425\u00B7z_if + 1.1009\u00B7z_gb + 0.1135\u00B7z_g \u2212 8.434"],
+	},
+	{
+		n: "05",
+		id: "threshold",
+		name: "The plane",
+		color: "var(--color-watch)",
+		body: "The gate is set by the analyst budget, not by a flattering AUC. Look at what it costs: ten benign points sit above the plane, and twenty real attacks are stranded below it. That is the honest picture.",
+		chips: ["threshold 0.6303", "49 fire", "39 true / 10 false", "20 missed"],
+	},
+	{
+		n: "06",
+		id: "response",
+		name: "Response",
