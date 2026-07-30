@@ -6,10 +6,11 @@
   "description": "SentinelAI SOC console - React 19 + Vite + Tailwind v4 front end for the hybrid IDS",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "node scripts/check-css.mjs && tsc --noEmit && vite build",
     "preview": "vite preview --port 4173",
     "typecheck": "tsc --noEmit",
-    "sync-data": "node scripts/sync-artifacts.mjs"
+    "sync-data": "node scripts/sync-artifacts.mjs",
+    "check:css": "node scripts/check-css.mjs"
   },
   "dependencies": {
     "animejs": "4.0.2",
