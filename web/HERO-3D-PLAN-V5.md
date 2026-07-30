@@ -72,3 +72,17 @@ Consequences that fall out for free:
   sheet would hide the false negatives underneath -- the entire point of it.
 
 ## HUD rules (learned the hard way)
+
+- **No full-bleed viewBox.** Normal layout, absolute corners. A HUD that
+  cannot be cropped cannot collide.
+- Nothing in the vertical middle. The title owns that band.
+- Act 0 shows no readouts at all: the title page stays clean.
+- Every readout is a real figure from the run. No invented telemetry.
+
+## Provenance
+
+`scripts/make_embedding.py` reads `artifacts/scored_test_windows.csv` and
+writes `artifacts/embedding.json`. PCA is a plain SVD of the centred matrix
+(no sklearn dependency). Eight of forty features whose `max|x| > 1000` are
+signed-`log1p` compressed first, otherwise byte counters own every component
+and the projection becomes a plot of traffic volume rather than behaviour.
