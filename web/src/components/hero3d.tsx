@@ -23,6 +23,7 @@ import { createTimer, createTimeline, onScroll } from 'animejs'
 import { motion } from 'motion/react'
 import { useReducedMotion } from '@/components/anime'
 import { cn } from '@/lib/cn'
+import { HeroHud } from '@/components/herohud'
 import type { Bundle, LiveStatus } from '@/lib/data'
 
 const CANVAS = 0x0a0b0d
@@ -627,7 +628,7 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 			gridOpacity: 0,
 			dust: 0.3,
 			prob: 0,
-			lattice: 0,
+			lattice: 0.34,
 			grade: 1,
 		}
 
@@ -885,6 +886,9 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 				{/* Handoff: the canvas fades out at the end of the pinned range, so
 				    without a bridge the console below would simply appear. */}
 				<div className="handoff-veil pointer-events-none absolute inset-x-0 bottom-0 z-30 h-44" />
+
+				{/* Vector graticule over the raster image the instrument forms. */}
+				<HeroHud act={act} className="pointer-events-none absolute inset-0 z-10 h-full w-full" />
 				{/* The Grid. Purely decorative: every fact is also in the HTML below. */}
 				<div
 					ref={mountRef}
