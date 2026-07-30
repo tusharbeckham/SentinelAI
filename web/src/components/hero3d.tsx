@@ -367,3 +367,64 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 		const smooth = (t: number) => t * t * (3 - 2 * t)
 		const outCubic = (t: number) => 1 - Math.pow(1 - t, 3)
 
+		const CAM: Array<{ p: number; pos: [number, number, number]; look: [number, number, number] }> = [
+			{ p: 0.0, pos: [0, 3.2, 34], look: [0, 0, 0] },
+			{ p: 0.18, pos: [6.5, 2.2, 24], look: [0, 0, 0] },
+			{ p: 0.36, pos: [-10, 1.1, 16], look: [0, 0.4, 0] },
+			{ p: 0.54, pos: [-4, 7.5, 19], look: [0, 1.2, 0] },
+			{ p: 0.72, pos: [9, 5.2, 18], look: [0, 1.6, 0] },
+			{ p: 0.88, pos: [2.5, 3.4, 12], look: [0, 1.9, 0] },
+			{ p: 1.0, pos: [0.8, 2.6, 9.5], look: [0, 2.0, 0] },
+		]
+		const camPos = new THREE.Vector3(0, 3.2, 34)
+		const camLook = new THREE.Vector3(0, 0, 0)
+
+		function sampleCam(p: number) {
+			let i = 0
+			while (i < CAM.length - 2 && p > CAM[i + 1].p) i++
+			const a = CAM[i]
+			const b = CAM[i + 1]
+			const t = smooth(clamp01((p - a.p) / Math.max(b.p - a.p, 1e-6)))
+			camPos.set(
+				a.pos[0] + (b.pos[0] - a.pos[0]) * t,
+				a.pos[1] + (b.pos[1] - a.pos[1]) * t,
+				a.pos[2] + (b.pos[2] - a.pos[2]) * t,
+			)
+			camLook.set(
+				a.look[0] + (b.look[0] - a.look[0]) * t,
+				a.look[1] + (b.look[1] - a.look[1]) * t,
+				a.look[2] + (b.look[2] - a.look[2]) * t,
+			)
+		}
+
+		let progress = 0
+		let currentAct = -1
+
+		function readScroll() {
+			const rect = section.getBoundingClientRect()
+			const span = Math.max(rect.height - window.innerHeight, 1)
+			progress = clamp01(-rect.top / span)
+
+			fx.settle = outCubic(seg(progress, 0.015, 0.19))
+			fx.lift = smooth(seg(progress, 0.33, 0.58))
+			fx.plane = smooth(seg(progress, 0.58, 0.7))
+			fx.ignite = smooth(seg(progress, 0.66, 0.8))
+			fx.focus = smooth(seg(progress, 0.84, 0.96))
+			fx.spin = progress
+			fx.size = 2.05 + fx.focus * 0.5
+
+			const fade = smooth(seg(progress, 0.05, 0.13))
+			if (titleRef.current) {
+				titleRef.current.style.opacity = String(1 - fade)
+				titleRef.current.style.transform = "translateY(" + (-fade * 40).toFixed(2) + "px)"
+				titleRef.current.style.pointerEvents = fade > 0.6 ? "none" : "auto"
+			}
+
+			if (probRef.current) {
+				const k = smooth(seg(progress, 0.5, 0.64))
+				probRef.current.textContent = (0.9866137 * k).toFixed(4)
+			}
+
+			let a = 0
+			for (let i = 0; i < ACT_BOUNDARIES.length; i++) if (progress >= ACT_BOUNDARIES[i]) a = i + 1
+			if (a !== currentAct) {
