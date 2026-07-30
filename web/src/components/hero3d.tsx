@@ -15,7 +15,6 @@ import { useEffect, useRef, useState, type RefObject } from 'react'
 import * as THREE from 'three'
 import { createTimer, createTimeline, onScroll } from 'animejs'
 import { motion } from 'motion/react'
-import { ShinyText } from '@/components/bits'
 import { useReducedMotion } from '@/components/anime'
 import { cn } from '@/lib/cn'
 import type { Bundle, LiveStatus } from '@/lib/data'
@@ -38,6 +37,8 @@ function lcg(seed: number) {
 		return s / 4294967296
 	}
 }
+
+const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v)
 
 type Layout = {
 	nodes: THREE.Vector3[]
@@ -153,6 +154,7 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 	const sectionRef = useRef<HTMLElement | null>(null)
 	const mountRef = useRef<HTMLDivElement | null>(null)
 	const probRef = useRef<HTMLSpanElement | null>(null)
+	const titleRef = useRef<HTMLDivElement | null>(null)
 	const [act, setAct] = useState(0)
 	const [failed, setFailed] = useState(false)
 
@@ -464,6 +466,29 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 				if (probRef.current) probRef.current.textContent = fx.prob.toFixed(4)
 
 				const prog = tl.progress
+
+				/*
+				 * Layer choreography. The scene used to be drawn under the title
+				 * from the very first frame, so the node field read as noise behind
+				 * the words. Now the first screen belongs to the title alone: the
+				 * canvas only fades up once the reader has actually scrolled, and it
+				 * fades back out before the section ends so the Explain console
+				 * arrives on clean canvas instead of colliding with the grid.
+				 */
+				const sceneFade = clamp01((prog - 0.035) / 0.075) * (1 - clamp01((prog - 0.9) / 0.1))
+				const sceneStr = sceneFade.toFixed(3)
+				if (mount.style.opacity !== sceneStr) mount.style.opacity = sceneStr
+
+				const titleEl = titleRef.current
+				if (titleEl) {
+					const show = 1 - clamp01((prog - 0.012) / 0.055)
+					const away = 1 - show
+					titleEl.style.opacity = show.toFixed(3)
+					titleEl.style.transform =
+						'translate3d(0,' + (-30 * away).toFixed(1) + 'px,0) scale(' + (1 - 0.05 * away).toFixed(4) + ')'
+					titleEl.style.filter = away > 0.001 ? 'blur(' + (8 * away).toFixed(2) + 'px)' : 'none'
+					titleEl.style.pointerEvents = show < 0.06 ? 'none' : 'auto'
+				}
 				let idx = 0
 				for (let b = 0; b < ACT_BOUNDARIES.length; b++) {
 					if (prog >= ACT_BOUNDARIES[b]) idx = b + 1
@@ -530,19 +555,21 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 				{/* The Grid. Purely decorative: every fact is also in the HTML below. */}
 				<div
 					ref={mountRef}
-					className="absolute inset-0"
+					className="canvas-feather absolute inset-0"
+					style={{ opacity: 0 }}
 					role="img"
 					aria-label="Animated 3D network of forty hosts. As you scroll, the camera flies through the detection pipeline: telemetry, features, three detector rings, fusion, the threshold plane, and containment of the alerted host."
 				/>
 
 				{/* Act 0 -- the title. One DOM instance, full contrast, crossfades out. */}
 				<div
-					className={cn(
-						'absolute inset-0 flex items-center justify-center transition-opacity duration-500',
-						act === 0 ? 'opacity-100' : 'pointer-events-none opacity-0',
-					)}
+					ref={titleRef}
+					className="absolute inset-0 flex items-center justify-center will-change-transform"
 				>
-					<TitleBlock report={report} live={live} compact />
+					<div className="title-scrim absolute inset-0" aria-hidden />
+					<div className="relative w-full">
+						<TitleBlock report={report} live={live} compact />
+					</div>
 				</div>
 
 				{/* Acts 1-6 -- one card at a time, alternating edges. */}
@@ -550,11 +577,11 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 					<div
 						key={a.id}
 						className={cn(
-							'absolute top-1/2 w-[min(340px,82vw)] -translate-y-1/2 transition-all duration-500',
+							'absolute top-1/2 w-[min(340px,82vw)] -translate-y-1/2 transition-all duration-[620ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
 							i % 2 === 0 ? 'left-[clamp(16px,6vw,96px)]' : 'right-[clamp(16px,6vw,96px)]',
 							act === i + 1
-								? 'translate-y-[-50%] opacity-100'
-								: 'pointer-events-none translate-y-[calc(-50%+12px)] opacity-0',
+								? 'translate-y-[-50%] scale-100 opacity-100 blur-none'
+								: 'pointer-events-none translate-y-[calc(-50%+20px)] scale-[0.97] opacity-0 blur-[3px]',
 						)}
 					>
 						<ActCard act={a} live={act === i + 1} probRef={probRef} />
@@ -595,32 +622,78 @@ function TitleBlock({
 	live: LiveStatus
 	compact?: boolean
 }) {
+	/* Frozen copies of the corpus figures the hero flies through. */
+	const stats = [
+		{ k: 'flows', v: '563,619' },
+		{ k: 'auth events', v: '49,535' },
+		{ k: 'hosts', v: '40' },
+		{ k: 'days observed', v: '4' },
+	]
 	return (
-		<div className={cn('mx-auto max-w-3xl px-6 text-center', compact && 'pointer-events-none')}>
-			<span className="panel inline-block px-2.5 py-1 text-[14px] text-ink-dim">
-				v1 &middot; {report.features.count} features &middot; {report.runtime_seconds.toFixed(1)}s end-to-end
-			</span>
-			<h1 className="mt-6 text-4xl font-semibold tracking-tight sm:text-6xl">
-				<ShinyText text="SentinelAI" />
-				<span className="block text-ink-dim sm:text-5xl">
-					anomaly detection built around the analyst&rsquo;s budget
+		<div className={cn('mx-auto w-full max-w-4xl px-6', compact && 'select-none')}>
+			<div className="flex flex-col items-center text-center">
+				<span className="panel kicker inline-flex items-center gap-2 px-3 py-1.5 text-ink-dim">
+					<span className="h-1.5 w-1.5 rounded-full bg-signal" />
+					hybrid intrusion detection
 				</span>
-			</h1>
-			<p className="mx-auto mt-6 max-w-2xl text-lg text-ink-dim">
-				Scroll to fly through the pipeline &mdash; from raw telemetry to a contained
-				alert. Every figure is read from the pipeline&rsquo;s own artifacts, including
-				the ones that look bad.
-			</p>
-			<div className="mt-8 flex flex-wrap items-center justify-center gap-2 text-[13px] text-ink-dim">
-				{['563,619 flows', '49,535 auth events', '40 hosts', '4 days'].map((s) => (
-					<span key={s} className="panel tabular px-2.5 py-1">
-						{s}
+
+				{/*
+				 * One DOM instance of every word, at full contrast. The gradient is
+				 * on the fill, not a second stacked copy -- the mistake that made the
+				 * earlier lens hero render four ghosted titles at once.
+				 */}
+				<h1 className="mt-7 text-[clamp(2.75rem,7.6vw,5.5rem)]">
+					<span className="block bg-gradient-to-b from-white via-white to-[#8d99a9] bg-clip-text text-transparent">
+						SentinelAI
 					</span>
+					<span className="mt-4 block text-[clamp(1.1rem,2.5vw,1.9rem)] font-normal leading-[1.2] tracking-[-0.02em] text-ink-dim">
+						anomaly detection built around
+						<span className="text-ink"> the analyst&rsquo;s budget</span>
+					</span>
+				</h1>
+
+				<p className="mt-7 max-w-xl text-[15px] leading-relaxed text-ink-dim sm:text-base">
+					Scroll to fly through the pipeline &mdash; raw telemetry to a contained alert.
+					Every figure is read from the pipeline&rsquo;s own artifacts, including the ones
+					that look bad.
+				</p>
+
+				<div className="mt-8 flex flex-wrap items-center justify-center gap-2.5">
+					<a href="#explain" className="btn btn-primary">
+						Read one alert end to end &rarr;
+					</a>
+					<a href="#sweep" className="btn">
+						Budget curve
+					</a>
+				</div>
+			</div>
+
+			<div className="rule-x mt-11" />
+
+			{/* Hairline-separated cells: one border, shared by four figures. */}
+			<dl className="mt-7 grid grid-cols-2 gap-px overflow-hidden rounded-[10px] border border-line bg-line sm:grid-cols-4">
+				{stats.map((s) => (
+					<div key={s.k} className="bg-surface px-4 py-3.5 text-left">
+						<dt className="kicker text-ink-faint">{s.k}</dt>
+						<dd className="tabular mt-1.5 text-lg text-ink">{s.v}</dd>
+					</div>
 				))}
+			</dl>
+
+			<div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-[13px] text-ink-faint">
+				<span className="panel tabular px-2.5 py-1">v1</span>
+				<span className="panel tabular px-2.5 py-1">{report.features.count} features</span>
+				<span className="panel tabular px-2.5 py-1">
+					{report.runtime_seconds.toFixed(1)}s end-to-end
+				</span>
 				<LiveChip status={live} />
 			</div>
+
 			{compact ? (
-				<p className="mt-10 animate-pulse text-[13px] text-ink-faint">scroll &darr;</p>
+				<div className="mt-10 flex flex-col items-center gap-2" aria-hidden>
+					<span className="kicker text-ink-faint">scroll</span>
+					<span className="h-9 w-px animate-pulse bg-gradient-to-b from-line-strong to-transparent" />
+				</div>
 			) : null}
 		</div>
 	)
