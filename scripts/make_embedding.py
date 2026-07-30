@@ -88,3 +88,21 @@ def main() -> None:
     fn = int((~fires & is_attack).sum())
     tn = int((~fires & ~is_attack).sum())
 
+    # Cross-check: the plane must reproduce the published operating point. If
+    # this drifts, the picture is lying and the build should be treated as bad.
+    precision = tp / max(tp + fp, 1)
+    recall = tp / max(tp + fn, 1)
+    assert abs(precision - 0.7959183673469388) < 1e-6, precision
+    assert abs(recall - 0.6610169491525424) < 1e-6, recall
+
+    rank1 = int(np.argmax(p))
+    pos = np.empty(len(df) * 3, dtype="float64")
+    pos[0::3] = np.round(xs, 3)
+    pos[1::3] = np.round(ys, 4)
+    pos[2::3] = np.round(zs, 3)
+
+    payload = {
+        "n": int(len(df)),
+        "note": "x,z = PCA of 40 standardised features; y = model log-odds * %.2f" % SCALE,
+        "variance": {"pc1": round(float(var[0]), 4), "pc2": round(float(var[1]), 4)},
+        "thresholdY": round(float(math.log(TH / (1 - TH)) * SCALE), 6),
