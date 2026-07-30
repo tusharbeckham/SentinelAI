@@ -148,3 +148,21 @@ export function HeroHud({ act, className }: Props) {
 						r="274"
 						fill="none"
 						className="hud-line-faint"
+						strokeWidth="1"
+						strokeDasharray="64 40"
+					/>
+				</g>
+
+				{/* Graduated tick ring. Every sixth tick is major, as on a real dial. */}
+				<g className="hud-line-faint">
+					{ticks.map((t) => (
+						<line
+							key={t.i}
+							x1={t.x1}
+							y1={t.y1}
+							x2={t.x2}
+							y2={t.y2}
+							strokeWidth={t.major ? 1.6 : 0.9}
+							opacity={t.major ? 0.85 : 0.4}
+						/>
+					))}
