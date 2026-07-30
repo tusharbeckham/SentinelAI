@@ -394,3 +394,15 @@
 		opacity: 0;
 	}
 }
+
+.hud-scan {
+	animation: hud-scan 7.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* The focus corners close in act by act. This is the aperture stopping down,
+ * expressed in vector so the marks stay hairline sharp while they travel. */
+.hud-focus {
+	transition:
+		transform 900ms cubic-bezier(0.22, 1, 0.36, 1),
+		opacity 900ms ease;
+}
