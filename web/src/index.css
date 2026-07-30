@@ -331,3 +331,121 @@
 		transition: none;
 	}
 }
+
+/* --- Instrument graticule: the SVG layer etched over the hero canvas. ---
+ * Strokes live here rather than as SVG attributes so the whole overlay retunes
+ * with the theme tokens, and so prefers-reduced-motion can stop it in one rule.
+ */
+.hud-line {
+	stroke: var(--color-line-strong);
+}
+
+.hud-line-faint {
+	stroke: color-mix(in srgb, var(--color-signal) 34%, transparent);
+}
+
+.hud-text {
+	fill: var(--color-ink-faint);
+	font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@keyframes hud-spin {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes hud-spin-rev {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(-360deg);
+	}
+}
+
+/* Deliberately far slower than feels right in isolation. Instrument rings that
+ * spin at a readable speed look like a loading spinner; at this rate the motion
+ * is only detectable against the static ticks, which is what reads as machined. */
+.hud-spin {
+	animation: hud-spin 64s linear infinite;
+}
+
+.hud-spin-rev {
+	animation: hud-spin-rev 96s linear infinite;
+}
+
+@keyframes hud-scan {
+	0% {
+		transform: translateY(120px);
+		opacity: 0;
+	}
+	14% {
+		opacity: 1;
+	}
+	86% {
+		opacity: 1;
+	}
+	100% {
+		transform: translateY(830px);
+		opacity: 0;
+	}
+}
+
+.hud-scan {
+	animation: hud-scan 7.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* The focus corners close in act by act. This is the aperture stopping down,
+ * expressed in vector so the marks stay hairline sharp while they travel. */
+.hud-focus {
+	transition:
+		transform 900ms cubic-bezier(0.22, 1, 0.36, 1),
+		opacity 900ms ease;
+}
+
+.hud-focus[data-act="0"] {
+	transform: scale(1.2);
+	opacity: 0.4;
+}
+
+.hud-focus[data-act="1"] {
+	transform: scale(1.1);
+	opacity: 0.55;
+}
+
+.hud-focus[data-act="2"] {
+	transform: scale(1);
+	opacity: 0.7;
+}
+
+.hud-focus[data-act="3"] {
+	transform: scale(0.92);
+	opacity: 0.85;
+}
+
+.hud-focus[data-act="4"] {
+	transform: scale(0.8);
+	opacity: 1;
+}
+
+.hud-focus[data-act="5"],
+.hud-focus[data-act="6"] {
+	transform: scale(0.72);
+	opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.hud-spin,
+	.hud-spin-rev,
+	.hud-scan {
+		animation: none;
+	}
+
+	.hud-focus {
+		transition: none;
+	}
+}
