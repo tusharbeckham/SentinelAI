@@ -198,3 +198,15 @@ export function HeroHud({ act, className }: Props) {
 				{/* Instrument readout. Monospace, small, never competing with the title. */}
 				<g className="hud-text" fontSize="15" letterSpacing="2.4">
 					<text x="96" y="210">MODE {r.mode}</text>
+					<text x="96" y="234" opacity="0.55">{r.note}</text>
+					<text x="1504" y="210" textAnchor="end">
+						ACT {String(Math.min(act, 5) + 1).padStart(2, "0")} / 06
+					</text>
+					<text x="1504" y="234" textAnchor="end" opacity="0.55">
+						f/ {(1.4 + act * 0.9).toFixed(1)}
+					</text>
+				</g>
+			</g>
+		</svg>
+	)
+}
