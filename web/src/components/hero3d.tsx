@@ -13,6 +13,10 @@
  */
 import { useEffect, useRef, useState, type RefObject } from 'react'
 import * as THREE from 'three'
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
 import { createTimer, createTimeline, onScroll } from 'animejs'
 import { motion } from 'motion/react'
 import { useReducedMotion } from '@/components/anime'
@@ -37,6 +41,15 @@ function lcg(seed: number) {
 		return s / 4294967296
 	}
 }
+
+/*
+ * Bloom is selective *by threshold*, not by layer: with the pass threshold at
+ * 1.0, only colours whose channels exceed 1 glow. So authoring a material above
+ * or below 1.0 is the art direction -- above means "evidence", below means
+ * "scaffolding". This avoids the official selective-bloom recipe entirely, which
+ * darkens every other material and renders the scene a second time each frame.
+ */
+const hdr = (hex: number, k: number) => new THREE.Color(hex).multiplyScalar(k)
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v)
 
@@ -181,17 +194,47 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 		const camera = new THREE.PerspectiveCamera(50, mount.clientWidth / Math.max(mount.clientHeight, 1), 0.1, 120)
 		camera.position.set(0, 6, 26)
 
+		/*
+		 * ACES rolls the HDR highlights off instead of clipping them flat, which is
+		 * what makes the glow read as light rather than as a blurred sprite.
+		 */
+		renderer.toneMapping = THREE.ACESFilmicToneMapping
+		renderer.toneMappingExposure = 1.05
+		renderer.outputColorSpace = THREE.SRGBColorSpace
+
+		const composer = new EffectComposer(renderer)
+		composer.addPass(new RenderPass(scene, camera))
+		const bloom = new UnrealBloomPass(
+			new THREE.Vector2(mount.clientWidth, Math.max(mount.clientHeight, 1)),
+			0.85,
+			0.55,
+			1,
+		)
+		composer.addPass(bloom)
+		// Without OutputPass the composer skips tone mapping and the sRGB
+		// conversion the plain renderer does: the single most common bloom bug.
+		composer.addPass(new OutputPass())
+
 		const world = new THREE.Group()
 		scene.add(world)
 		const layout = buildLayout()
 
 		/* Host nodes: 39 instanced + the alert node kept separate so it can glow. */
 		const nodeGeo = new THREE.IcosahedronGeometry(0.22, 1)
-		const nodeMat = new THREE.MeshBasicMaterial({ color: SIGNAL, transparent: true, opacity: 0.85 })
+		// White base: the instance colour carries both hue and HDR intensity.
+		const nodeMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 })
 		const inst = new THREE.InstancedMesh(nodeGeo, nodeMat, layout.nodes.length - 1)
 		world.add(inst)
 		const dummy = new THREE.Object3D()
-		const alertMat = new THREE.MeshBasicMaterial({ color: ALARM, transparent: true, opacity: 0.4 })
+		// Tint by subnet so the three clusters are legible before any label shows.
+		const CLUSTER_TINT = [SIGNAL, SAFE, GRAPH]
+		const tint = new THREE.Color()
+		for (let i = 1; i < layout.nodes.length; i++) {
+			tint.copy(hdr(CLUSTER_TINT[(i - 1) % 3], 1.35))
+			inst.setColorAt(i - 1, tint)
+		}
+		if (inst.instanceColor) inst.instanceColor.needsUpdate = true
+		const alertMat = new THREE.MeshBasicMaterial({ color: hdr(ALARM, 2.6), transparent: true, opacity: 0.4 })
 		const alertNode = new THREE.Mesh(new THREE.IcosahedronGeometry(0.3, 1), alertMat)
 		alertNode.position.copy(ALERT_POS)
 		world.add(alertNode)
@@ -233,13 +276,50 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 			pT[i] = prand()
 			pSpeed[i] = 0.1 + prand() * 0.25
 		}
+		const pScale = new Float32Array(P)
+		for (let i = 0; i < P; i++) pScale[i] = 0.6 + prand() * 1.0
 		const pGeo = new THREE.BufferGeometry()
 		pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3))
-		const pMat = new THREE.PointsMaterial({
-			color: SIGNAL,
-			size: 0.09,
+		pGeo.setAttribute('aScale', new THREE.BufferAttribute(pScale, 1))
+
+		/*
+		 * Point size is specified in world terms, not pixels: dividing the pixel
+		 * scale by view depth means a particle keeps its apparent size when the
+		 * window is resized or the page is opened on a 4K display. PointsMaterial
+		 * would have drawn hard squares, or cost a texture fetch per fragment to
+		 * round them off.
+		 */
+		const pixelScale = () =>
+			(Math.max(mount.clientHeight, 1) * 0.5) / Math.tan(((camera.fov * Math.PI) / 180) / 2)
+		const pMat = new THREE.ShaderMaterial({
+			uniforms: {
+				uColor: { value: hdr(SIGNAL, 2.2) },
+				uOpacity: { value: 0.85 },
+				uSize: { value: 0.05 },
+				uPixelScale: { value: pixelScale() },
+			},
+			vertexShader: `
+				uniform float uSize;
+				uniform float uPixelScale;
+				attribute float aScale;
+				void main() {
+					vec4 mv = modelViewMatrix * vec4(position, 1.0);
+					gl_PointSize = uSize * aScale * uPixelScale / max(-mv.z, 0.001);
+					gl_Position = projectionMatrix * mv;
+				}
+			`,
+			fragmentShader: `
+				uniform vec3 uColor;
+				uniform float uOpacity;
+				void main() {
+					float d = length(gl_PointCoord - vec2(0.5));
+					if (d > 0.5) discard;
+					// Tight core, wide halo -- the profile bloom reads best.
+					float a = pow(smoothstep(0.5, 0.0, d), 1.8);
+					gl_FragColor = vec4(uColor, a * uOpacity);
+				}
+			`,
 			transparent: true,
-			opacity: 0.85,
 			blending: THREE.AdditiveBlending,
 			depthWrite: false,
 		})
@@ -256,7 +336,7 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 		const ringMats: THREE.MeshBasicMaterial[] = []
 		const ringMeshes: THREE.Mesh[] = []
 		ringDefs.forEach((d) => {
-			const m = new THREE.MeshBasicMaterial({ color: d.c, transparent: true, opacity: 0, depthWrite: false })
+			const m = new THREE.MeshBasicMaterial({ color: hdr(d.c, 1.6), transparent: true, opacity: 0, depthWrite: false })
 			ringMats.push(m)
 			const t = new THREE.Mesh(new THREE.TorusGeometry(d.r, 0.02, 8, 128), m)
 			t.rotation.x = d.tilt
@@ -293,13 +373,45 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 		world.add(beam)
 
 		/* Containment shell closing over h002 in the final act. */
-		const shellMat = new THREE.MeshBasicMaterial({
-			color: ALARM,
-			wireframe: true,
+		/*
+		 * Fresnel rather than a wireframe sphere: the field glows along its
+		 * silhouette and stays clear through the middle, so the contained host is
+		 * still readable inside its own containment. A wireframe would have drawn
+		 * a cage over the very thing the act is about.
+		 */
+		const shellMat = new THREE.ShaderMaterial({
+			uniforms: {
+				uColor: { value: hdr(ALARM, 2.4) },
+				uOpacity: { value: 0 },
+				uPower: { value: 2.4 },
+			},
+			vertexShader: `
+				varying vec3 vNormalView;
+				varying vec3 vViewDir;
+				void main() {
+					vec4 mv = modelViewMatrix * vec4(position, 1.0);
+					vNormalView = normalize(normalMatrix * normal);
+					vViewDir = normalize(-mv.xyz);
+					gl_Position = projectionMatrix * mv;
+				}
+			`,
+			fragmentShader: `
+				uniform vec3 uColor;
+				uniform float uOpacity;
+				uniform float uPower;
+				varying vec3 vNormalView;
+				varying vec3 vViewDir;
+				void main() {
+					float f = 1.0 - abs(dot(normalize(vNormalView), normalize(vViewDir)));
+					gl_FragColor = vec4(uColor, pow(f, uPower) * uOpacity);
+				}
+			`,
 			transparent: true,
-			opacity: 0,
+			blending: THREE.AdditiveBlending,
+			depthWrite: false,
+			side: THREE.DoubleSide,
 		})
-		const shell = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 1), shellMat)
+		const shell = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 3), shellMat)
 		shell.position.copy(ALERT_POS)
 		shell.scale.setScalar(0.01)
 		world.add(shell)
@@ -385,8 +497,15 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 		const ro = new ResizeObserver(() => {
 			const w = mount.clientWidth
 			const h = Math.max(mount.clientHeight, 1)
+			const dpr = Math.min(window.devicePixelRatio, w < 768 ? 1.5 : 2)
 			renderer.setSize(w, h)
-			renderer.setPixelRatio(Math.min(window.devicePixelRatio, w < 768 ? 1.5 : 2))
+			renderer.setPixelRatio(dpr)
+			// The composer keeps its own render targets: resizing the renderer
+			// alone leaves the bloom sampling a stale buffer.
+			composer.setSize(w, h)
+			composer.setPixelRatio(dpr)
+			bloom.setSize(w, h)
+			pMat.uniforms.uPixelScale.value = pixelScale()
 			camera.aspect = w / h
 			camera.updateProjectionMatrix()
 		})
@@ -432,7 +551,7 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 					pPos.set([tmpV.x, tmpV.y, tmpV.z], i * 3)
 				}
 				pGeo.attributes.position.needsUpdate = true
-				pMat.opacity = 0.85 * (1 - fx.dimOthers * 0.5)
+				pMat.uniforms.uOpacity.value = 0.85 * (1 - fx.dimOthers * 0.5)
 
 				ringMeshes[0].rotation.z += dt * 0.35
 				ringMeshes[1].rotation.z -= dt * 0.25
@@ -455,7 +574,7 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 				grid.rotation.y += dt * 0.05
 
 				shell.scale.setScalar(Math.max(fx.shell * 3, 0.01))
-				shellMat.opacity = fx.shell * 0.75
+				shellMat.uniforms.uOpacity.value = fx.shell * 0.9
 				shell.rotation.y += dt * 0.4
 
 				sweepMat.opacity = fx.sweep
@@ -498,7 +617,7 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 					setAct(idx)
 				}
 
-				renderer.render(scene, camera)
+				composer.render()
 				} catch (err) {
 					// A throw inside this callback used to kill the render call at the
 					// bottom of the frame, leaving a blank canvas with no console trace
@@ -507,7 +626,7 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 						loggedError = true
 						console.error('[hero3d] frame update failed:', err)
 					}
-					renderer.render(scene, camera)
+					composer.render()
 				}
 			},
 		})
@@ -524,6 +643,7 @@ export function NetworkHero({ report, live }: { report: Bundle['report']; live: 
 				if (Array.isArray(mat)) mat.forEach((m) => m.dispose())
 				else if (mat) mat.dispose()
 			})
+			composer.dispose()
 			renderer.dispose()
 			if (renderer.domElement.parentNode === mount) mount.removeChild(renderer.domElement)
 		}
