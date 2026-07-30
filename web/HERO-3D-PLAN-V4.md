@@ -39,3 +39,24 @@ The single most important consequence: **the graticule does not move with the
 camera.** A graticule is fixed to the observer, not to the scene. Overlays that
 parallax with the 3D camera always read as stickers. Ours is nailed to the
 viewport.
+
+## Research log
+
+Each row is a source and the concrete decision it changed. Sources that only
+confirmed an existing choice are omitted.
+
+| Source | What it says | What we did |
+| --- | --- | --- |
+| Codrops, *SVG Filter Effects: Creating Texture with feTurbulence* | fractalNoise plus feDisplacementMap is the canonical way to break a straight edge into organic distortion | scan band is a plain rect displaced by turbulence rather than a hand-drawn wobble |
+| Smashing Magazine, *Deep Dive into the Wonderful World of SVG Displacement Filtering* | displacement scale is in user units and compounds with filter region; too small a region clips the effect | filter region set to -20/140 percent on both axes so the displaced band is never clipped |
+| Michael Mullany, via Stack Overflow *How to perfectly loop feTurbulence animation* | animating baseFrequency **cannot** loop; the field is resampled and jumps on repeat. Animate an feColorMatrix hueRotate 0 to 360 instead | exactly this: baseFrequency is static, hueRotate animates 0 to 360 over 9s |
+| ccprog, same thread | stitchTiles=noStitch avoids seam tearing when the noise field is animated | stitchTiles=noStitch set explicitly |
+| MDN, feTurbulence reference | numOctaves cost is roughly linear; 2 is usually enough for shimmer | numOctaves=2, not the default-ish 4 |
+| Awwwards, hackvector.io and safe-security | the convincing security aesthetic is instrument panel, not neon cyber cliche: monospace readouts, hairline rules, restrained accent | monospace readouts, single signal accent, no neon, no glitch text |
+| designmonks, cybersecurity dashboard roundup | real SOC surfaces put state in small persistent readouts, not big labels | MODE / ACT / f-stop readouts in the corners at 15px |
+
+The SVG loop pitfall is worth restating because it is the one that silently
+ruins this kind of effect:
+
+> Do not animate baseFrequency. It looks weird and there is no way to loop it.
+> Add an feColorMatrix hue-rotate from 0 to 360 instead.
