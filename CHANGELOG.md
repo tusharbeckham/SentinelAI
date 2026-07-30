@@ -3,6 +3,30 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v2.1.0 -- Realism pass
+
+### Added
+
+- Entry transition: the cloud condenses out of a wide shell over 1.9s, staggered
+  per point so it sweeps in rather than snapping.
+- Exit transition: the last 4% of the section lifts and dissolves the field,
+  handing off to the page instead of cutting.
+- A dust layer in world space. It does not rotate with the cloud, and that
+  differential motion is what makes the camera moves read as depth.
+- Final grade pass: radial chromatic aberration, vignette and luminance-weighted
+  film grain.
+
+### Changed
+
+- Points render with a gaussian profile instead of a hard disc, plus aerial
+  perspective so distance drains intensity.
+
+### Notes
+
+- `docs/KAGGLE-GUIDE.md` explains how to recompute the layout with UMAP on a GPU.
+  PCA keeps only 35% of the variance, which is the real reason the cloud looked
+  flat; no amount of shading fixes a structureless blob.
+
 ## v2.0.0 -- Embedding Space
 
 ### Changed
