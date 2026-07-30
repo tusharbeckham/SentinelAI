@@ -133,3 +133,29 @@ export function HeroHud({ act, className }: Props) {
 						</span>
 						<span className="tabular" style={{ color: "var(--color-ink-dim)" }}>
 							{v}
+						</span>
+					</motion.div>
+				))}
+			</div>
+
+			{/* Ground-truth key, top-right, from the act where colour starts to
+			    carry meaning. Without this the palette is just pretty dots. */}
+			<motion.div
+				className="absolute top-20 right-6 hidden flex-col items-end gap-1 lg:flex"
+				initial={false}
+				animate={{ opacity: act >= 2 ? 1 : 0 }}
+				transition={{ duration: 0.6, ease: "easeOut" }}
+			>
+				<div className="mb-1 text-[10px] tracking-widest uppercase" style={{ color: "var(--color-ink-faint)" }}>
+					ground truth
+				</div>
+				{LEGEND.map((l) => (
+					<div key={l.k} className="flex items-center gap-2 text-[10px]">
+						<span style={{ color: "var(--color-ink-faint)" }}>{l.k}</span>
+						<span className="h-1.5 w-1.5 rounded-full" style={{ background: l.c, boxShadow: "0 0 6px " + l.c }} />
+					</div>
+				))}
+			</motion.div>
+		</div>
+	)
+}
