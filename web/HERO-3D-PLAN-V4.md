@@ -99,3 +99,11 @@ fights the corners of the frame.
 - [x] CSS brace balance verified as part of the build gate. This is new, and it
       exists because a previous release shipped a broken stylesheet that neither
       tsc nor esbuild could possibly have caught.
+
+## Known limitation, stated plainly
+
+The sandbox this was authored in has no network and no GPU, so **the GLSL was
+never compiled and the scene was never rendered here**. The verification that
+did run is: TypeScript with noUnusedLocals, an esbuild parse of all 13 source
+files, a CSS brace-depth scan, and grep invariants. Visual confirmation has to
+happen on your machine.
