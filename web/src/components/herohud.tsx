@@ -106,3 +106,30 @@ export function HeroHud({ act, className }: Props) {
 						<path d="M14 46 L14 6" />
 					</g>
 					<g fill="currentColor" className="hud-line-faint">
+						<path d="M52 46 l-5 -2.4 v4.8 z" />
+						<path d="M14 6 l-2.4 5 h4.8 z" />
+					</g>
+				</svg>
+				<div className="space-y-0.5 text-[10px] leading-tight tracking-widest uppercase">
+					<div style={{ color: "var(--color-ink-faint)" }}>x \u00B7 PC1</div>
+					<div style={{ color: "var(--color-ink-faint)" }}>z \u00B7 PC2</div>
+					<div style={{ color: "var(--color-signal)" }}>y \u00B7 log-odds</div>
+				</div>
+			</motion.div>
+
+			{/* Readouts, bottom-right. Bottom-anchored so they can never reach the
+			    subtitle no matter how the viewport is shaped. */}
+			<div className="absolute right-6 bottom-6 hidden max-w-[46vw] flex-col items-end gap-1 sm:flex">
+				{rows.map(([k, v]) => (
+					<motion.div
+						key={k + v}
+						initial={{ opacity: 0, x: 10 }}
+						animate={{ opacity: 1, x: 0 }}
+						transition={{ duration: 0.45, ease: "easeOut" }}
+						className="flex items-baseline gap-2 text-[11px]"
+					>
+						<span className="tracking-widest uppercase" style={{ color: "var(--color-ink-faint)" }}>
+							{k}
+						</span>
+						<span className="tabular" style={{ color: "var(--color-ink-dim)" }}>
+							{v}
