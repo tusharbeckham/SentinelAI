@@ -428,3 +428,65 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			let a = 0
 			for (let i = 0; i < ACT_BOUNDARIES.length; i++) if (progress >= ACT_BOUNDARIES[i]) a = i + 1
 			if (a !== currentAct) {
+				currentAct = a
+				setAct(a)
+			}
+		}
+
+		readScroll()
+		window.addEventListener("scroll", readScroll, { passive: true })
+
+		const clock = new THREE.Clock()
+		renderer.setAnimationLoop(() => {
+			const t = clock.getElapsedTime()
+			pointMat.uniforms.uTime.value = t
+			pointMat.uniforms.uSettle.value = fx.settle
+			pointMat.uniforms.uLift.value = fx.lift
+			pointMat.uniforms.uIgnite.value = fx.ignite
+			pointMat.uniforms.uFocus.value = fx.focus
+			pointMat.uniforms.uSize.value = fx.size
+			planeMat.uniforms.uTime.value = t
+			planeMat.uniforms.uOpacity.value = fx.plane
+
+			/* A slow idle yaw so the cloud has depth before the reader scrolls. */
+			world.rotation.y = t * 0.035 + fx.spin * 1.15
+
+			plane.position.y = thresholdY * fx.lift
+			marker.scale.setScalar(0.6 + fx.focus * 1.5)
+			marker.rotation.z = t * 0.6
+			for (const child of marker.children) {
+				const m = (child as THREE.Mesh).material as THREE.MeshBasicMaterial
+				m.opacity = fx.focus
+			}
+
+			sampleCam(progress)
+			camera.position.lerp(camPos, 0.085)
+			camera.lookAt(camLook)
+			composer.render()
+		})
+
+		const onResize = () => {
+			const w = mount.clientWidth
+			const h = Math.max(mount.clientHeight, 1)
+			camera.aspect = w / h
+			camera.updateProjectionMatrix()
+			renderer.setSize(w, h)
+			composer.setSize(w, h)
+			bloom.setSize(w, h)
+			pointMat.uniforms.uDpr.value = renderer.getPixelRatio()
+			readScroll()
+		}
+		window.addEventListener("resize", onResize)
+
+		return () => {
+			disposed = true
+			ac.abort()
+			renderer.setAnimationLoop(null)
+			window.removeEventListener("scroll", readScroll)
+			window.removeEventListener("resize", onResize)
+			scene.traverse((o) => {
+				const any = o as THREE.Mesh
+				if (any.geometry) any.geometry.dispose()
+				const mat = any.material as THREE.Material | THREE.Material[] | undefined
+				if (Array.isArray(mat)) mat.forEach((m) => m.dispose())
+				else if (mat) mat.dispose()
