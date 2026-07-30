@@ -613,3 +613,64 @@ function TitleBlock({
 				 */}
 				<h1 className="text-[clamp(2.75rem,7.6vw,5.5rem)]">
 					<span className="block">
+						<span className="bg-gradient-to-b from-white via-white to-[#8d99a9] bg-clip-text text-transparent">
+							Sentinel
+						</span>
+						<span className="ai-gradient">AI</span>
+					</span>
+					<span className="mt-4 block text-[clamp(1.1rem,2.5vw,1.9rem)] font-normal leading-[1.2] tracking-[-0.02em] text-ink-dim">
+						anomaly detection built around
+						<span className="text-ink"> the analyst&rsquo;s budget</span>
+					</span>
+				</h1>
+
+				<p className="mt-7 max-w-xl text-[15px] leading-relaxed text-ink-dim sm:text-base">
+					Scroll to fly through the pipeline &mdash; raw telemetry to a contained alert.
+					Every figure is read from the pipeline&rsquo;s own artifacts, including the ones
+					that look bad.
+				</p>
+
+				<div className="mt-8 flex flex-wrap items-center justify-center gap-2.5">
+					<a href="#explain" className="btn btn-primary">
+						Read one alert end to end &rarr;
+					</a>
+					<a href="#sweep" className="btn">
+						Budget curve
+					</a>
+				</div>
+			</div>
+
+			<div className="rule-x mt-11" />
+
+			{/* Hairline-separated cells: one border, shared by four figures. */}
+			<dl className="mt-7 grid grid-cols-2 gap-px overflow-hidden rounded-[10px] border border-line bg-line sm:grid-cols-4">
+				{stats.map((s) => (
+					<div key={s.k} className="bg-surface px-4 py-3.5 text-left">
+						<dt className="kicker text-ink-faint">{s.k}</dt>
+						<dd className="tabular mt-1.5 text-lg text-ink">{s.v}</dd>
+					</div>
+				))}
+			</dl>
+
+			<div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-[13px] text-ink-faint">
+				<span className="panel tabular px-2.5 py-1">v1</span>
+				<span className="panel tabular px-2.5 py-1">{report.features.count} features</span>
+				<span className="panel tabular px-2.5 py-1">
+					{report.runtime_seconds.toFixed(1)}s end-to-end
+				</span>
+				<LiveChip status={live} />
+			</div>
+
+			{compact ? (
+				<div className="mt-10 flex flex-col items-center gap-2" aria-hidden>
+					<span className="kicker text-ink-faint">scroll</span>
+					<span className="h-9 w-px animate-pulse bg-gradient-to-b from-line-strong to-transparent" />
+				</div>
+			) : null}
+		</div>
+	)
+}
+
+function LiveChip({ status }: { status: LiveStatus }) {
+	const map: Record<LiveStatus, { text: string; color: string }> = {
+		unknown: { text: 'probing scorer', color: 'var(--color-ink-faint)' },
