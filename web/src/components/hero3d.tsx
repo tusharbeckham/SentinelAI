@@ -541,9 +541,9 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 					const row = Math.floor(i / latCols)
 					/* A hair of jitter only, to kill the moire the eye gets from a pixel-exact
 					   grid at glancing angles. Not enough to read as randomness. */
-					scatter[i * 3] = (col - (latCols - 1) / 2) * latStep + (rnd() - 0.5) * 0.05
-					scatter[i * 3 + 1] = 0
-					scatter[i * 3 + 2] = (row - (latRows - 1) / 2) * latStep + (rnd() - 0.5) * 0.05
+					scatter[i * 3] = (col - (latCols - 1) / 2) * latStepX + (rnd() - 0.5) * 0.04
+					scatter[i * 3 + 1] = ((latRows - 1) / 2 - row) * latStepY + (rnd() - 0.5) * 0.04
+					scatter[i * 3 + 2] = (rnd() - 0.5) * 0.06
 
 					/* Monochrome steel. Colour is held back so it can mean something later:
 					   ground-truth family only arrives with the morph, alarm only above the
