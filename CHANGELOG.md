@@ -3,6 +3,33 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v2.4.0 -- Hero and scene, separated
+
+### Fixed
+
+- The black rectangle around the canvas. It was never the shader: the scene
+  sat inside main.mx-auto.max-w-6xl.px-5, so absolute inset-0 resolved to a
+  1152px padded box instead of the viewport. The scene section is now
+  full-bleed via left-1/2 / w-screen / -translate-x-1/2.
+
+### Changed
+
+- The hero is its own section in normal flow with nothing rendering behind
+  it. The title no longer lives inside the pinned scene, so the two are never
+  layered on top of each other.
+- The scene begins only once the hero has been scrolled past.
+- Hand-off transition: the scene fades up as its section climbs into view, so
+  the hero and the scene are never both at full strength.
+- Galaxy retheme onto the project palette -- warm core, signal-blue arms,
+  graph-violet HII knots.
+
+### Added
+
+- An SVG hero mark: the threshold plane with the benign mass packed beneath
+  it, the windows that clear it above, a sweep across the decision line and a
+  ping on the rank-1 alert. Seeded geometry, and it honours
+  prefers-reduced-motion.
+
 ## v2.3.0 -- Galaxy shape
 
 ### Added
