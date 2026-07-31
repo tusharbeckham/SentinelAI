@@ -3,6 +3,41 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v2.8.0 -- Act choreography
+
+The Boundary renders, so this release gives it something to do in every act
+instead of relying on a camera push-in to carry five of them.
+
+- **Act 02, feature space.** The hull folds into a dense sheet -- the same
+  principal-component collapse the card describes -- and spins hardest through
+  the middle of the move. Rotation is driven by f*(1-f), not f, so the gesture
+  starts and finishes at rest instead of stopping dead on a scroll boundary.
+- **Act 03, the score axis.** The sheet unfolds and stretches 2.35x along y as
+  height takes on meaning, with a skew term so the lobe is asymmetric rather
+  than a stretched ball. The creases brighten as it grows.
+- **Act 04, fusion.** The floor grid is deleted. In its place three boundaries,
+  one per leg of the stacker, sized by their fitted weights (0.3425 isolation
+  forest, 1.1009 GBDT, 0.1135 graph), arrive apart and converge onto the single
+  hull that ships. GBDT is visibly largest because it visibly dominates the
+  coefficients. This closes the fusion-act gap open since v2.3.0.
+- **Act 05, the plane.** The threshold is no longer scenery under the object.
+  It is cut through the surface itself: a luminous band at the decision height,
+  everything above it tinted warn, everything below it left cold. Height is
+  read from the artifact threshold and carried up with the act-03 stretch.
+- **Act 06, response.** Containment draws the surface inward and dims the body
+  while a single ring leaves the rank-1 alert and snaps shut.
+- **The ending.** Act 06 finishes at 0.95 and nothing happens until 0.97 -- the
+  object holds, lit -- then the canvas cuts out in one move. The console is
+  never underneath a half-transparent scene. This mirrors the 0.075-0.10 seam
+  on the way in: a gap, never a cross-fade.
+
+### Not verified here
+
+There is no GPU in the build sandbox. The GLSL is never compiled and no frame
+is ever produced. Static gates only: esbuild 12/12, TS2304/TS6133 scope checks,
+brace and paren balance. The three-leg convergence and the cut band are the two
+places most likely to need tuning on real hardware.
+
 ## v2.7.0 -- The Boundary
 
 ### Added
