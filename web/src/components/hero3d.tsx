@@ -393,6 +393,7 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 
 
 		/* Load the projected corpus. Until it arrives the hero simply stays dark. */
+		let loaded = false
 		const ac = new AbortController()
 		fetch(new URL("data/embedding.json", document.baseURI).toString(), { signal: ac.signal })
 			.then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
@@ -481,8 +482,7 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				marker.position.set(pos[emb.rank1 * 3], pos[emb.rank1 * 3 + 1], pos[emb.rank1 * 3 + 2])
 				marker.visible = true
 				plane.visible = true
-				mount.style.transition = "opacity 900ms ease"
-				mount.style.opacity = "1"
+				loaded = true
 			})
 			.catch(() => {
 				if (!disposed) setFailed(true)
@@ -595,6 +595,10 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			pointMat.uniforms.uOutro.value = fx.outro
 			grade.uniforms.uTime.value = t
 			grade.uniforms.uFade.value = fx.intro * fx.enter
+			/* The model is revealed by fading the whole canvas against the page.
+			   Both are the CANVAS token, so no value of this opacity can produce a
+			   visible edge. Nothing about the seam depends on shader arithmetic. */
+			mount.style.opacity = loaded ? String(fx.intro * fx.enter) : "0"
 			grade.uniforms.uOutro.value = fx.outro
 			planeMat.uniforms.uTime.value = t
 			planeMat.uniforms.uOpacity.value = fx.plane
