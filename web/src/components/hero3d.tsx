@@ -591,14 +591,6 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			grade.uniforms.uTime.value = t
 			grade.uniforms.uFade.value = fx.intro * fx.enter
 			grade.uniforms.uOutro.value = fx.outro
-			dustMat.opacity = 0.5 * fx.intro * (1 - fx.outro)
-			dust.rotation.y = t * 0.012
-			nebMat.uniforms.uTime.value = t
-			nebMat.uniforms.uOpacity.value = fx.intro * (1 - fx.outro)
-			/* Differential drift: the haze turns slower than the cloud it sits in.
-			   Applied to the ambient layer only -- shearing the points themselves
-			   would misreport where the model actually placed each window. */
-			neb.rotation.y = -t * 0.008
 			planeMat.uniforms.uTime.value = t
 			planeMat.uniforms.uOpacity.value = fx.plane
 
