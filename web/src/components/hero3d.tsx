@@ -341,40 +341,6 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			].join("\n"),
 		})
 
-		/*
-		 * The threshold plane, drawn as a shader grid rather than a solid quad so
-		 * the cloud stays readable through it. An opaque plane would hide the
-		 * false negatives underneath, and those are the entire point of showing it.
-		 */
-		const planeMat = new THREE.ShaderMaterial({
-			transparent: true,
-			depthWrite: false,
-			side: THREE.DoubleSide,
-			blending: THREE.AdditiveBlending,
-			uniforms: { uOpacity: { value: 0 }, uTime: { value: 0 }, uTint: { value: new THREE.Color(WATCH) } },
-			vertexShader: [
-				"varying vec2 vUv;",
-				"void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
-			].join("\n"),
-			fragmentShader: [
-				"uniform float uOpacity; uniform float uTime; uniform vec3 uTint;",
-				"varying vec2 vUv;",
-				"void main() {",
-				"  vec2 g = abs(fract(vUv * 26.0) - 0.5) / fwidth(vUv * 26.0);",
-				"  float line = 1.0 - min(min(g.x, g.y), 1.0);",
-				"  float rad = 1.0 - smoothstep(0.18, 0.5, length(vUv - vec2(0.5)));",
-				"  float sweep = 0.55 + 0.45 * sin(uTime * 0.8 + vUv.x * 6.0);",
-				"  float a = (line * 0.55 + 0.035) * rad * uOpacity * sweep;",
-				"  gl_FragColor = vec4(uTint * (1.4 + line * 1.6), a);",
-				"}",
-			].join("\n"),
-		})
-
-		const plane = new THREE.Mesh(new THREE.PlaneGeometry(46, 46, 1, 1), planeMat)
-		plane.rotation.x = -Math.PI / 2
-		plane.visible = false
-		world.add(plane)
-
 		/* Rank-1 marker: a caged point, so the eye can find h002 immediately. */
 		const marker = new THREE.Group()
 		const ringA = new THREE.Mesh(
@@ -556,7 +522,6 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 
 				marker.position.set(pos[emb.rank1 * 3], pos[emb.rank1 * 3 + 1], pos[emb.rank1 * 3 + 2])
 				marker.visible = true
-				plane.visible = true
 				loaded = true
 			})
 			.catch(() => {
@@ -675,8 +640,6 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			   visible edge. Nothing about the seam depends on shader arithmetic. */
 			mount.style.opacity = loaded ? String(fx.intro * fx.enter) : "0"
 			grade.uniforms.uOutro.value = fx.outro
-			planeMat.uniforms.uTime.value = t
-			planeMat.uniforms.uOpacity.value = fx.plane
 
 			/* The idle yaw is gated on uSettle. At rest the lattice must face the
 			   camera dead-on -- a drifting yaw would turn a flat wall edge-on within
@@ -699,7 +662,6 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			hull.scale.setScalar(hullScale)
 			edges.scale.setScalar(hullScale)
 
-			plane.position.y = thresholdY * fx.lift
 			marker.scale.setScalar(0.6 + fx.focus * 1.5)
 			marker.rotation.z = t * 0.6
 			for (const child of marker.children) {
