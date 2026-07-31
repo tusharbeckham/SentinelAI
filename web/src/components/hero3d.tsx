@@ -700,8 +700,11 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			planeMat.uniforms.uTime.value = t
 			planeMat.uniforms.uOpacity.value = fx.plane
 
-			/* A slow idle yaw so the cloud has depth before the reader scrolls. */
-			world.rotation.y = t * 0.035 + fx.spin * 1.15
+			/* The idle yaw is gated on uSettle. At rest the lattice must face the
+			   camera dead-on -- a drifting yaw would turn a flat wall edge-on within
+			   twenty seconds of sitting on the page. It only starts once the grid has
+			   begun collapsing into a volume, where depth is the point. */
+			world.rotation.y = fx.settle * t * 0.035 + fx.spin * 1.15
 
 			plane.position.y = thresholdY * fx.lift
 			marker.scale.setScalar(0.6 + fx.focus * 1.5)
