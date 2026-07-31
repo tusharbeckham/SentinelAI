@@ -756,11 +756,6 @@ function Footer({ op }: { op: Bundle['report']['operating_point'] }) {
 				prior, {(op.ppv_at_deployment_prior * 100).toFixed(1)}% of its alerts would be true
 				positives, which is exactly the base-rate problem the design is arguing about.
 			</p>
-			<p className="mt-3 text-ink-faint">
-				UI primitives adapted from React Bits, Magic UI, Skiper UI, Vengeance UI and Bklit UI;
-				motion by Motion and anime.js. See RESOURCES.md for what was used and what was
-				deliberately not.
-			</p>
 		</footer>
 	)
 }
