@@ -20,18 +20,6 @@ import { motion } from "motion/react"
 import { cn } from "@/lib/cn"
 
 type Props = { act: number; className?: string }
-
-/** Ground-truth families, in the colour order the scene uses. */
-const LEGEND: Array<{ k: string; c: string }> = [
-	{ k: "benign", c: "#39414f" },
-	{ k: "brute_force", c: "#e97366" },
-	{ k: "dns_tunnel", c: "#bf8eda" },
-	{ k: "dos", c: "#de9255" },
-	{ k: "exfil", c: "#e0b15a" },
-	{ k: "lateral", c: "#5e9fe8" },
-	{ k: "portscan", c: "#72bc8f" },
-]
-
 /* One readout set per act. Act 0 is deliberately empty: the title page stays
    clean, which is the whole complaint the previous version earned. */
 const READOUTS: Array<Array<[string, string]>> = [
@@ -93,9 +81,9 @@ export function HeroHud({ act, className }: Props) {
 					</g>
 				</svg>
 				<div className="space-y-0.5 text-[10px] leading-tight tracking-widest uppercase">
-					<div style={{ color: "var(--color-ink-faint)" }}>x \u00B7 PC1</div>
-					<div style={{ color: "var(--color-ink-faint)" }}>z \u00B7 PC2</div>
-					<div style={{ color: "var(--color-signal)" }}>y \u00B7 log-odds</div>
+					<div style={{ color: "var(--color-ink-faint)" }}>x &#183; PC1</div>
+					<div style={{ color: "var(--color-ink-faint)" }}>z &#183; PC2</div>
+					<div style={{ color: "var(--color-signal)" }}>y &#183; log-odds</div>
 				</div>
 			</motion.div>
 
@@ -119,25 +107,6 @@ export function HeroHud({ act, className }: Props) {
 					</motion.div>
 				))}
 			</div>
-
-			{/* Ground-truth key, top-right, from the act where colour starts to
-			    carry meaning. Without this the palette is just pretty dots. */}
-			<motion.div
-				className="absolute top-20 right-6 hidden flex-col items-end gap-1 lg:flex"
-				initial={false}
-				animate={{ opacity: act >= 2 ? 1 : 0 }}
-				transition={{ duration: 0.6, ease: "easeOut" }}
-			>
-				<div className="mb-1 text-[10px] tracking-widest uppercase" style={{ color: "var(--color-ink-faint)" }}>
-					ground truth
-				</div>
-				{LEGEND.map((l) => (
-					<div key={l.k} className="flex items-center gap-2 text-[10px]">
-						<span style={{ color: "var(--color-ink-faint)" }}>{l.k}</span>
-						<span className="h-1.5 w-1.5 rounded-full" style={{ background: l.c, boxShadow: "0 0 6px " + l.c }} />
-					</div>
-				))}
-			</motion.div>
 		</div>
 	)
 }
