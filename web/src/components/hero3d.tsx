@@ -455,6 +455,36 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 		edges.frustumCulled = false
 		world.add(edges)
 
+		/*
+		 * ACT 04 -- FUSION, drawn as three converging boundaries.
+		 *
+		 * Each leg of the stacker learns its own notion of normal, so each leg
+		 * gets its own hull. They arrive apart, sized by their fitted weights
+		 * (0.3425 isolation forest, 1.1009 GBDT, 0.1135 graph), and collapse
+		 * onto the single boundary the logistic layer actually ships. GBDT is
+		 * visibly the largest because it visibly dominates the coefficients.
+		 * That replaces the floor grid: the arithmetic, drawn.
+		 */
+		const LEGS = [
+			{ color: SIGNAL, weight: 0.3425, offset: -9.5 },
+			{ color: GRAPH, weight: 1.1009, offset: 0.0 },
+			{ color: WATCH, weight: 0.1135, offset: 9.5 },
+		]
+		const ghosts = LEGS.map((leg) => {
+			const gm = new THREE.LineBasicMaterial({
+				color: new THREE.Color(leg.color),
+				transparent: true,
+				opacity: 0,
+				depthWrite: false,
+				blending: THREE.AdditiveBlending,
+			})
+			const go = new THREE.LineSegments(edgeGeo, gm)
+			go.frustumCulled = false
+			go.visible = false
+			world.add(go)
+			return { obj: go, mat: gm, leg }
+		})
+
 
 
 		/* Load the projected corpus. Until it arrives the hero simply stays dark. */
@@ -709,6 +739,26 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			edges.scale.setScalar(hullScale)
 			edgeMat.opacity =
 				fx.enter * (1 - fx.outro) * (0.55 - fx.settle * 0.25 + fx.axis * 0.30 + fx.respond * 0.45)
+
+			/* The three legs converge. Opacity uses the same f*(1-f) envelope as
+			   the act rotations, so they fade in as they separate and are gone the
+			   instant they land on the shipped boundary -- the merge is the point,
+			   not the ghosts. They are hidden outside the act so two hundred extra
+			   line segments are not drawn for the other five. */
+			const fuseVis = fx.fuse > 0.001 && fx.fuse < 0.999
+			for (const g of ghosts) {
+				g.obj.visible = fuseVis
+				if (!fuseVis) {
+					g.mat.opacity = 0
+					continue
+				}
+				const k = 1 - fx.fuse
+				g.obj.scale.setScalar(hullScale * (0.55 + g.leg.weight * 0.62) * (1 + k * 0.35))
+				g.obj.position.set(g.leg.offset * k, 0, 0)
+				g.obj.rotation.copy(hull.rotation)
+				g.obj.rotation.y += k * 1.1
+				g.mat.opacity = Math.min(1, fx.fuse * (1 - fx.fuse) * 4) * 0.75
+			}
 
 			marker.scale.setScalar(0.6 + fx.focus * 1.5)
 			marker.rotation.z = t * 0.6
