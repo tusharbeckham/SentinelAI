@@ -73,24 +73,6 @@ export function HeroHud({ act, className }: Props) {
 
 	return (
 		<div className={cn("hud-text select-none", className)} aria-hidden="true">
-			{/* Corner brackets -- a frame, not a dial. Static, so they never read
-			    as spinning decoration competing with the scene. */}
-			<motion.div
-				className="absolute inset-6 hidden md:block"
-				initial={false}
-				animate={{ opacity: on ? 0.5 : 0.16 }}
-				transition={{ duration: 0.7, ease: "easeOut" }}
-			>
-				{[
-					"left-0 top-0 border-l border-t",
-					"right-0 top-0 border-r border-t",
-					"left-0 bottom-0 border-l border-b",
-					"right-0 bottom-0 border-r border-b",
-				].map((pos) => (
-					<span key={pos} className={cn("hud-line absolute h-5 w-5", pos)} />
-				))}
-			</motion.div>
-
 			{/* Axis triad, bottom-left. This is the key to reading the scene: two
 			    principal components on the floor, model confidence as height. */}
 			<motion.div
