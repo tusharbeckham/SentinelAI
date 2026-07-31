@@ -40,7 +40,7 @@ const CANVAS = 0x0a0b0d
 const WATCH = 0xde9255
 const ALARM = 0xe97366
 /* Haze tints. Same two hues the palette uses for signal and graph, kept as
-   named constants so the nebula never drifts away from the design tokens. */
+   named constants so the scene never drifts away from the design tokens. */
 const SIGNAL = 0x5e9fe8
 const GRAPH = 0xbf8eda
 
@@ -390,105 +390,7 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 		marker.visible = false
 		world.add(marker)
 
-		/*
-		 * Dust. Sparse, unlit, parked in world space so it does not spin with the
-		 * cloud -- the differential motion is what sells depth. Without it the
-		 * background is a flat void and the camera moves read as a zoom.
-		 */
-		const dustN = 700
-		const dustPos = new Float32Array(dustN * 3)
-		const dustRnd = lcg(19)
-		for (let i = 0; i < dustN; i++) {
-			const rr = 22 + dustRnd() * 54
-			const th = dustRnd() * Math.PI * 2
-			const ph = Math.acos(2 * dustRnd() - 1)
-			dustPos[i * 3] = rr * Math.sin(ph) * Math.cos(th)
-			dustPos[i * 3 + 1] = rr * Math.cos(ph) * 0.45
-			dustPos[i * 3 + 2] = rr * Math.sin(ph) * Math.sin(th)
-		}
-		const dustGeo = new THREE.BufferGeometry()
-		dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3))
-		const dustMat = new THREE.PointsMaterial({
-			color: 0x2b3340,
-			size: 0.055,
-			transparent: true,
-			opacity: 0,
-			depthWrite: false,
-			blending: THREE.AdditiveBlending,
-		})
-		const dust = new THREE.Points(dustGeo, dustMat)
-		scene.add(dust)
 
-		/*
-		 * Nebula haze. Sparse, very large, very faint additive sprites living inside
-		 * the cloud volume. This is the piece that separates a galaxy from confetti:
-		 * a real star field sits in a participating medium, so light pools between the
-		 * points instead of every star floating in pure vacuum. Each sprite is capped
-		 * near 2% alpha, so the haze can never compete with or obscure the data.
-		 */
-		const nebN = 110
-		const nebPos = new Float32Array(nebN * 3)
-		const nebCol = new Float32Array(nebN * 3)
-		const nebSize = new Float32Array(nebN)
-		const nebRnd = lcg(31)
-		const nebTint = new THREE.Color()
-		for (let i = 0; i < nebN; i++) {
-			/* Flattened disc: concentrated toward the core, thin in y, which is the
-			   silhouette that reads as galactic rather than as a ball of fog. */
-			const rr = 3 + Math.pow(nebRnd(), 0.7) * 17
-			const th = nebRnd() * Math.PI * 2
-			nebPos[i * 3] = rr * Math.cos(th)
-			nebPos[i * 3 + 1] = (nebRnd() * 2 - 1) * 2.2
-			nebPos[i * 3 + 2] = rr * Math.sin(th)
-			nebTint.setHex(nebRnd() < 0.62 ? SIGNAL : GRAPH)
-			nebCol[i * 3] = nebTint.r
-			nebCol[i * 3 + 1] = nebTint.g
-			nebCol[i * 3 + 2] = nebTint.b
-			nebSize[i] = 26 + nebRnd() * 46
-		}
-		const nebGeo = new THREE.BufferGeometry()
-		nebGeo.setAttribute("position", new THREE.BufferAttribute(nebPos, 3))
-		nebGeo.setAttribute("aNCol", new THREE.BufferAttribute(nebCol, 3))
-		nebGeo.setAttribute("aNSize", new THREE.BufferAttribute(nebSize, 1))
-		nebGeo.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), 90)
-		const nebMat = new THREE.ShaderMaterial({
-			transparent: true,
-			depthWrite: false,
-			blending: THREE.AdditiveBlending,
-			uniforms: {
-				uTime: { value: 0 },
-				uOpacity: { value: 0 },
-				uDpr: { value: renderer.getPixelRatio() },
-			},
-			vertexShader: [
-			"uniform float uTime; uniform float uDpr;",
-			"attribute vec3 aNCol; attribute float aNSize;",
-			"varying vec3 vNCol;",
-			"void main() {",
-			"  vNCol = aNCol;",
-			"  vec3 p = position;",
-			"  /* Slow vertical breathing so the medium drifts independently of the",
-			"     cloud rotation. Ambient only -- it never touches a data point. */",
-			"  p.y += sin(uTime * 0.12 + position.x * 0.3) * 0.35;",
-			"  vec4 mv = modelViewMatrix * vec4(p, 1.0);",
-			"  gl_PointSize = aNSize * uDpr * (46.0 / max(-mv.z, 0.6));",
-			"  gl_Position = projectionMatrix * mv;",
-			"}",
-			].join("\n"),
-			fragmentShader: [
-			"uniform float uOpacity;",
-			"varying vec3 vNCol;",
-			"void main() {",
-			"  vec2 d = gl_PointCoord - vec2(0.5);",
-			"  float r = length(d);",
-			"  float f = exp(-r * r * 7.0) * smoothstep(0.5, 0.12, r);",
-			"  gl_FragColor = vec4(vNCol * 0.5, f * 0.009 * uOpacity);",
-			"}",
-			].join("\n"),
-		})
-		const neb = new THREE.Points(nebGeo, nebMat)
-		neb.frustumCulled = false
-		world.add(neb)
 
 		/* Load the projected corpus. Until it arrives the hero simply stays dark. */
 		const ac = new AbortController()
@@ -689,14 +591,6 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			grade.uniforms.uTime.value = t
 			grade.uniforms.uFade.value = fx.intro * fx.enter
 			grade.uniforms.uOutro.value = fx.outro
-			dustMat.opacity = 0.5 * fx.intro * (1 - fx.outro)
-			dust.rotation.y = t * 0.012
-			nebMat.uniforms.uTime.value = t
-			nebMat.uniforms.uOpacity.value = fx.intro * (1 - fx.outro)
-			/* Differential drift: the haze turns slower than the cloud it sits in.
-			   Applied to the ambient layer only -- shearing the points themselves
-			   would misreport where the model actually placed each window. */
-			neb.rotation.y = -t * 0.008
 			planeMat.uniforms.uTime.value = t
 			planeMat.uniforms.uOpacity.value = fx.plane
 
@@ -729,7 +623,6 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			composer.setSize(w, h)
 			bloom.setSize(w, h)
 			pointMat.uniforms.uDpr.value = renderer.getPixelRatio()
-			nebMat.uniforms.uDpr.value = renderer.getPixelRatio()
 			grade.uniforms.uRes.value.set(w * renderer.getPixelRatio(), h * renderer.getPixelRatio())
 			readScroll()
 		}
