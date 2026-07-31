@@ -185,25 +185,6 @@
 		background: color-mix(in srgb, var(--color-signal) 84%, white);
 		border-color: transparent;
 	}
-	/* Radial wash behind the hero title so the WebGL field never fights text. */
-	.title-scrim {
-		background: radial-gradient(
-			ellipse 62% 54% at 50% 46%,
-			rgba(10, 11, 13, 0.94) 32%,
-			rgba(10, 11, 13, 0.72) 58%,
-			transparent 100%
-		);
-	}
-	/* Top/bottom feather on the pinned hero canvas. */
-	.canvas-feather {
-		mask-image: linear-gradient(
-			to bottom,
-			transparent 0%,
-			black 14%,
-			black 86%,
-			transparent 100%
-		);
-	}
 	.animate-fade-up {
 		animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
 	}
@@ -289,24 +270,9 @@
 		background-position: calc(-1 * var(--ai-tile)) 50%;
 	}
 }
-/* ---------------------------------------------------------------
- * Hero -> Explain handoff.
- *
- * The canvas fades out at the end of the pinned range, so without a
- * bridge the console section simply appears. .handoff-veil is a
- * gradient that dissolves the hero into the page background, and
- * .handoff-rise lifts the arriving section a short distance once it
- * intersects.
- * --------------------------------------------------------------- */
-.handoff-veil {
-	background: linear-gradient(
-		to bottom,
-		transparent 0%,
-		color-mix(in srgb, var(--color-canvas) 55%, transparent) 45%,
-		var(--color-canvas) 100%
-	);
-}
-
+/* Hero -> Explain handoff. The arriving section lifts a short
+   distance once it intersects. No gradient veil: the scene is
+   no longer dimmed or feathered into the page. */
 .handoff-rise {
 	opacity: 0;
 	transform: translate3d(0, 26px, 0);
