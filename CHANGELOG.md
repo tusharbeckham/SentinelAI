@@ -3,6 +3,21 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v2.6.1 -- Build stamp and entrance
+
+### Added
+
+- The chip row now reads the build number instead of a hardcoded v1. There is
+  no other way to tell from the page which build is running, which has made
+  the last two rounds of feedback impossible to act on.
+- The model entrance is now a move rather than a brightness ramp: point size
+  goes from 34 percent to full and the lattice scales from 0.82 to 1.0 across
+  the same 0.10-0.17 window, with a matching 10 percent push on exit.
+
+### Removed
+
+- The horizontal rule between the hero copy and the stats grid.
+
 ## v2.6.0 -- The model, actually on screen
 
 ### Fixed
