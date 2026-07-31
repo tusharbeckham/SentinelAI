@@ -3,6 +3,34 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v2.2.0 -- Galaxy
+
+### Changed
+
+- Point size now follows a power law rather than being uniform. A real star
+  field is a few bright anchors over a long faint tail; uniform sizing was the
+  main reason the cloud read as flat pixel dust.
+- Bright points render diffraction spikes. A photographed star is not a round
+  blob, and the missing cross is a large part of why point clouds look
+  synthetic.
+- Per-point colour temperature spreads the palette between cool blue and warm
+  amber instead of one flat hue per family.
+- Removed the circular discard, which was shearing the spikes at the sprite
+  edge. The gaussian is ~0.0005 by the quad corner, so no square is visible.
+
+### Added
+
+- A nebula haze layer: 110 large, very faint additive sprites in a flattened
+  disc inside the cloud. Light now pools between the points instead of every
+  star floating in vacuum. Capped near 2% alpha so it cannot obscure data.
+- Differential drift: the haze rotates slower, and counter to, the cloud.
+
+### Integrity
+
+- All motion added here is ambient. Data point positions are never sheared.
+  x and z remain the projection, y remains the model log-odds, and the
+  threshold plane stays an exact plane.
+
 ## v2.1.2 -- UMAP no longer stalls on CPU
 
 ### Fixed

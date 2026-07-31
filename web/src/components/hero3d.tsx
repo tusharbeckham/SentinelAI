@@ -268,8 +268,10 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				"uniform float uThresh; uniform float uSize; uniform float uTime;",
 				"uniform float uFocus; uniform float uDpr; uniform float uIntro; uniform float uOutro;",
 				"attribute vec3 aScatter; attribute vec3 aColor; attribute float aP; attribute float aRank;",
+				"attribute float aMag; attribute float aTemp;",
 				"varying vec3 vColor; varying float vP; varying float vAlert; varying float vRank;",
 				"varying float vDepth; varying float vTw; varying float vFade;",
+				"varying float vMag; varying float vTemp;",
 				"void main() {",
 				"  vec3 target = position;",
 				"  target.y *= uLift;",
@@ -286,12 +288,13 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				"  float above = step(uThresh * uLift, target.y);",
 				"  vAlert = above * uIgnite;",
 				"  vColor = aColor; vP = aP; vRank = aRank;",
+				"  vMag = aMag; vTemp = aTemp;",
 				"  vTw = 0.82 + 0.18 * sin(uTime * 1.7 + ph * 2.3);",
 				"  vFade = arrive * (1.0 - uOutro);",
 				"  vec4 mv = modelViewMatrix * vec4(p, 1.0);",
 				"  vDepth = -mv.z;",
 				"  float grow = 1.0 + vAlert * 1.9 + aRank * uFocus * 5.0;",
-				"  gl_PointSize = uSize * uDpr * grow * (46.0 / max(-mv.z, 0.6)) * (0.35 + 0.65 * arrive);",
+				"  gl_PointSize = uSize * uDpr * grow * aMag * (46.0 / max(-mv.z, 0.6)) * (0.35 + 0.65 * arrive);",
 				"  gl_Position = projectionMatrix * mv;",
 				"}",
 			].join("\n"),
@@ -299,26 +302,39 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				"uniform float uOutro;",
 				"varying vec3 vColor; varying float vP; varying float vAlert; varying float vRank;",
 				"varying float vDepth; varying float vTw; varying float vFade;",
+				"varying float vMag; varying float vTemp;",
 				"void main() {",
 				"  vec2 d = gl_PointCoord - vec2(0.5);",
 				"  float r = length(d);",
-				"  if (r > 0.5) discard;",
+				"  /* No circular discard: it would clip the diffraction spikes at the sprite",
+				"     edge. The gaussian is already ~0.0005 by the quad corner, so there is",
+				"     no visible square. */",
 				"  /* A gaussian profile instead of a hard disc. Real emissive points have no",
 				"     edge, and the smooth falloff is what stops 11k sprites reading as",
 				"     confetti. Core plus wide skirt approximates an airy disc cheaply. */",
 				"  float g = exp(-r * r * 15.0);",
 				"  float core = exp(-r * r * 62.0);",
 				"  float skirt = exp(-r * r * 5.2) * 0.30;",
-				"  vec3 c = vColor * (0.30 + 0.85 * vP) * vTw;",
+				"  /* Diffraction spikes. A photographed star is not a round blob -- the",
+				"     support vanes throw a cross, and its absence is a big part of why",
+				"     point clouds look synthetic. Only bright points earn one. */",
+				"  vec2 ad = abs(d);",
+				"  float spike = exp(-ad.x * 190.0) * exp(-ad.y * 5.0) + exp(-ad.y * 190.0) * exp(-ad.x * 5.0);",
+				"  spike *= smoothstep(1.4, 3.2, vMag) * 0.55;",
+				"  /* Colour temperature spread, so the field has stellar variety rather",
+				"     than one flat hue per family. */",
+				"  vec3 tint = mix(vec3(0.76, 0.90, 1.18), vec3(1.12, 0.94, 0.72), vTemp * 0.5 + 0.5);",
+				"  vec3 c = vColor * tint * (0.30 + 0.85 * vP) * vTw;",
 				"  /* Hot centres desaturate toward white, the way a bright emitter clips. */",
 				"  c += vec3(core) * (0.20 + 0.75 * vP) * (0.35 + vAlert);",
 				"  c = mix(c, c * 3.6 + vec3(0.22, 0.12, 0.05), vAlert);",
 				"  c += vColor * vRank * 2.4;",
+				"  c += tint * spike * (0.9 + vAlert * 2.0);",
 				"  /* Aerial perspective: distance drinks intensity, so the far side of the",
 				"     cloud recedes instead of competing with the near side. */",
 				"  float atmo = exp(-max(vDepth - 12.0, 0.0) * 0.030);",
 				"  c *= mix(0.35, 1.0, atmo);",
-				"  float a = (g + skirt + core * 0.6) * (0.26 + 0.60 * vP + vAlert * 0.5);",
+				"  float a = (g + skirt + core * 0.6 + spike) * (0.26 + 0.60 * vP + vAlert * 0.5);",
 				"  a *= atmo * vFade * (1.0 - uOutro * 0.85);",
 				"  gl_FragColor = vec4(c, a);",
 				"}",
@@ -403,6 +419,77 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 		const dust = new THREE.Points(dustGeo, dustMat)
 		scene.add(dust)
 
+		/*
+		 * Nebula haze. Sparse, very large, very faint additive sprites living inside
+		 * the cloud volume. This is the piece that separates a galaxy from confetti:
+		 * a real star field sits in a participating medium, so light pools between the
+		 * points instead of every star floating in pure vacuum. Each sprite is capped
+		 * near 2% alpha, so the haze can never compete with or obscure the data.
+		 */
+		const nebN = 110
+		const nebPos = new Float32Array(nebN * 3)
+		const nebCol = new Float32Array(nebN * 3)
+		const nebSize = new Float32Array(nebN)
+		const nebRnd = lcg(31)
+		const nebTint = new THREE.Color()
+		for (let i = 0; i < nebN; i++) {
+			/* Flattened disc: concentrated toward the core, thin in y, which is the
+			   silhouette that reads as galactic rather than as a ball of fog. */
+			const rr = 3 + Math.pow(nebRnd(), 0.7) * 17
+			const th = nebRnd() * Math.PI * 2
+			nebPos[i * 3] = rr * Math.cos(th)
+			nebPos[i * 3 + 1] = (nebRnd() * 2 - 1) * 2.2
+			nebPos[i * 3 + 2] = rr * Math.sin(th)
+			nebTint.setHex(nebRnd() < 0.62 ? SIGNAL : GRAPH)
+			nebCol[i * 3] = nebTint.r
+			nebCol[i * 3 + 1] = nebTint.g
+			nebCol[i * 3 + 2] = nebTint.b
+			nebSize[i] = 26 + nebRnd() * 46
+		}
+		const nebGeo = new THREE.BufferGeometry()
+		nebGeo.setAttribute("position", new THREE.BufferAttribute(nebPos, 3))
+		nebGeo.setAttribute("aNCol", new THREE.BufferAttribute(nebCol, 3))
+		nebGeo.setAttribute("aNSize", new THREE.BufferAttribute(nebSize, 1))
+		nebGeo.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), 90)
+		const nebMat = new THREE.ShaderMaterial({
+			transparent: true,
+			depthWrite: false,
+			blending: THREE.AdditiveBlending,
+			uniforms: {
+				uTime: { value: 0 },
+				uOpacity: { value: 0 },
+				uDpr: { value: renderer.getPixelRatio() },
+			},
+			vertexShader: [
+			"uniform float uTime; uniform float uDpr;",
+			"attribute vec3 aNCol; attribute float aNSize;",
+			"varying vec3 vNCol;",
+			"void main() {",
+			"  vNCol = aNCol;",
+			"  vec3 p = position;",
+			"  /* Slow vertical breathing so the medium drifts independently of the",
+			"     cloud rotation. Ambient only -- it never touches a data point. */",
+			"  p.y += sin(uTime * 0.12 + position.x * 0.3) * 0.35;",
+			"  vec4 mv = modelViewMatrix * vec4(p, 1.0);",
+			"  gl_PointSize = aNSize * uDpr * (46.0 / max(-mv.z, 0.6));",
+			"  gl_Position = projectionMatrix * mv;",
+			"}",
+			].join("\n"),
+			fragmentShader: [
+			"uniform float uOpacity;",
+			"varying vec3 vNCol;",
+			"void main() {",
+			"  vec2 d = gl_PointCoord - vec2(0.5);",
+			"  float r = length(d);",
+			"  float f = exp(-r * r * 7.0) * smoothstep(0.5, 0.12, r);",
+			"  gl_FragColor = vec4(vNCol * 0.5, f * 0.020 * uOpacity);",
+			"}",
+			].join("\n"),
+		})
+		const neb = new THREE.Points(nebGeo, nebMat)
+		neb.frustumCulled = false
+		world.add(neb)
+
 		/* Load the projected corpus. Until it arrives the hero simply stays dark. */
 		const ac = new AbortController()
 		fetch(new URL("data/embedding.json", document.baseURI).toString(), { signal: ac.signal })
@@ -418,6 +505,8 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				const color = new Float32Array(n * 3)
 				const pArr = new Float32Array(n)
 				const rank = new Float32Array(n)
+				const mag = new Float32Array(n)
+				const temp = new Float32Array(n)
 				const rnd = lcg(7)
 				const tmp = new THREE.Color()
 
@@ -437,6 +526,11 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 					color[i * 3 + 2] = tmp.b
 					pArr[i] = emb.p[i]
 					rank[i] = i === emb.rank1 ? 1 : 0
+					/* Apparent magnitude follows a power law in any real star field: a
+					   handful of bright anchors and a long tail of faint ones. Uniform
+					   sizing is precisely what made this read as flat pixel dust. */
+					mag[i] = 0.35 + Math.pow(rnd(), 3.4) * 3.2
+					temp[i] = rnd() * 2 - 1
 				}
 
 				const geo = new THREE.BufferGeometry()
@@ -445,6 +539,8 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				geo.setAttribute("aColor", new THREE.BufferAttribute(color, 3))
 				geo.setAttribute("aP", new THREE.BufferAttribute(pArr, 1))
 				geo.setAttribute("aRank", new THREE.BufferAttribute(rank, 1))
+				geo.setAttribute("aMag", new THREE.BufferAttribute(mag, 1))
+				geo.setAttribute("aTemp", new THREE.BufferAttribute(temp, 1))
 				geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), 90)
 
 				const pts = new THREE.Points(geo, pointMat)
@@ -560,6 +656,12 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			grade.uniforms.uOutro.value = fx.outro
 			dustMat.opacity = 0.5 * fx.intro * (1 - fx.outro)
 			dust.rotation.y = t * 0.012
+			nebMat.uniforms.uTime.value = t
+			nebMat.uniforms.uOpacity.value = fx.intro * (1 - fx.outro)
+			/* Differential drift: the haze turns slower than the cloud it sits in.
+			   Applied to the ambient layer only -- shearing the points themselves
+			   would misreport where the model actually placed each window. */
+			neb.rotation.y = -t * 0.008
 			planeMat.uniforms.uTime.value = t
 			planeMat.uniforms.uOpacity.value = fx.plane
 
@@ -589,6 +691,7 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			composer.setSize(w, h)
 			bloom.setSize(w, h)
 			pointMat.uniforms.uDpr.value = renderer.getPixelRatio()
+			nebMat.uniforms.uDpr.value = renderer.getPixelRatio()
 			grade.uniforms.uRes.value.set(w * renderer.getPixelRatio(), h * renderer.getPixelRatio())
 			readScroll()
 		}
