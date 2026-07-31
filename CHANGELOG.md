@@ -3,6 +3,25 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v2.9.1 -- Stage discipline
+
+Three defects visible in the same screenshot, all of them mine.
+
+- **Axis labels rendered as raw escapes.** The separators read
+  X \u00B7 PC1 on screen. The sequences were written as JSX text children,
+  where escape sequences are not interpreted -- they are only interpreted
+  inside string literals. The same characters elsewhere in the hero are
+  inside real string literals and were always correct, which is why this
+  looked like an encoding problem rather than a syntax one. Now HTML
+  entities, which JSX text does interpret.
+- **The ground-truth key documented something invisible.** It mapped point
+  colours to attack families, but the point cloud has not been on screen
+  since the object became opaque. A legend for absent marks is worse than
+  no legend. Removed.
+- **The command trigger shared a corner with the model.** The hero now
+  publishes an on-stage flag and the trigger fades out and stops taking
+  clicks for the length of the sequence, returning at both ends.
+
 ## v2.9.0 -- One clear object
 
 The object rendered in v2.8.0 but read as a bright ring rather than a thing.
