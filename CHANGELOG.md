@@ -3,6 +3,21 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v2.9.2 -- The stage retires as one
+
+- **Chrome outlived the object.** The canvas faded on the model exit but the
+  act card, axis triad, readouts, progress dots and skip control did not, so
+  the last frame of the sequence was an instrument annotating an empty stage.
+  All of them are children of the sticky container, so a single opacity on
+  the parent retires the whole thing in step with the object. Pointer events
+  are released at the same moment, which also stops the skip control from
+  staying clickable while invisible.
+- **Footer attribution removed.**
+
+Licence obligations are unchanged by the footer edit: the per-component
+attribution comments in the source are still present and are where the MIT
+notices actually live.
+
 ## v2.9.1 -- Stage discipline
 
 Three defects visible in the same screenshot, all of them mine.
