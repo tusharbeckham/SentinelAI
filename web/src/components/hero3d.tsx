@@ -633,7 +633,17 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			   simply holds, lit. Only after that pause does it collapse and the
 			   canvas cut out, hard, before the console. This mirrors the
 			   0.075-0.10 seam on the way in: a gap, never a cross-fade. */
-			fx.outro = smooth(seg(progress, 0.97, 1.0))
+			fx.outro = smooth(seg(progress, 0.955, 0.995))
+
+			/* Hand-off to the console. The model finishes leaving at 0.995, then
+			   the Explain section takes the same slot of the viewport, rising and
+			   fading in behind it. The two never overlap: one is fully gone before
+			   the other begins, which is the same contract as the 0.075-0.10 seam
+			   on the way in, just pointed the other way. */
+			document.documentElement.style.setProperty(
+				"--handoff",
+				String(smooth(seg(progress, 0.965, 1.0))),
+			)
 
 			const fade = smooth(seg(progress, 0.05, 0.13))
 
@@ -693,28 +703,38 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			   the facets, and collapses again on the outro. Its own slow tumble runs
 			   independently of the world yaw so the silhouette never sits still. */
 			hullMat.uniforms.uTime.value = t
-			hullMat.uniforms.uOpen.value = fx.settle * 0.55 + fx.fuse * 0.22
 			hullMat.uniforms.uOpacity.value = fx.enter * (1 - fx.outro)
+			hullMat.uniforms.uOpen.value = fx.settle * 0.35
 			hullMat.uniforms.uFold.value = fx.fold
 			hullMat.uniforms.uAxis.value = fx.axis
 			hullMat.uniforms.uRespond.value = fx.respond
 
-			/* Acts 02 and 03 are the two places the object should be working
-			   hardest, so rotation rate is tied to f*(1-f) rather than to f.
-			   That peaks mid-act and returns to rest at both ends, so the move
-			   reads as a gesture with a beginning and an end rather than a
-			   speed change that stops dead on a scroll boundary. */
-			const foldSpin = fx.fold * (1 - fx.fold) * 4
-			const axisSpin = fx.axis * (1 - fx.axis) * 4
-			hull.rotation.y = t * (0.055 + foldSpin * 0.55 + axisSpin * 0.30)
-			hull.rotation.x = Math.sin(t * 0.19) * 0.14 * (1 - fx.axis) + fx.axis * 0.10
-			hull.rotation.z = foldSpin * 0.22 * Math.sin(t * 0.9)
+			/* ACT 04. Torsion, not a stretch. It peaks mid-act and unwinds to
+			   nothing, so the twisted lobes resolve back into one locked form --
+			   the merge is the point, so the end state equals the start state. */
+			hullMat.uniforms.uTwist.value = fx.fuse * (1 - fx.fuse) * 4
+
+			/* ACT 05. The body separates along the decision height rather than a
+			   ring being laid near it. Everything above the cut lifts away from
+			   everything below it, which is what the threshold does to the corpus. */
+			const cutY = (1.4 + thresholdY * 2.6) * (1 + fx.axis * 0.35)
+			hullMat.uniforms.uCut.value = fx.cut
+			hullMat.uniforms.uCutY.value = cutY
+			hullMat.uniforms.uSplit.value = fx.cut * (1 - fx.respond)
+
+			/* Swipe. Yaw is driven by scroll position, not by the clock, so the
+			   object turns because you are turning it. A slow clock term keeps it
+			   alive while the page is still. */
+			hull.rotation.y = fx.spin * Math.PI * 1.7 + t * 0.03
+			hull.rotation.x = 0.16 + Math.sin(t * 0.19) * 0.06
+			hull.rotation.z = fx.fold * (1 - fx.fold) * 4 * 0.18
 			edges.rotation.copy(hull.rotation)
-			const hullScale = (1 - fx.outro * 0.92) * (1 + foldSpin * 0.06)
+
+			/* The exit mirrors the entrance: same easing, run backwards. */
+			const hullScale = (0.86 + 0.14 * fx.enter) * (1 - fx.outro * 0.55)
 			hull.scale.setScalar(hullScale)
 			edges.scale.setScalar(hullScale)
-			edgeMat.opacity =
-				fx.enter * (1 - fx.outro) * (0.55 - fx.settle * 0.25 + fx.axis * 0.30 + fx.respond * 0.45)
+			edgeMat.opacity = fx.enter * (1 - fx.outro) * (0.34 + fx.axis * 0.20 + fx.respond * 0.26)
 			sampleCam(progress)
 			camera.position.lerp(camPos, 0.085)
 			camera.lookAt(camLook)
@@ -917,7 +937,7 @@ function TitleBlock({
 			</dl>
 
 			<div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-[13px] text-ink-faint">
-				<span className="panel tabular px-2.5 py-1">build 2.8.0</span>
+				<span className="panel tabular px-2.5 py-1">build 2.9.0</span>
 				<span className="panel tabular px-2.5 py-1">{report.features.count} features</span>
 				<span className="panel tabular px-2.5 py-1">
 					{report.runtime_seconds.toFixed(1)}s end-to-end
