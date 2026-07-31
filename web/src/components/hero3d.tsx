@@ -334,7 +334,7 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				"  c = mix(c, c * 3.2 + vec3(0.24, 0.10, 0.04), vAlert);",
 				"  c += vColor * vRank * 2.4;",
 				"  c += vec3(1.00, 0.55, 0.42) * ring * 1.6;",
-				"  float a = (chip + edge * 0.6 + ring) * (0.42 + 0.55 * vP + vAlert * 0.4);",
+				"  float a = (chip + edge * 0.6 + ring) * (0.80 + 0.35 * vP + vAlert * 0.4);",
 				"  a *= atmo * vFade * (1.0 - uOutro * 0.85);",
 				"  gl_FragColor = vec4(c, a);",
 				"}",
