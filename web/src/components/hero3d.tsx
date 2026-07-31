@@ -508,11 +508,15 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				const mag = new Float32Array(n)
 				const temp = new Float32Array(n)
 				const gcol = new Float32Array(n * 3)
-				/* Lattice dimensions. Roughly 1.9:1 so the grid fills a widescreen frame
-				   edge to edge instead of sitting in the middle as a square patch. */
+				/* Lattice dimensions. The grid stands UPRIGHT in the camera plane rather
+				   than lying flat on the floor. Lying flat was the bug: the camera sits at
+				   y=3.2 looking at the origin, roughly five degrees above a ground plane,
+				   so a flat sheet projected to a one-pixel hairline and the whole model was
+				   invisible. Sized to overfill a 34-unit-distant 50deg frame. */
 				const latCols = Math.ceil(Math.sqrt(n * 1.9))
 				const latRows = Math.ceil(n / latCols)
-				const latStep = 46 / latCols
+				const latStepX = 56 / latCols
+				const latStepY = 29 / latRows
 				const rnd = lcg(7)
 				const tmp = new THREE.Color()
 				const gTmp = new THREE.Color()
