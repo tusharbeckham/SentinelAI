@@ -393,6 +393,7 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 
 
 		/* Load the projected corpus. Until it arrives the hero simply stays dark. */
+		let loaded = false
 		const ac = new AbortController()
 		fetch(new URL("data/embedding.json", document.baseURI).toString(), { signal: ac.signal })
 			.then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
