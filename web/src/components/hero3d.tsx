@@ -390,6 +390,67 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 		marker.visible = false
 		world.add(marker)
 
+		/*
+		 * THE BOUNDARY. One object, not a field.
+		 *
+		 * A novelty detector learns a region of normal behaviour. Benign traffic
+		 * lives inside it; anomalies fall outside. The threshold is therefore not
+		 * a number bolted onto the picture -- it is the surface itself.
+		 *
+		 * Built at init and added to the world unconditionally. Every earlier
+		 * version of this model was constructed inside the corpus fetch callback,
+		 * so one slow or failed request left the canvas completely empty with no
+		 * way to tell from the page which had happened. The hull does not depend
+		 * on the data load at all.
+		 *
+		 * Icosahedron rather than a sphere: facets give a readable silhouette and
+		 * real creases for the edge pass to find. Fresnel only, since there are no
+		 * lights in this scene, so the body reads as smoked glass lit from behind.
+		 */
+		const hullGeo = new THREE.IcosahedronGeometry(7.4, 3)
+		const hullMat = new THREE.ShaderMaterial({
+			transparent: true,
+			depthWrite: false,
+			side: THREE.DoubleSide,
+			blending: THREE.AdditiveBlending,
+			uniforms: {
+				uTime: { value: 0 },
+				uOpen: { value: 0 },
+				uOpacity: { value: 0 },
+				uRim: { value: new THREE.Color(SIGNAL) },
+			},
+			vertexShader: [
+				"uniform float uTime; uniform float uOpen;",
+				"varying vec3 vN; varying vec3 vView;",
+				"void main() {",
+				"  vec3 n = normalize(normal);",
+				"  float b = sin(uTime * 0.45 + position.x * 0.62 + position.y * 0.83);",
+				"  vec3 p = position + n * uOpen * (0.85 + 0.45 * b);",
+				"  vec4 mv = modelViewMatrix * vec4(p, 1.0);",
+				"  vN = normalize(normalMatrix * n);",
+				"  vView = normalize(-mv.xyz);",
+				"  gl_Position = projectionMatrix * mv;",
+				"}",
+			].join("\n"),
+			fragmentShader: [
+				"uniform vec3 uRim; uniform float uOpacity; uniform float uOpen;",
+				"varying vec3 vN; varying vec3 vView;",
+				"void main() {",
+				"  float f = 1.0 - abs(dot(normalize(vN), normalize(vView)));",
+				"  float rim = pow(f, 2.3);",
+				"  float core = pow(f, 6.5);",
+				"  vec3 c = uRim * (rim * 1.25 + core * 2.40);",
+				"  c += vec3(0.10, 0.13, 0.18) * (1.0 - f) * 0.55;",
+				"  float a = (rim * 0.50 + core * 0.55 + 0.045) * uOpacity;",
+				"  a *= 1.0 - uOpen * 0.35;",
+				"  gl_FragColor = vec4(c, a);",
+				"}",
+			].join("\n"),
+		})
+		const hull = new THREE.Mesh(hullGeo, hullMat)
+		hull.frustumCulled = false
+		world.add(hull)
+
 
 
 		/* Load the projected corpus. Until it arrives the hero simply stays dark. */
