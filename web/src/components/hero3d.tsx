@@ -485,6 +485,24 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			return { obj: go, mat: gm, leg }
 		})
 
+		/*
+		 * ACT 05 -- the threshold, cut through the surface instead of laid
+		 * under it as a floor. The decision boundary is not a piece of scenery
+		 * the object stands on; it is a line across the object itself, with
+		 * everything above it firing and everything below it missed.
+		 */
+		const cutMat = new THREE.MeshBasicMaterial({
+			color: hdr(WATCH, 2.4),
+			transparent: true,
+			opacity: 0,
+			depthWrite: false,
+			blending: THREE.AdditiveBlending,
+		})
+		const cutRing = new THREE.Mesh(new THREE.TorusGeometry(7.4, 0.026, 8, 160), cutMat)
+		cutRing.rotation.x = -Math.PI / 2
+		cutRing.frustumCulled = false
+		world.add(cutRing)
+
 
 
 		/* Load the projected corpus. Until it arrives the hero simply stays dark. */
@@ -759,6 +777,16 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				g.obj.rotation.y += k * 1.1
 				g.mat.opacity = Math.min(1, fx.fuse * (1 - fx.fuse) * 4) * 0.75
 			}
+
+			/* Height of the cut is read from the artifact threshold, then carried
+			   up with the act-03 stretch so it stays on the same slice of the
+			   surface as the geometry grows underneath it. */
+			const cutY = (2.2 + thresholdY * 2.6) * (1 + fx.axis * 1.4)
+			hullMat.uniforms.uCut.value = fx.cut * (1 - fx.respond * 0.6)
+			hullMat.uniforms.uCutY.value = cutY
+			cutRing.position.y = cutY
+			cutRing.scale.setScalar(hullScale * (0.76 + 0.03 * Math.sin(t * 1.1)))
+			cutMat.opacity = fx.cut * (1 - fx.respond * 0.7) * 0.9
 
 			marker.scale.setScalar(0.6 + fx.focus * 1.5)
 			marker.rotation.z = t * 0.6
