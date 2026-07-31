@@ -390,34 +390,6 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 		marker.visible = false
 		world.add(marker)
 
-		/*
-		 * Dust. Sparse, unlit, parked in world space so it does not spin with the
-		 * cloud -- the differential motion is what sells depth. Without it the
-		 * background is a flat void and the camera moves read as a zoom.
-		 */
-		const dustN = 700
-		const dustPos = new Float32Array(dustN * 3)
-		const dustRnd = lcg(19)
-		for (let i = 0; i < dustN; i++) {
-			const rr = 22 + dustRnd() * 54
-			const th = dustRnd() * Math.PI * 2
-			const ph = Math.acos(2 * dustRnd() - 1)
-			dustPos[i * 3] = rr * Math.sin(ph) * Math.cos(th)
-			dustPos[i * 3 + 1] = rr * Math.cos(ph) * 0.45
-			dustPos[i * 3 + 2] = rr * Math.sin(ph) * Math.sin(th)
-		}
-		const dustGeo = new THREE.BufferGeometry()
-		dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3))
-		const dustMat = new THREE.PointsMaterial({
-			color: 0x2b3340,
-			size: 0.055,
-			transparent: true,
-			opacity: 0,
-			depthWrite: false,
-			blending: THREE.AdditiveBlending,
-		})
-		const dust = new THREE.Points(dustGeo, dustMat)
-		scene.add(dust)
 
 
 		/* Load the projected corpus. Until it arrives the hero simply stays dark. */
