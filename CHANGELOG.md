@@ -3,6 +3,40 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v2.9.0 -- One clear object
+
+The object rendered in v2.8.0 but read as a bright ring rather than a thing.
+That was a material fault, not a tuning problem: the surface was additively
+blended, wrote no depth, and was shaded by fresnel alone, which can only ever
+produce an outline. No amount of colour work would have fixed it.
+
+- **A solid, not a glow.** The body now writes depth, blends normally, renders
+  front faces only, and derives its normals from screen-space derivatives so
+  every triangle shades flat. It has a lit side, a dark side and a silhouette.
+- **Everything else is deleted.** Marker rings, the three leg hulls, the
+  threshold torus and the containment shockwave are gone from the file, not
+  dimmed. One object on stage.
+- **Swipe.** Yaw is driven by scroll position rather than the clock, so the
+  object turns because you are turning it. A slow clock term keeps it alive
+  while the page is still.
+- **A verb per act, and no more stretching.** 02 folds to a sheet. 03 terraces
+  the surface into seven score bands. 04 twists, peaking mid-act and unwinding
+  so the lobes resolve into one locked form. 05 splits the body along the
+  decision height, everything above the cut lifting away from everything below.
+  06 contracts and goes cold.
+- **Hand-off to the console.** The model finishes leaving at 0.995, then the
+  Explain section rises into the same slot of the viewport across the last
+  3.5% of the hero. One is fully gone before the other begins -- the same
+  contract as the 0.075-0.10 seam on the way in, pointed the other way.
+
+### Not verified here
+
+No GPU in the build sandbox: the GLSL is never compiled and no frame is ever
+produced. Static gates only. The flat-normal shading relies on dFdx/dFdy, which
+needs WebGL2; three r166 defaults to it, but that is the one hard dependency
+introduced by this release. Facet contrast and the act-05 split distance are
+the most likely things to need tuning on real hardware.
+
 ## v2.8.0 -- Act choreography
 
 The Boundary renders, so this release gives it something to do in every act
