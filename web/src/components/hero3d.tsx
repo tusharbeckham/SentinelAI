@@ -482,8 +482,7 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				marker.position.set(pos[emb.rank1 * 3], pos[emb.rank1 * 3 + 1], pos[emb.rank1 * 3 + 2])
 				marker.visible = true
 				plane.visible = true
-				mount.style.transition = "opacity 900ms ease"
-				mount.style.opacity = "1"
+				loaded = true
 			})
 			.catch(() => {
 				if (!disposed) setFailed(true)
