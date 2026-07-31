@@ -415,3 +415,42 @@
 		transition: none;
 	}
 }
+
+/* --------------------------------------------------------------------------
+ * Hero mark. The sweep reads left to right across the decision line; the
+ * flare and ring breathe on a longer, offset cycle so nothing pulses in
+ * lockstep, which is what makes looped SVG feel mechanical.
+ * ------------------------------------------------------------------------ */
+.mark-scan {
+	animation: mark-sweep 6.5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+@keyframes mark-sweep {
+	0% { transform: translateX(0); opacity: 0; }
+	8% { opacity: 1; }
+	88% { opacity: 1; }
+	100% { transform: translateX(1460px); opacity: 0; }
+}
+
+.mark-flare circle {
+	animation: mark-breathe 3.8s ease-in-out infinite;
+}
+.mark-flare circle:nth-child(2n) { animation-delay: -1.3s; }
+.mark-flare circle:nth-child(3n) { animation-delay: -2.6s; }
+@keyframes mark-breathe {
+	0%, 100% { opacity: 0.45; }
+	50% { opacity: 1; }
+}
+
+.mark-ring {
+	transform-origin: 742px 62px;
+	animation: mark-ping 3.2s ease-out infinite;
+}
+@keyframes mark-ping {
+	0% { transform: scale(0.55); opacity: 0.9; }
+	70%, 100% { transform: scale(2.1); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.mark-scan, .mark-flare circle, .mark-ring { animation: none; }
+	.mark-ring { opacity: 0.35; }
+}
