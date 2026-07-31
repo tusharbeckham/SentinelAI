@@ -684,6 +684,21 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			   begun collapsing into a volume, where depth is the point. */
 			world.rotation.y = fx.settle * t * 0.035 + fx.spin * 1.15
 
+			/* The Boundary. It fades up across the same 0.10-0.17 window as the rest
+			   of the stage, opens as the corpus settles so the interior shows through
+			   the facets, and collapses again on the outro. Its own slow tumble runs
+			   independently of the world yaw so the silhouette never sits still. */
+			hullMat.uniforms.uTime.value = t
+			hullMat.uniforms.uOpen.value = fx.settle * 0.55 + fx.ignite * 0.30
+			hullMat.uniforms.uOpacity.value = fx.enter * (1 - fx.outro)
+			edgeMat.opacity = fx.enter * (1 - fx.outro) * (0.55 - fx.settle * 0.25)
+			hull.rotation.y = t * 0.055
+			hull.rotation.x = Math.sin(t * 0.19) * 0.14
+			edges.rotation.copy(hull.rotation)
+			const hullScale = 1 - fx.outro * 0.35
+			hull.scale.setScalar(hullScale)
+			edges.scale.setScalar(hullScale)
+
 			plane.position.y = thresholdY * fx.lift
 			marker.scale.setScalar(0.6 + fx.focus * 1.5)
 			marker.rotation.z = t * 0.6
