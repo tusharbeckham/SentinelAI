@@ -40,7 +40,7 @@ const CANVAS = 0x0a0b0d
 const WATCH = 0xde9255
 const ALARM = 0xe97366
 /* Haze tints. Same two hues the palette uses for signal and graph, kept as
-   named constants so the nebula never drifts away from the design tokens. */
+   named constants so the scene never drifts away from the design tokens. */
 const SIGNAL = 0x5e9fe8
 const GRAPH = 0xbf8eda
 
