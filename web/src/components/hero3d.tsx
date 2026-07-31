@@ -272,6 +272,7 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				"uniform float uThresh; uniform float uSize; uniform float uTime;",
 				"uniform float uFocus; uniform float uDpr; uniform float uIntro; uniform float uOutro;",
 				"attribute vec3 aScatter; attribute vec3 aColor; attribute float aP; attribute float aRank;",
+				"attribute vec3 aGCol;",
 				"attribute float aMag; attribute float aTemp;",
 				"varying vec3 vColor; varying float vP; varying float vAlert; varying float vRank;",
 				"varying float vDepth; varying float vTw; varying float vFade;",
@@ -279,11 +280,13 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				"void main() {",
 				"  vec3 target = position;",
 				"  target.y *= uLift;",
-				"  /* Intro: the cloud condenses out of a wide shell, staggered per point so it",
-				"     arrives as a sweep rather than one synchronised snap. */",
-				"  float stagger = clamp(uIntro * 1.45 - aP * 0.30 - fract(aRank + aP * 17.0) * 0.15, 0.0, 1.0);",
-				"  float arrive = stagger * stagger * (3.0 - 2.0 * stagger);",
-				"  vec3 p = mix(aScatter, target, uSettle * arrive);",
+				"  /* aScatter holds the galaxy. uSettle is 0 before any scroll, so the",
+				"     hero opens on a fully formed spiral with no entrance animation,",
+				"     then every star flies to its true embedding position on scroll. */",
+				"  float arrive = 1.0;",
+				"  float warp = uSettle * (1.0 - uSettle) * 4.0;",
+				"  vec3 p = mix(aScatter, target, smoothstep(0.0, 1.0, uSettle));",
+				"  p.y += warp * sin(aP * 31.0 + aRank * 5.0) * 1.6;",
 				"  float ph = aP * 43.0 + aRank * 7.0;",
 				"  p += vec3(sin(uTime * 0.35 + ph), sin(uTime * 0.29 + ph * 1.7), cos(uTime * 0.31 + ph)) * 0.055;",
 				"  /* Outro: the field exhales upward and thins, handing off to the page. */",
@@ -291,7 +294,7 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				"  p.xz *= 1.0 + uOutro * 0.22;",
 				"  float above = step(uThresh * uLift, target.y);",
 				"  vAlert = above * uIgnite;",
-				"  vColor = aColor; vP = aP; vRank = aRank;",
+				"  vColor = mix(aGCol, aColor, smoothstep(0.15, 0.95, uSettle)); vP = aP; vRank = aRank;",
 				"  vMag = aMag; vTemp = aTemp;",
 				"  vTw = 0.82 + 0.18 * sin(uTime * 1.7 + ph * 2.3);",
 				"  vFade = arrive * (1.0 - uOutro);",
@@ -511,18 +514,76 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				const rank = new Float32Array(n)
 				const mag = new Float32Array(n)
 				const temp = new Float32Array(n)
+				const gcol = new Float32Array(n * 3)
 				const rnd = lcg(7)
 				const tmp = new THREE.Color()
+				const gTmp = new THREE.Color()
+				const gTmp2 = new THREE.Color()
 
 				for (let i = 0; i < n; i++) {
-					/* Act 1 opens as an unordered stream: a wide shell of raw records
-					   with no structure, which then collapses into the real manifold. */
-					const a = rnd() * Math.PI * 2
-					const b = Math.acos(2 * rnd() - 1)
-					const rr = 30 + rnd() * 46
-					scatter[i * 3] = Math.sin(b) * Math.cos(a) * rr
-					scatter[i * 3 + 1] = Math.cos(b) * rr * 0.42
-					scatter[i * 3 + 2] = Math.sin(b) * Math.sin(a) * rr
+					/*
+					 * GALAXY STATE. Where each point rests before the first scroll.
+					 *
+					 * Built from the standard disc decomposition -- bulge, halo, exponential
+					 * disc on two logarithmic arms -- rather than a swirl of noise. The morph
+					 * to the true embedding is driven by uSettle, so the pretty state and the
+					 * honest state are never mixed in a frame that reports a figure.
+					 */
+					const which = rnd()
+					let gx = 0
+					let gy = 0
+					let gz = 0
+					if (which < 0.16) {
+						/* Bulge: old population II, spheroidal, flattened in y. */
+						const br = Math.pow(rnd(), 2.2) * 5.0
+						const ba = rnd() * Math.PI * 2
+						const bb = Math.acos(2 * rnd() - 1)
+						gx = br * Math.sin(bb) * Math.cos(ba)
+						gy = br * Math.cos(bb) * 0.72
+						gz = br * Math.sin(bb) * Math.sin(ba)
+					} else if (which < 0.20) {
+						/* Halo: sparse, near-spherical, far out. Sells the third dimension. */
+						const hr = 12 + Math.sqrt(rnd()) * 26
+						const ha = rnd() * Math.PI * 2
+						const hb = Math.acos(2 * rnd() - 1)
+						gx = hr * Math.sin(hb) * Math.cos(ha)
+						gy = hr * Math.cos(hb) * 0.55
+						gz = hr * Math.sin(hb) * Math.sin(ha)
+					} else {
+						/* Disc: exponential radial profile, r = -h * ln(1 - u), h = 4.6. */
+						const rr = Math.min(1.4 - 4.6 * Math.log(1 - rnd() * 0.986), 26)
+						/* Logarithmic spiral, the Lin-Shu density-wave form r = a*e^(b*theta),
+						   b = tan(14 deg) = 0.2493. Measured Milky Way pitch is near 12 deg; 14
+						   opens the arms just enough to read at this camera distance. */
+						const arm = Math.floor(rnd() * 2) * Math.PI
+						const theta = Math.log(rr / 1.6) / 0.2493 + arm
+						/* Sum of three uniforms as a cheap gaussian. Uniform scatter gives arms
+						   a hard drawn edge; real arms fall off smoothly and fray outward. */
+						const spread = 0.22 + rr * 0.055
+						const g1 = rnd() + rnd() + rnd() - 1.5
+						const g2 = rnd() + rnd() + rnd() - 1.5
+						const g3 = rnd() + rnd() + rnd() - 1.5
+						const th = theta + g1 * spread * 0.30
+						const rad = rr + g2 * spread * 1.4
+						gx = Math.cos(th) * rad
+						gy = g3 * (0.55 + 0.02 * rr) * 0.9
+						gz = Math.sin(th) * rad
+					}
+					scatter[i * 3] = gx
+					scatter[i * 3 + 1] = gy
+					scatter[i * 3 + 2] = gz
+
+					/* Stellar populations: warm amber core, blue-white arms, a few pink HII
+					   knots. One flat hue is a large part of why a particle field reads as
+					   synthetic rather than photographed. */
+					const gr = Math.sqrt(gx * gx + gz * gz)
+					gTmp.setHex(0xffcf9b)
+					gTmp2.setHex(0x9fc4ff)
+					gTmp.lerp(gTmp2, clamp01((gr - 3) / 16))
+					if (which >= 0.20 && rnd() < 0.03) gTmp.setHex(0xff8fb0)
+					gcol[i * 3] = gTmp.r
+					gcol[i * 3 + 1] = gTmp.g
+					gcol[i * 3 + 2] = gTmp.b
 
 					tmp.setHex(FAMILY_COLOR[emb.fam[i]] ?? FAMILY_COLOR[0])
 					color[i * 3] = tmp.r
@@ -545,6 +606,7 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				geo.setAttribute("aRank", new THREE.BufferAttribute(rank, 1))
 				geo.setAttribute("aMag", new THREE.BufferAttribute(mag, 1))
 				geo.setAttribute("aTemp", new THREE.BufferAttribute(temp, 1))
+				geo.setAttribute("aGCol", new THREE.BufferAttribute(gcol, 3))
 				geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), 90)
 
 				const pts = new THREE.Points(geo, pointMat)
@@ -744,16 +806,12 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 	return (
 		<section id="top" ref={sectionRef} className="relative scroll-mt-24 h-[560vh]">
 			<div className="sticky top-0 h-screen overflow-hidden">
-				{/* Handoff: the canvas fades out at the end of the pinned range, so
-				    without a bridge the console below would simply appear. */}
-				<div className="handoff-veil pointer-events-none absolute inset-x-0 bottom-0 z-30 h-44" />
-
 				{/* Instrument chrome: axis triad, readouts, ground-truth key. */}
 				<HeroHud act={act} className="pointer-events-none absolute inset-0 z-10 h-full w-full" />
 				{/* The Grid. Purely decorative: every fact is also in the HTML below. */}
 				<div
 					ref={mountRef}
-					className="canvas-feather absolute inset-0"
+					className="absolute inset-0"
 					style={{ opacity: 0 }}
 					role="img"
 					aria-label="Animated 3D scatter plot of the 11,326 held-out test windows. Horizontal axes are the first two principal components of the 40 features; height is the model log-odds. Colour is the ground-truth attack family. As you scroll, the points settle from a raw stream into the feature manifold, rise into score space, and a horizontal threshold plane sweeps to 0.6303, leaving 49 points above it: 39 true detections and 10 false positives, with 20 attacks left below."
@@ -764,7 +822,6 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 					ref={titleRef}
 					className="absolute inset-0 flex items-center justify-center will-change-transform"
 				>
-					<div className="title-scrim absolute inset-0" aria-hidden />
 					<div className="relative w-full">
 						<TitleBlock report={report} live={live} compact />
 					</div>
@@ -787,7 +844,13 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				))}
 
 				{/* Progress rail */}
-				<div className="absolute right-4 top-1/2 flex -translate-y-1/2 flex-col gap-2" aria-hidden>
+				{/* Act rail. Hidden at rest: before the first scroll the hero is just
+				    the galaxy and the title, with no chrome competing with it. */}
+				<div
+					className="absolute right-4 top-1/2 flex -translate-y-1/2 flex-col gap-2 transition-opacity duration-500"
+					style={{ opacity: act > 0 ? 1 : 0 }}
+					aria-hidden
+				>
 					{ACTS.map((a, i) => (
 						<span
 							key={a.id}
