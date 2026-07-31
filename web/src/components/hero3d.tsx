@@ -797,7 +797,7 @@ function TitleBlock({
 				</div>
 			</div>
 
-			<div className="rule-x mt-11" />
+			<div className="mt-11" />
 
 			{/* Hairline-separated cells: one border, shared by four figures. */}
 			<dl className="mt-7 grid grid-cols-2 gap-px overflow-hidden rounded-[10px] border border-line bg-line sm:grid-cols-4">
