@@ -454,3 +454,13 @@
 	.mark-scan, .mark-flare circle, .mark-ring { animation: none; }
 	.mark-ring { opacity: 0.35; }
 }
+
+/* The console takes the slot the model just vacated. --handoff is written by
+   the hero scroll handler and runs 0 -> 1 across the last 3.5% of the hero
+   section, after the model has finished leaving at 0.995. Falls back to 1 so
+   the section is fully visible if the hero never mounts. */
+.handoff-zone {
+	opacity: var(--handoff, 1);
+	transform: translateY(calc((1 - var(--handoff, 1)) * 34px));
+	will-change: opacity, transform;
+}

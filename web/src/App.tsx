@@ -187,7 +187,11 @@ export default function App() {
 
 			<main className="mx-auto flex max-w-6xl flex-col gap-24 px-5 pb-32 pt-10">
 				<NetworkHero report={report} live={live} />
-				{extras.trace ? <PipelineExplainer trace={extras.trace} /> : null}
+				{extras.trace ? (
+					<div className="handoff-zone">
+						<PipelineExplainer trace={extras.trace} />
+					</div>
+				) : null}
 				<SweepSection report={report} />
 				<AblationSection report={report} />
 				<TriageSection alerts={alerts} />
