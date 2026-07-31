@@ -3,6 +3,21 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v2.2.1 -- Hero renders again
+
+### Fixed
+
+- The v2.2.0 nebula tint referenced SIGNAL and GRAPH, which were never declared
+  in this module. The hero threw ReferenceError: GRAPH is not defined on mount
+  and the whole component failed to render. Both are now real constants next to
+  CANVAS, WATCH and ALARM, carrying the same hex values as the design tokens.
+
+### Tooling
+
+- Added a scope gate to the check sequence. esbuild validates syntax only and
+  treats an undefined identifier as a legal global, which is how this shipped.
+  tsc filtered to TS2304 catches it directly and runs over every source file.
+
 ## v2.2.0 -- Galaxy
 
 ### Changed
