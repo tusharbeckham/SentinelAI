@@ -464,3 +464,14 @@
 	transform: translateY(calc((1 - var(--handoff, 1)) * 34px));
 	will-change: opacity, transform;
 }
+
+/* The command trigger sits in the same corner the model occupies, so it is
+   stood down while the model is on stage. --stage is written by the hero
+   scroll handler. pointer-events is carried in its own variable because it
+   is a keyword, not a number, and cannot be derived from calc(). Defaults
+   leave the button live if the hero never mounts. */
+.palette-trigger {
+	opacity: calc(1 - var(--stage, 0));
+	pointer-events: var(--stage-pe, auto);
+	transition: opacity 260ms ease;
+}
