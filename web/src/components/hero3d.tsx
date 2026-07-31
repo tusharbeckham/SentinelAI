@@ -523,14 +523,6 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				const gTmp2 = new THREE.Color()
 
 				for (let i = 0; i < n; i++) {
-					/*
-					 * GALAXY STATE. Where each point rests before the first scroll.
-					 *
-					 * Built from the standard disc decomposition -- bulge, halo, exponential
-					 * disc on two logarithmic arms -- rather than a swirl of noise. The morph
-					 * to the true embedding is driven by uSettle, so the pretty state and the
-					 * honest state are never mixed in a frame that reports a figure.
-					 */
 					/* A perfectly regular lattice: one cell per held-out window, dead flat
 					   and evenly spaced. Before any model touches it the corpus is an
 					   undifferentiated table, and a grid is the honest picture of a table.
