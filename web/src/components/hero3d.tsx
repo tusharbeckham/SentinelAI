@@ -451,6 +451,20 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 		hull.frustumCulled = false
 		world.add(hull)
 
+		/* The creases, as real geometry. A line segment cannot go soft the way a
+		   point sprite does, which is where every previous hero lost its edge. */
+		const edgeMat = new THREE.LineBasicMaterial({
+			color: new THREE.Color(SIGNAL),
+			transparent: true,
+			opacity: 0,
+			depthWrite: false,
+			blending: THREE.AdditiveBlending,
+		})
+		const edgeGeo = new THREE.EdgesGeometry(hullGeo, 14)
+		const edges = new THREE.LineSegments(edgeGeo, edgeMat)
+		edges.frustumCulled = false
+		world.add(edges)
+
 
 
 		/* Load the projected corpus. Until it arrives the hero simply stays dark. */
