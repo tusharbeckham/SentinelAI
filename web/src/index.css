@@ -475,3 +475,12 @@
 	pointer-events: var(--stage-pe, auto);
 	transition: opacity 260ms ease;
 }
+
+/* The stage retires as one. --chrome is written by the hero scroll handler
+   and tracks the model exit exactly, so the instrument cannot outlive the
+   thing it was annotating. Defaults keep the stage visible if the hero
+   never mounts. */
+.stage-fade {
+	opacity: var(--chrome, 1);
+	pointer-events: var(--chrome-pe, auto);
+}
