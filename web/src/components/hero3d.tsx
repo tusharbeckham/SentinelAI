@@ -653,6 +653,17 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				"--stage-pe",
 				onStage ? "none" : "auto",
 			)
+			/* Everything on the stage leaves together. The act card, the axis
+			   triad, the readouts, the progress dots and the skip control are all
+			   children of the sticky container, so one opacity on the parent
+			   retires the whole instrument in step with the object rather than
+			   leaving furniture behind on an empty frame. */
+			const chrome = 1 - fx.outro
+			document.documentElement.style.setProperty("--chrome", String(chrome))
+			document.documentElement.style.setProperty(
+				"--chrome-pe",
+				chrome < 0.02 ? "none" : "auto",
+			)
 
 			const fade = smooth(seg(progress, 0.05, 0.13))
 
@@ -810,7 +821,7 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			ref={sectionRef}
 			className="relative left-1/2 h-[560vh] w-screen -translate-x-1/2 scroll-mt-24"
 		>
-				<div className="sticky top-0 h-screen overflow-hidden">
+				<div className="stage-fade sticky top-0 h-screen overflow-hidden">
 					{/* Stage one: the hero, alone. Nothing renders alongside it -- at this
 					    point the grade pass is at zero, so the canvas underneath is literally
 					    black, not a translucent layer sitting over the scene. */}
@@ -946,7 +957,7 @@ function TitleBlock({
 			</dl>
 
 			<div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-[13px] text-ink-faint">
-				<span className="panel tabular px-2.5 py-1">build 2.9.1</span>
+				<span className="panel tabular px-2.5 py-1">build 2.9.2</span>
 				<span className="panel tabular px-2.5 py-1">{report.features.count} features</span>
 				<span className="panel tabular px-2.5 py-1">
 					{report.runtime_seconds.toFixed(1)}s end-to-end
