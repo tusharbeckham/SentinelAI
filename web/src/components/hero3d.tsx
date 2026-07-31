@@ -503,6 +503,19 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 		cutRing.frustumCulled = false
 		world.add(cutRing)
 
+		/* ACT 06 -- containment, as a shockwave leaving the alert and closing. */
+		const waveMat = new THREE.MeshBasicMaterial({
+			color: hdr(ALARM, 2.2),
+			transparent: true,
+			opacity: 0,
+			depthWrite: false,
+			blending: THREE.AdditiveBlending,
+		})
+		const wave = new THREE.Mesh(new THREE.TorusGeometry(1, 0.018, 8, 128), waveMat)
+		wave.rotation.x = -Math.PI / 2
+		wave.frustumCulled = false
+		world.add(wave)
+
 
 
 		/* Load the projected corpus. Until it arrives the hero simply stays dark. */
@@ -787,6 +800,13 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			cutRing.position.y = cutY
 			cutRing.scale.setScalar(hullScale * (0.76 + 0.03 * Math.sin(t * 1.1)))
 			cutMat.opacity = fx.cut * (1 - fx.respond * 0.7) * 0.9
+
+			/* One ring, leaving h002 and snapping shut. sin(pi*x) opens and closes
+			   it inside the act so the gesture completes rather than being cut off
+			   by the scroll position. */
+			wave.position.copy(marker.position)
+			wave.scale.setScalar(0.4 + fx.respond * 9.0)
+			waveMat.opacity = Math.sin(Math.PI * Math.min(1, fx.respond * 1.15)) * 0.85
 
 			marker.scale.setScalar(0.6 + fx.focus * 1.5)
 			marker.rotation.z = t * 0.6
