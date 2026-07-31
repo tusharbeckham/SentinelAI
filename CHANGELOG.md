@@ -3,6 +3,30 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v2.5.0 -- One stage, in sequence
+
+### Changed
+
+- The hero and the model now occupy the same screen space, staged one after
+  the other on a single sticky section. Neither is above the other and
+  neither is behind the other.
+- The two ranges do not overlap. The hero is gone by p=0.075; the model does
+  not begin to arrive until p=0.100. The 0.025 gap makes it a cut, not a
+  crossfade. The fade runs through the grade pass, so during the seam the
+  composite is literally black rather than a translucent layer.
+- The model is a regular lattice now, not a galaxy: one flat, evenly spaced
+  cell per held-out window, monochrome steel, which then deforms to the true
+  embedding. Order is what makes the deformation legible.
+- Points are drawn as an SDF chip -- a square with a cut corner, antialiased
+  with fwidth instead of discard. Alerts get a ring rather than a bloom.
+- Colour is withheld until it means something: family after the morph, alarm
+  above the threshold.
+
+### Removed
+
+- The SVG hero mark. It read as a loader.
+- The galaxy generator, its three-population split and its stellar palette.
+
 ## v2.4.0 -- Hero and scene, separated
 
 ### Fixed
