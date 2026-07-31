@@ -431,7 +431,7 @@ export function CommandPalette({ items }: { items: PaletteItem[] }) {
 			<button
 				type="button"
 				onClick={() => setOpen(true)}
-				className="fixed bottom-5 right-5 z-40 rounded-full border border-line bg-surface/90 px-4 py-2 text-[13px] text-ink-dim backdrop-blur hover:text-ink"
+				className="palette-trigger fixed bottom-5 right-5 z-40 rounded-full border border-line bg-surface/90 px-4 py-2 text-[13px] text-ink-dim backdrop-blur hover:text-ink"
 			>
 				<span className="tabular">&#8984;K</span> commands
 			</button>
