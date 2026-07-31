@@ -3,6 +3,28 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v2.7.0 -- The Boundary
+
+### Added
+
+- The hero model is one object now, not a particle field. A closed faceted
+  surface standing for the region of normal behaviour the detector learns:
+  benign traffic inside, anomalies outside, so the threshold is the surface
+  rather than a number bolted onto the picture.
+- Facet creases are drawn as real line geometry. A line segment cannot go soft
+  the way a point sprite does, which is where every previous hero lost its
+  edge.
+- Transitions at both ends. The hull fades up across the same 0.10-0.17 window
+  as the rest of the stage, opens as the corpus settles, and collapses on the
+  outro.
+
+### Fixed
+
+- The model is built at init and added unconditionally. Every earlier version
+  was constructed inside the corpus fetch callback, so a slow or failed request
+  left the canvas completely empty. This is the most likely cause of the empty
+  canvas at ACT 01.
+
 ## v2.6.3 -- Black is black again
 
 ### Fixed
