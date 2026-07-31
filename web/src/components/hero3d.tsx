@@ -644,6 +644,15 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				"--handoff",
 				String(smooth(seg(progress, 0.965, 1.0))),
 			)
+			/* Page chrome that shares a corner with the model stands down while
+			   the model is on stage. Cheap enough to write every frame, and it
+			   self-clears at both ends because progress pins to 0 and 1. */
+			const onStage = progress > 0.04 && progress < 0.995
+			document.documentElement.style.setProperty("--stage", onStage ? "1" : "0")
+			document.documentElement.style.setProperty(
+				"--stage-pe",
+				onStage ? "none" : "auto",
+			)
 
 			const fade = smooth(seg(progress, 0.05, 0.13))
 
@@ -937,7 +946,7 @@ function TitleBlock({
 			</dl>
 
 			<div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-[13px] text-ink-faint">
-				<span className="panel tabular px-2.5 py-1">build 2.9.0</span>
+				<span className="panel tabular px-2.5 py-1">build 2.9.1</span>
 				<span className="panel tabular px-2.5 py-1">{report.features.count} features</span>
 				<span className="panel tabular px-2.5 py-1">
 					{report.runtime_seconds.toFixed(1)}s end-to-end
