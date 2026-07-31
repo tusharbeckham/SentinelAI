@@ -3,6 +3,31 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v2.3.0 -- Galaxy shape
+
+### Added
+
+- The hero now opens on a fully formed spiral galaxy, built from the standard
+  disc decomposition: a 16% spheroidal bulge, a 4% sparse halo, and an 80%
+  exponential disc laid on two logarithmic arms at a 14 degree pitch angle.
+- Arm scatter is gaussian and grows with radius, so arms are crisp in the core
+  and fray at the rim instead of reading as a drawn line.
+- Stellar populations: warm amber core, blue-white arms, and pink HII knots.
+
+### Changed
+
+- The galaxy is a rest state, not a costume. On scroll every star flies to its
+  true embedding position and the colour crosses from stellar to ground-truth
+  family. The pretty state and the state that reports figures are never mixed.
+- No entrance animation. The scene is fully formed before the first scroll.
+- The act dot rail is hidden at rest and fades in once the morph begins.
+
+### Removed
+
+- Corner bracket chrome.
+- All three blend layers: the title scrim, the canvas feather mask and the
+  handoff veil. Nothing is dimmed or feathered over the scene any more.
+
 ## v2.2.1 -- Hero renders again
 
 ### Fixed
