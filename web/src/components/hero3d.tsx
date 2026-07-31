@@ -623,7 +623,6 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			composer.setSize(w, h)
 			bloom.setSize(w, h)
 			pointMat.uniforms.uDpr.value = renderer.getPixelRatio()
-			nebMat.uniforms.uDpr.value = renderer.getPixelRatio()
 			grade.uniforms.uRes.value.set(w * renderer.getPixelRatio(), h * renderer.getPixelRatio())
 			readScroll()
 		}
