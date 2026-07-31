@@ -340,22 +340,6 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				"}",
 			].join("\n"),
 		})
-
-		/* Rank-1 marker: a caged point, so the eye can find h002 immediately. */
-		const marker = new THREE.Group()
-		const ringA = new THREE.Mesh(
-			new THREE.TorusGeometry(0.85, 0.012, 8, 96),
-			new THREE.MeshBasicMaterial({ color: hdr(ALARM, 2.6), transparent: true, opacity: 0 }),
-		)
-		ringA.rotation.x = -Math.PI / 2
-		const ringB = new THREE.Mesh(
-			new THREE.TorusGeometry(0.55, 0.01, 8, 96),
-			new THREE.MeshBasicMaterial({ color: hdr(ALARM, 2.2), transparent: true, opacity: 0 }),
-		)
-		marker.add(ringA, ringB)
-		marker.visible = false
-		world.add(marker)
-
 		/*
 		 * THE BOUNDARY. One object, not a field.
 		 *
@@ -455,68 +439,6 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 		edges.frustumCulled = false
 		world.add(edges)
 
-		/*
-		 * ACT 04 -- FUSION, drawn as three converging boundaries.
-		 *
-		 * Each leg of the stacker learns its own notion of normal, so each leg
-		 * gets its own hull. They arrive apart, sized by their fitted weights
-		 * (0.3425 isolation forest, 1.1009 GBDT, 0.1135 graph), and collapse
-		 * onto the single boundary the logistic layer actually ships. GBDT is
-		 * visibly the largest because it visibly dominates the coefficients.
-		 * That replaces the floor grid: the arithmetic, drawn.
-		 */
-		const LEGS = [
-			{ color: SIGNAL, weight: 0.3425, offset: -9.5 },
-			{ color: GRAPH, weight: 1.1009, offset: 0.0 },
-			{ color: WATCH, weight: 0.1135, offset: 9.5 },
-		]
-		const ghosts = LEGS.map((leg) => {
-			const gm = new THREE.LineBasicMaterial({
-				color: new THREE.Color(leg.color),
-				transparent: true,
-				opacity: 0,
-				depthWrite: false,
-				blending: THREE.AdditiveBlending,
-			})
-			const go = new THREE.LineSegments(edgeGeo, gm)
-			go.frustumCulled = false
-			go.visible = false
-			world.add(go)
-			return { obj: go, mat: gm, leg }
-		})
-
-		/*
-		 * ACT 05 -- the threshold, cut through the surface instead of laid
-		 * under it as a floor. The decision boundary is not a piece of scenery
-		 * the object stands on; it is a line across the object itself, with
-		 * everything above it firing and everything below it missed.
-		 */
-		const cutMat = new THREE.MeshBasicMaterial({
-			color: hdr(WATCH, 2.4),
-			transparent: true,
-			opacity: 0,
-			depthWrite: false,
-			blending: THREE.AdditiveBlending,
-		})
-		const cutRing = new THREE.Mesh(new THREE.TorusGeometry(7.4, 0.026, 8, 160), cutMat)
-		cutRing.rotation.x = -Math.PI / 2
-		cutRing.frustumCulled = false
-		world.add(cutRing)
-
-		/* ACT 06 -- containment, as a shockwave leaving the alert and closing. */
-		const waveMat = new THREE.MeshBasicMaterial({
-			color: hdr(ALARM, 2.2),
-			transparent: true,
-			opacity: 0,
-			depthWrite: false,
-			blending: THREE.AdditiveBlending,
-		})
-		const wave = new THREE.Mesh(new THREE.TorusGeometry(1, 0.018, 8, 128), waveMat)
-		wave.rotation.x = -Math.PI / 2
-		wave.frustumCulled = false
-		world.add(wave)
-
-
 
 		/* Load the projected corpus. Until it arrives the hero simply stays dark. */
 		let loaded = false
@@ -605,8 +527,6 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				pts.frustumCulled = false
 				world.add(pts)
 
-				marker.position.set(pos[emb.rank1 * 3], pos[emb.rank1 * 3 + 1], pos[emb.rank1 * 3 + 2])
-				marker.visible = true
 				loaded = true
 			})
 			.catch(() => {
@@ -773,51 +693,6 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			edges.scale.setScalar(hullScale)
 			edgeMat.opacity =
 				fx.enter * (1 - fx.outro) * (0.55 - fx.settle * 0.25 + fx.axis * 0.30 + fx.respond * 0.45)
-
-			/* The three legs converge. Opacity uses the same f*(1-f) envelope as
-			   the act rotations, so they fade in as they separate and are gone the
-			   instant they land on the shipped boundary -- the merge is the point,
-			   not the ghosts. They are hidden outside the act so two hundred extra
-			   line segments are not drawn for the other five. */
-			const fuseVis = fx.fuse > 0.001 && fx.fuse < 0.999
-			for (const g of ghosts) {
-				g.obj.visible = fuseVis
-				if (!fuseVis) {
-					g.mat.opacity = 0
-					continue
-				}
-				const k = 1 - fx.fuse
-				g.obj.scale.setScalar(hullScale * (0.55 + g.leg.weight * 0.62) * (1 + k * 0.35))
-				g.obj.position.set(g.leg.offset * k, 0, 0)
-				g.obj.rotation.copy(hull.rotation)
-				g.obj.rotation.y += k * 1.1
-				g.mat.opacity = Math.min(1, fx.fuse * (1 - fx.fuse) * 4) * 0.75
-			}
-
-			/* Height of the cut is read from the artifact threshold, then carried
-			   up with the act-03 stretch so it stays on the same slice of the
-			   surface as the geometry grows underneath it. */
-			const cutY = (2.2 + thresholdY * 2.6) * (1 + fx.axis * 1.4)
-			hullMat.uniforms.uCut.value = fx.cut * (1 - fx.respond * 0.6)
-			hullMat.uniforms.uCutY.value = cutY
-			cutRing.position.y = cutY
-			cutRing.scale.setScalar(hullScale * (0.76 + 0.03 * Math.sin(t * 1.1)))
-			cutMat.opacity = fx.cut * (1 - fx.respond * 0.7) * 0.9
-
-			/* One ring, leaving h002 and snapping shut. sin(pi*x) opens and closes
-			   it inside the act so the gesture completes rather than being cut off
-			   by the scroll position. */
-			wave.position.copy(marker.position)
-			wave.scale.setScalar(0.4 + fx.respond * 9.0)
-			waveMat.opacity = Math.sin(Math.PI * Math.min(1, fx.respond * 1.15)) * 0.85
-
-			marker.scale.setScalar(0.6 + fx.focus * 1.5)
-			marker.rotation.z = t * 0.6
-			for (const child of marker.children) {
-				const m = (child as THREE.Mesh).material as THREE.MeshBasicMaterial
-				m.opacity = fx.focus
-			}
-
 			sampleCam(progress)
 			camera.position.lerp(camPos, 0.085)
 			camera.lookAt(camLook)
