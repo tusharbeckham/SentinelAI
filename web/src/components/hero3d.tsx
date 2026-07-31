@@ -583,7 +583,12 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			pointMat.uniforms.uLift.value = fx.lift
 			pointMat.uniforms.uIgnite.value = fx.ignite
 			pointMat.uniforms.uFocus.value = fx.focus
-			pointMat.uniforms.uSize.value = fx.size
+			/* The entrance is a real move, not just a brightness ramp. Points grow
+			   from a third of their size and the whole lattice scales up into the
+			   frame across the same 0.10-0.17 window that uFade uses, so the model
+			   arrives rather than simply becoming less dark. */
+			pointMat.uniforms.uSize.value = fx.size * (0.34 + 0.66 * fx.enter)
+			world.scale.setScalar((0.82 + 0.18 * fx.enter) * (1 + fx.outro * 0.10))
 			/* Entry: a 1.9s condense from the shell, independent of scroll. */
 			fx.intro = outCubic(clamp01((t - 0.12) / 1.9))
 			pointMat.uniforms.uIntro.value = fx.intro
