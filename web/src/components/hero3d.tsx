@@ -595,6 +595,10 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			pointMat.uniforms.uOutro.value = fx.outro
 			grade.uniforms.uTime.value = t
 			grade.uniforms.uFade.value = fx.intro * fx.enter
+			/* The model is revealed by fading the whole canvas against the page.
+			   Both are the CANVAS token, so no value of this opacity can produce a
+			   visible edge. Nothing about the seam depends on shader arithmetic. */
+			mount.style.opacity = loaded ? String(fx.intro * fx.enter) : "0"
 			grade.uniforms.uOutro.value = fx.outro
 			planeMat.uniforms.uTime.value = t
 			planeMat.uniforms.uOpacity.value = fx.plane
