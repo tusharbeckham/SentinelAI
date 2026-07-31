@@ -247,7 +247,7 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 		const world = new THREE.Group()
 		scene.add(world)
 
-		const fx = { settle: 0, lift: 0, ignite: 0, plane: 0, focus: 0, spin: 0, size: 2.05, intro: 0, outro: 0, enter: 0 }
+		const fx = { settle: 0, lift: 0, ignite: 0, fold: 0, axis: 0, fuse: 0, cut: 0, respond: 0, focus: 0, spin: 0, size: 2.05, intro: 0, outro: 0, enter: 0 }
 		let thresholdY = 0.224
 		let disposed = false
 
@@ -383,15 +383,30 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				uTime: { value: 0 },
 				uOpen: { value: 0 },
 				uOpacity: { value: 0 },
+				uFold: { value: 0 },
+				uAxis: { value: 0 },
+				uCut: { value: 0 },
+				uCutY: { value: 0 },
+				uRespond: { value: 0 },
 				uRim: { value: new THREE.Color(SIGNAL) },
+				uWarn: { value: new THREE.Color(WATCH) },
 			},
 			vertexShader: [
-				"uniform float uTime; uniform float uOpen;",
-				"varying vec3 vN; varying vec3 vView;",
+				"uniform float uTime; uniform float uOpen; uniform float uFold;",
+				"uniform float uAxis; uniform float uRespond;",
+				"varying vec3 vN; varying vec3 vView; varying float vY;",
 				"void main() {",
 				"  vec3 n = normalize(normal);",
 				"  float b = sin(uTime * 0.45 + position.x * 0.62 + position.y * 0.83);",
 				"  vec3 p = position + n * uOpen * (0.85 + 0.45 * b);",
+				"  float fold = uFold * (1.0 - uAxis);",
+				"  p.y *= mix(1.0, 0.13, fold);",
+				"  p.xz *= mix(1.0, 1.34, fold);",
+				"  float sk = 1.0 + 0.42 * uAxis * (p.y / 7.4);",
+				"  p.y *= mix(1.0, 2.35, uAxis);",
+				"  p.xz *= mix(1.0, 0.74, uAxis) * sk;",
+				"  p *= 1.0 - uRespond * 0.42;",
+				"  vY = p.y;",
 				"  vec4 mv = modelViewMatrix * vec4(p, 1.0);",
 				"  vN = normalize(normalMatrix * n);",
 				"  vView = normalize(-mv.xyz);",
@@ -399,16 +414,25 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				"}",
 			].join("\n"),
 			fragmentShader: [
-				"uniform vec3 uRim; uniform float uOpacity; uniform float uOpen;",
-				"varying vec3 vN; varying vec3 vView;",
+				"uniform vec3 uRim; uniform vec3 uWarn; uniform float uOpacity;",
+				"uniform float uOpen; uniform float uCut; uniform float uCutY;",
+				"uniform float uRespond;",
+				"varying vec3 vN; varying vec3 vView; varying float vY;",
 				"void main() {",
 				"  float f = 1.0 - abs(dot(normalize(vN), normalize(vView)));",
 				"  float rim = pow(f, 2.3);",
 				"  float core = pow(f, 6.5);",
 				"  vec3 c = uRim * (rim * 1.25 + core * 2.40);",
 				"  c += vec3(0.10, 0.13, 0.18) * (1.0 - f) * 0.55;",
+				"  float d = vY - uCutY;",
+				"  float band = exp(-d * d * 4.5) * uCut;",
+				"  float above = smoothstep(-0.30, 0.30, d) * uCut;",
+				"  c = mix(c, uWarn * 1.9, above * 0.50);",
+				"  c += uWarn * band * 2.60;",
+				"  c *= 1.0 - uRespond * 0.55;",
 				"  float a = (rim * 0.50 + core * 0.55 + 0.045) * uOpacity;",
 				"  a *= 1.0 - uOpen * 0.35;",
+				"  a += band * 0.30 * uOpacity;",
 				"  gl_FragColor = vec4(c, a);",
 				"}",
 			].join("\n"),
@@ -589,13 +613,24 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				titleRef.current.style.visibility = exit >= 1 ? "hidden" : "visible"
 			}
 			fx.lift = smooth(seg(progress, 0.33, 0.58))
-			fx.plane = smooth(seg(progress, 0.58, 0.7))
+			/* One driver per act, each inset from its own boundary so the card
+			   lands first and the object answers it, instead of both moving at
+			   once and neither being read. */
+			fx.fold = smooth(seg(progress, 0.31, 0.43))
+			fx.axis = smooth(seg(progress, 0.45, 0.57))
+			fx.fuse = smooth(seg(progress, 0.59, 0.72))
+			fx.cut = smooth(seg(progress, 0.74, 0.85))
+			fx.respond = smooth(seg(progress, 0.87, 0.95))
 			fx.ignite = smooth(seg(progress, 0.66, 0.8))
 			fx.focus = smooth(seg(progress, 0.84, 0.96))
 			fx.spin = progress
 			fx.size = 2.05 + fx.focus * 0.5
-			/* Exit: the last 4% of the section dissolves the scene into the page. */
-			fx.outro = smooth(seg(progress, 0.955, 1.0))
+			/* The ending is a beat, not a blend. Act 06 finishes at 0.95 and then
+			   nothing happens at all for two percent of the scroll -- the object
+			   simply holds, lit. Only after that pause does it collapse and the
+			   canvas cut out, hard, before the console. This mirrors the
+			   0.075-0.10 seam on the way in: a gap, never a cross-fade. */
+			fx.outro = smooth(seg(progress, 0.97, 1.0))
 
 			const fade = smooth(seg(progress, 0.05, 0.13))
 
@@ -652,15 +687,28 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			   the facets, and collapses again on the outro. Its own slow tumble runs
 			   independently of the world yaw so the silhouette never sits still. */
 			hullMat.uniforms.uTime.value = t
-			hullMat.uniforms.uOpen.value = fx.settle * 0.55 + fx.ignite * 0.30
+			hullMat.uniforms.uOpen.value = fx.settle * 0.55 + fx.fuse * 0.22
 			hullMat.uniforms.uOpacity.value = fx.enter * (1 - fx.outro)
-			edgeMat.opacity = fx.enter * (1 - fx.outro) * (0.55 - fx.settle * 0.25)
-			hull.rotation.y = t * 0.055
-			hull.rotation.x = Math.sin(t * 0.19) * 0.14
+			hullMat.uniforms.uFold.value = fx.fold
+			hullMat.uniforms.uAxis.value = fx.axis
+			hullMat.uniforms.uRespond.value = fx.respond
+
+			/* Acts 02 and 03 are the two places the object should be working
+			   hardest, so rotation rate is tied to f*(1-f) rather than to f.
+			   That peaks mid-act and returns to rest at both ends, so the move
+			   reads as a gesture with a beginning and an end rather than a
+			   speed change that stops dead on a scroll boundary. */
+			const foldSpin = fx.fold * (1 - fx.fold) * 4
+			const axisSpin = fx.axis * (1 - fx.axis) * 4
+			hull.rotation.y = t * (0.055 + foldSpin * 0.55 + axisSpin * 0.30)
+			hull.rotation.x = Math.sin(t * 0.19) * 0.14 * (1 - fx.axis) + fx.axis * 0.10
+			hull.rotation.z = foldSpin * 0.22 * Math.sin(t * 0.9)
 			edges.rotation.copy(hull.rotation)
-			const hullScale = 1 - fx.outro * 0.35
+			const hullScale = (1 - fx.outro * 0.92) * (1 + foldSpin * 0.06)
 			hull.scale.setScalar(hullScale)
 			edges.scale.setScalar(hullScale)
+			edgeMat.opacity =
+				fx.enter * (1 - fx.outro) * (0.55 - fx.settle * 0.25 + fx.axis * 0.30 + fx.respond * 0.45)
 
 			marker.scale.setScalar(0.6 + fx.focus * 1.5)
 			marker.rotation.z = t * 0.6
