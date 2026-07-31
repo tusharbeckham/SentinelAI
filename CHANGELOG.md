@@ -3,6 +3,31 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v2.6.0 -- The model, actually on screen
+
+### Fixed
+
+- The lattice was invisible. It was built as a flat sheet on the y=0 plane
+  while the camera sits at y=3.2 looking at the origin -- about five degrees
+  above the plane. A flat sheet seen at five degrees projects to a hairline.
+  The grid now stands upright in the camera plane, 56 x 29 units, sized to
+  overfill the frame at the opening camera distance.
+- The idle yaw is gated on uSettle. Previously it turned the world at a
+  constant rate, so even a correctly oriented wall would swing edge-on within
+  about twenty seconds of the page sitting still.
+- The point shader scaled both colour and alpha by predicted probability,
+  which is near zero for the 11,257 benign windows -- the overwhelming
+  majority of the cloud. Combined they put most of the lattice at roughly
+  five percent effective opacity. Both now have a floor.
+
+### Removed
+
+- The nebula haze and the ambient dust layer, the last two pieces of the
+  galaxy build. With the lattice invisible these were the only thing actually
+  rendering, which is why the scene still looked like a leftover galaxy.
+- The keyboard skip link, which rendered as a black bar across the top of the
+  page. This is an accessibility regression and is tracked as such.
+
 ## v2.5.0 -- One stage, in sequence
 
 ### Changed
