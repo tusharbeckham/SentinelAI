@@ -133,7 +133,7 @@ const ACTS: Act[] = [
 ]
 
 /** Progress boundaries where acts 1..6 begin (act 0 is the title). */
-const ACT_BOUNDARIES = [0.1, 0.26, 0.42, 0.58, 0.73, 0.86]
+const ACT_BOUNDARIES = [0.17, 0.3, 0.44, 0.58, 0.73, 0.86]
 
 type Embedding = {
 	n: number
@@ -149,6 +149,7 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 	const sectionRef = useRef<HTMLElement | null>(null)
 	const mountRef = useRef<HTMLDivElement | null>(null)
 	const probRef = useRef<HTMLSpanElement | null>(null)
+	const titleRef = useRef<HTMLDivElement | null>(null)
 	const [act, setAct] = useState(0)
 	const [failed, setFailed] = useState(false)
 
@@ -312,35 +313,28 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				"void main() {",
 				"  vec2 d = gl_PointCoord - vec2(0.5);",
 				"  float r = length(d);",
-				"  /* No circular discard: it would clip the diffraction spikes at the sprite",
-				"     edge. The gaussian is already ~0.0005 by the quad corner, so there is",
-				"     no visible square. */",
-				"  /* A gaussian profile instead of a hard disc. Real emissive points have no",
-				"     edge, and the smooth falloff is what stops 11k sprites reading as",
-				"     confetti. Core plus wide skirt approximates an airy disc cheaply. */",
-				"  float g = exp(-r * r * 15.0);",
-				"  float core = exp(-r * r * 62.0);",
-				"  float skirt = exp(-r * r * 5.2) * 0.30;",
-				"  /* Diffraction spikes. A photographed star is not a round blob -- the",
-				"     support vanes throw a cross, and its absence is a big part of why",
-				"     point clouds look synthetic. Only bright points earn one. */",
+				"  /* A chip, not a star. anime.js reads as crisp because its elements have",
+				"     real edges; gaussian blobs read as dust, which is what looked cheap.",
+				"     Square with the top-right corner cut, as an SDF, antialiased with",
+				"     fwidth rather than discard -- discard is exactly what produces the",
+				"     stair-stepped edge (three.js forum, sharp particle edges). */",
 				"  vec2 ad = abs(d);",
-				"  float spike = exp(-ad.x * 190.0) * exp(-ad.y * 5.0) + exp(-ad.y * 190.0) * exp(-ad.x * 5.0);",
-				"  spike *= smoothstep(1.4, 3.2, vMag) * 0.55;",
-				"  /* Colour temperature spread, so the field has stellar variety rather",
-				"     than one flat hue per family. */",
-				"  vec3 tint = mix(vec3(0.76, 0.90, 1.18), vec3(1.12, 0.94, 0.72), vTemp * 0.5 + 0.5);",
-				"  vec3 c = vColor * tint * (0.30 + 0.85 * vP) * vTw;",
-				"  /* Hot centres desaturate toward white, the way a bright emitter clips. */",
-				"  c += vec3(core) * (0.20 + 0.75 * vP) * (0.35 + vAlert);",
-				"  c = mix(c, c * 3.6 + vec3(0.22, 0.12, 0.05), vAlert);",
+				"  float sd = max(max(ad.x, ad.y) - 0.34, dot(d, vec2(0.7071, -0.7071)) - 0.20);",
+				"  float w = fwidth(sd) * 1.1 + 1e-5;",
+				"  float chip = 1.0 - smoothstep(-w, w, sd);",
+				"  /* Thin inner outline, so the glyph still reads as a drawn object when it",
+				"     is only a few pixels across. */",
+				"  float edge = (1.0 - smoothstep(-w, w, abs(sd + 0.055) - 0.026)) * 0.85;",
+				"  /* Alerts get a ring, not a bloom smear: it survives at small size and it",
+				"     does not bleed into its neighbours. */",
+				"  float ring = (1.0 - smoothstep(-w, w, abs(r - 0.46) - 0.020)) * vAlert;",
+				"  vec3 tint = mix(vec3(0.78, 0.86, 1.00), vec3(1.06, 0.98, 0.86), vTemp * 0.5 + 0.5);",
+				"  vec3 c = vColor * tint * (0.40 + 0.75 * vP) * vTw;",
+				"  c += vColor * edge * 0.9;",
+				"  c = mix(c, c * 3.2 + vec3(0.24, 0.10, 0.04), vAlert);",
 				"  c += vColor * vRank * 2.4;",
-				"  c += tint * spike * (0.9 + vAlert * 2.0);",
-				"  /* Aerial perspective: distance drinks intensity, so the far side of the",
-				"     cloud recedes instead of competing with the near side. */",
-				"  float atmo = exp(-max(vDepth - 12.0, 0.0) * 0.030);",
-				"  c *= mix(0.35, 1.0, atmo);",
-				"  float a = (g + skirt + core * 0.6 + spike) * (0.26 + 0.60 * vP + vAlert * 0.5);",
+				"  c += vec3(1.00, 0.55, 0.42) * ring * 1.6;",
+				"  float a = (chip + edge * 0.6 + ring) * (0.42 + 0.55 * vP + vAlert * 0.4);",
 				"  a *= atmo * vFade * (1.0 - uOutro * 0.85);",
 				"  gl_FragColor = vec4(c, a);",
 				"}",
@@ -488,7 +482,7 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			"  vec2 d = gl_PointCoord - vec2(0.5);",
 			"  float r = length(d);",
 			"  float f = exp(-r * r * 7.0) * smoothstep(0.5, 0.12, r);",
-			"  gl_FragColor = vec4(vNCol * 0.5, f * 0.020 * uOpacity);",
+			"  gl_FragColor = vec4(vNCol * 0.5, f * 0.009 * uOpacity);",
 			"}",
 			].join("\n"),
 		})
@@ -514,6 +508,11 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				const mag = new Float32Array(n)
 				const temp = new Float32Array(n)
 				const gcol = new Float32Array(n * 3)
+				/* Lattice dimensions. Roughly 1.9:1 so the grid fills a widescreen frame
+				   edge to edge instead of sitting in the middle as a square patch. */
+				const latCols = Math.ceil(Math.sqrt(n * 1.9))
+				const latRows = Math.ceil(n / latCols)
+				const latStep = 46 / latCols
 				const rnd = lcg(7)
 				const tmp = new THREE.Color()
 				const gTmp = new THREE.Color()
@@ -528,58 +527,27 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 					 * to the true embedding is driven by uSettle, so the pretty state and the
 					 * honest state are never mixed in a frame that reports a figure.
 					 */
-					const which = rnd()
-					let gx = 0
-					let gy = 0
-					let gz = 0
-					if (which < 0.16) {
-						/* Bulge: old population II, spheroidal, flattened in y. */
-						const br = Math.pow(rnd(), 2.2) * 5.0
-						const ba = rnd() * Math.PI * 2
-						const bb = Math.acos(2 * rnd() - 1)
-						gx = br * Math.sin(bb) * Math.cos(ba)
-						gy = br * Math.cos(bb) * 0.72
-						gz = br * Math.sin(bb) * Math.sin(ba)
-					} else if (which < 0.20) {
-						/* Halo: sparse, near-spherical, far out. Sells the third dimension. */
-						const hr = 12 + Math.sqrt(rnd()) * 26
-						const ha = rnd() * Math.PI * 2
-						const hb = Math.acos(2 * rnd() - 1)
-						gx = hr * Math.sin(hb) * Math.cos(ha)
-						gy = hr * Math.cos(hb) * 0.55
-						gz = hr * Math.sin(hb) * Math.sin(ha)
-					} else {
-						/* Disc: exponential radial profile, r = -h * ln(1 - u), h = 4.6. */
-						const rr = Math.min(1.4 - 4.6 * Math.log(1 - rnd() * 0.986), 26)
-						/* Logarithmic spiral, the Lin-Shu density-wave form r = a*e^(b*theta),
-						   b = tan(14 deg) = 0.2493. Measured Milky Way pitch is near 12 deg; 14
-						   opens the arms just enough to read at this camera distance. */
-						const arm = Math.floor(rnd() * 2) * Math.PI
-						const theta = Math.log(rr / 1.6) / 0.2493 + arm
-						/* Sum of three uniforms as a cheap gaussian. Uniform scatter gives arms
-						   a hard drawn edge; real arms fall off smoothly and fray outward. */
-						const spread = 0.22 + rr * 0.055
-						const g1 = rnd() + rnd() + rnd() - 1.5
-						const g2 = rnd() + rnd() + rnd() - 1.5
-						const g3 = rnd() + rnd() + rnd() - 1.5
-						const th = theta + g1 * spread * 0.30
-						const rad = rr + g2 * spread * 1.4
-						gx = Math.cos(th) * rad
-						gy = g3 * (0.55 + 0.02 * rr) * 0.9
-						gz = Math.sin(th) * rad
-					}
-					scatter[i * 3] = gx
-					scatter[i * 3 + 1] = gy
-					scatter[i * 3 + 2] = gz
+					/* A perfectly regular lattice: one cell per held-out window, dead flat
+					   and evenly spaced. Before any model touches it the corpus is an
+					   undifferentiated table, and a grid is the honest picture of a table.
+					   Order is also what makes the deformation legible -- a cloud morphing
+					   into a cloud reads as noise; a lattice collapsing does not. That is
+					   the property worth taking from anime.js, not the lens shape. */
+					const col = i % latCols
+					const row = Math.floor(i / latCols)
+					/* A hair of jitter only, to kill the moire the eye gets from a pixel-exact
+					   grid at glancing angles. Not enough to read as randomness. */
+					scatter[i * 3] = (col - (latCols - 1) / 2) * latStep + (rnd() - 0.5) * 0.05
+					scatter[i * 3 + 1] = 0
+					scatter[i * 3 + 2] = (row - (latRows - 1) / 2) * latStep + (rnd() - 0.5) * 0.05
 
-					/* Stellar populations: warm amber core, blue-white arms, a few pink HII
-					   knots. One flat hue is a large part of why a particle field reads as
-					   synthetic rather than photographed. */
-					const gr = Math.sqrt(gx * gx + gz * gz)
-					gTmp.setHex(0xffd0a3)
-					gTmp2.setHex(0x8fbdf0)
-					gTmp.lerp(gTmp2, clamp01((gr - 3) / 16))
-					if (which >= 0.20 && rnd() < 0.03) gTmp.setHex(0xbf8eda)
+					/* Monochrome steel. Colour is held back so it can mean something later:
+					   ground-truth family only arrives with the morph, alarm only above the
+					   threshold. The slow shade wave keeps the grid from reading as print. */
+					const shade = 0.72 + 0.28 * Math.abs(Math.sin(row * 0.07 + col * 0.05))
+					gTmp.setHex(0x9fb4cc)
+					gTmp2.setHex(0x46536a)
+					gTmp.lerp(gTmp2, 1 - shade)
 					gcol[i * 3] = gTmp.r
 					gcol[i * 3 + 1] = gTmp.g
 					gcol[i * 3 + 2] = gTmp.b
@@ -669,11 +637,19 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			const rect = section.getBoundingClientRect()
 			const span = Math.max(rect.height - window.innerHeight, 1)
 			progress = clamp01(-rect.top / span)
-			/* Hand-off from the hero: the scene fades up as its section climbs into
-			   view, so the two never occupy the screen at full strength together. */
-			fx.enter = clamp01(1 - rect.top / Math.max(window.innerHeight, 1))
+			/* Hand-off. The hero is gone by 0.075 and the model does not begin to
+			   arrive until 0.1, so there is a hard seam between them, never a blend. */
+			fx.enter = smooth(seg(progress, 0.1, 0.17))
 
-			fx.settle = outCubic(seg(progress, 0.015, 0.19))
+			fx.settle = outCubic(seg(progress, 0.2, 0.34))
+
+			/* The hero exits on its own, finished before anything else starts. */
+			const exit = smooth(seg(progress, 0.02, 0.075))
+			if (titleRef.current) {
+				titleRef.current.style.opacity = String(1 - exit)
+				titleRef.current.style.transform = "translateY(" + (-exit * 56).toFixed(2) + "px)"
+				titleRef.current.style.visibility = exit >= 1 ? "hidden" : "visible"
+			}
 			fx.lift = smooth(seg(progress, 0.33, 0.58))
 			fx.plane = smooth(seg(progress, 0.58, 0.7))
 			fx.ignite = smooth(seg(progress, 0.66, 0.8))
@@ -801,24 +777,22 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 	}
 
 	return (
-		<>
-			{/* The hero. Its own section, in normal flow, with nothing behind it. */}
-			<section id="top" className="scroll-mt-24">
-				<TitleBlock report={report} live={live} />
-			</section>
-
-			{/*
-			  * The scene. Full-bleed on purpose: it breaks out of the max-w-6xl
-			  * main container with left-1/2 / w-screen / -translate-x-1/2. Being
-			  * inset-0 of that padded container is exactly what drew a black
-			  * rectangle around the canvas.
-			  */}
-			<section
-				id="scene"
-				ref={sectionRef}
-				className="relative left-1/2 h-[560vh] w-screen -translate-x-1/2 scroll-mt-24"
-			>
+		<section
+			id="top"
+			ref={sectionRef}
+			className="relative left-1/2 h-[560vh] w-screen -translate-x-1/2 scroll-mt-24"
+		>
 				<div className="sticky top-0 h-screen overflow-hidden">
+					{/* Stage one: the hero, alone. Nothing renders alongside it -- at this
+					    point the grade pass is at zero, so the canvas underneath is literally
+					    black, not a translucent layer sitting over the scene. */}
+					<div
+						ref={titleRef}
+						className="absolute inset-0 z-20 flex items-center justify-center"
+					>
+						<TitleBlock report={report} live={live} compact />
+					</div>
+
 					{/* Instrument chrome: axis triad, readouts, ground-truth key. */}
 					<HeroHud act={act} className="pointer-events-none absolute inset-0 z-10 h-full w-full" />
 					{/* The Grid. Purely decorative: every fact is also in the HTML below. */}
@@ -875,94 +849,9 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 					</a>
 				</div>
 			</section>
-		</>
 	)
 }
 
-/* --------------------------------------------------------------------------
- * Hero mark. An SVG, not WebGL, and deliberately not the galaxy: the hero
- * gets its own identity so the two never read as the same object. The motif
- * is the one decision this whole system makes -- a threshold plane with the
- * benign mass packed underneath it and the handful of windows that clear it
- * sitting above. Geometry is seeded, so it is the same drawing every load.
- * ------------------------------------------------------------------------ */
-const MARK = (() => {
-	let z = 9
-	const rnd = () => ((z = (z * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff)
-	const below: Array<{ x: number; y: number; r: number; o: number }> = []
-	const above: Array<{ x: number; y: number; r: number }> = []
-	for (let i = 0; i < 300; i++) {
-		const t = Math.pow(rnd(), 2.6)
-		below.push({
-			x: 16 + rnd() * 1168,
-			y: 158 + t * 84,
-			r: 0.65 + rnd() * 1.05,
-			o: 0.14 + rnd() * 0.34,
-		})
-	}
-	for (let i = 0; i < 7; i++) above.push({ x: 130 + rnd() * 940, y: 34 + rnd() * 74, r: 1.5 + rnd() * 1.3 })
-	return { below, above }
-})()
-
-function HeroMark() {
-	return (
-		<svg
-			className="mt-10 block w-full"
-			viewBox="0 0 1200 260"
-			fill="none"
-			aria-hidden
-		>
-			<defs>
-				<linearGradient id="mk-plane" x1="0" x2="1" y1="0" y2="0">
-					<stop offset="0%" stopColor="#5e9fe8" stopOpacity="0" />
-					<stop offset="22%" stopColor="#5e9fe8" stopOpacity="0.85" />
-					<stop offset="78%" stopColor="#5e9fe8" stopOpacity="0.85" />
-					<stop offset="100%" stopColor="#5e9fe8" stopOpacity="0" />
-				</linearGradient>
-				<linearGradient id="mk-sweep" x1="0" x2="1" y1="0" y2="0">
-					<stop offset="0%" stopColor="#8fbdf0" stopOpacity="0" />
-					<stop offset="50%" stopColor="#cfe4ff" stopOpacity="0.55" />
-					<stop offset="100%" stopColor="#8fbdf0" stopOpacity="0" />
-				</linearGradient>
-			</defs>
-
-			{/* the benign mass */}
-			<g>
-				{MARK.below.map((d, i) => (
-					<circle key={i} cx={d.x} cy={d.y} r={d.r} fill="#5e9fe8" opacity={d.o} />
-				))}
-			</g>
-
-			{/* the windows that clear the threshold */}
-			<g className="mark-flare">
-				{MARK.above.map((d, i) => (
-					<circle key={i} cx={d.x} cy={d.y} r={d.r} fill="#e97366" opacity="0.9" />
-				))}
-			</g>
-
-			{/* the decision */}
-			<line x1="0" y1="140" x2="1200" y2="140" stroke="url(#mk-plane)" strokeWidth="1" />
-			<rect className="mark-scan" x="-260" y="132" width="260" height="16" fill="url(#mk-sweep)" />
-
-			{/* rank 1 */}
-			<g>
-				<circle className="mark-ring" cx="742" cy="62" r="7" stroke="#e97366" strokeWidth="0.8" fill="none" />
-				<circle cx="742" cy="62" r="2.6" fill="#e97366" />
-				<line x1="742" y1="70" x2="742" y2="138" stroke="#e97366" strokeWidth="0.5" strokeDasharray="2 4" opacity="0.55" />
-			</g>
-
-			<text x="8" y="130" className="hud-text" fontSize="11" fill="#e97366" opacity="0.75">
-				49 above
-			</text>
-			<text x="8" y="156" className="hud-text" fontSize="11" fill="#5e9fe8" opacity="0.55">
-				11,277 below
-			</text>
-			<text x="1192" y="130" textAnchor="end" className="hud-text" fontSize="11" fill="#f2f4f7" opacity="0.45">
-				threshold 0.6303
-			</text>
-		</svg>
-	)
-}
 function TitleBlock({
 	report,
 	live,
@@ -1016,7 +905,6 @@ function TitleBlock({
 				</div>
 			</div>
 
-			<HeroMark />
 			<div className="rule-x mt-11" />
 
 			{/* Hairline-separated cells: one border, shared by four figures. */}
