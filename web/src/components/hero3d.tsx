@@ -149,7 +149,6 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 	const sectionRef = useRef<HTMLElement | null>(null)
 	const mountRef = useRef<HTMLDivElement | null>(null)
 	const probRef = useRef<HTMLSpanElement | null>(null)
-	const titleRef = useRef<HTMLDivElement | null>(null)
 	const [act, setAct] = useState(0)
 	const [failed, setFailed] = useState(false)
 
@@ -247,7 +246,7 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 		const world = new THREE.Group()
 		scene.add(world)
 
-		const fx = { settle: 0, lift: 0, ignite: 0, plane: 0, focus: 0, spin: 0, size: 2.05, intro: 0, outro: 0 }
+		const fx = { settle: 0, lift: 0, ignite: 0, plane: 0, focus: 0, spin: 0, size: 2.05, intro: 0, outro: 0, enter: 0 }
 		let thresholdY = 0.224
 		let disposed = false
 
@@ -577,10 +576,10 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 					   knots. One flat hue is a large part of why a particle field reads as
 					   synthetic rather than photographed. */
 					const gr = Math.sqrt(gx * gx + gz * gz)
-					gTmp.setHex(0xffcf9b)
-					gTmp2.setHex(0x9fc4ff)
+					gTmp.setHex(0xffd0a3)
+					gTmp2.setHex(0x8fbdf0)
 					gTmp.lerp(gTmp2, clamp01((gr - 3) / 16))
-					if (which >= 0.20 && rnd() < 0.03) gTmp.setHex(0xff8fb0)
+					if (which >= 0.20 && rnd() < 0.03) gTmp.setHex(0xbf8eda)
 					gcol[i * 3] = gTmp.r
 					gcol[i * 3 + 1] = gTmp.g
 					gcol[i * 3 + 2] = gTmp.b
@@ -670,6 +669,9 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			const rect = section.getBoundingClientRect()
 			const span = Math.max(rect.height - window.innerHeight, 1)
 			progress = clamp01(-rect.top / span)
+			/* Hand-off from the hero: the scene fades up as its section climbs into
+			   view, so the two never occupy the screen at full strength together. */
+			fx.enter = clamp01(1 - rect.top / Math.max(window.innerHeight, 1))
 
 			fx.settle = outCubic(seg(progress, 0.015, 0.19))
 			fx.lift = smooth(seg(progress, 0.33, 0.58))
@@ -682,11 +684,6 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			fx.outro = smooth(seg(progress, 0.955, 1.0))
 
 			const fade = smooth(seg(progress, 0.05, 0.13))
-			if (titleRef.current) {
-				titleRef.current.style.opacity = String(1 - fade)
-				titleRef.current.style.transform = "translateY(" + (-fade * 40).toFixed(2) + "px)"
-				titleRef.current.style.pointerEvents = fade > 0.6 ? "none" : "auto"
-			}
 
 			if (probRef.current) {
 				const k = smooth(seg(progress, 0.5, 0.64))
@@ -718,7 +715,7 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			pointMat.uniforms.uIntro.value = fx.intro
 			pointMat.uniforms.uOutro.value = fx.outro
 			grade.uniforms.uTime.value = t
-			grade.uniforms.uFade.value = fx.intro
+			grade.uniforms.uFade.value = fx.intro * fx.enter
 			grade.uniforms.uOutro.value = fx.outro
 			dustMat.opacity = 0.5 * fx.intro * (1 - fx.outro)
 			dust.rotation.y = t * 0.012
@@ -804,76 +801,168 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 	}
 
 	return (
-		<section id="top" ref={sectionRef} className="relative scroll-mt-24 h-[560vh]">
-			<div className="sticky top-0 h-screen overflow-hidden">
-				{/* Instrument chrome: axis triad, readouts, ground-truth key. */}
-				<HeroHud act={act} className="pointer-events-none absolute inset-0 z-10 h-full w-full" />
-				{/* The Grid. Purely decorative: every fact is also in the HTML below. */}
-				<div
-					ref={mountRef}
-					className="absolute inset-0"
-					style={{ opacity: 0 }}
-					role="img"
-					aria-label="Animated 3D scatter plot of the 11,326 held-out test windows. Horizontal axes are the first two principal components of the 40 features; height is the model log-odds. Colour is the ground-truth attack family. As you scroll, the points settle from a raw stream into the feature manifold, rise into score space, and a horizontal threshold plane sweeps to 0.6303, leaving 49 points above it: 39 true detections and 10 false positives, with 20 attacks left below."
-				/>
+		<>
+			{/* The hero. Its own section, in normal flow, with nothing behind it. */}
+			<section id="top" className="scroll-mt-24">
+				<TitleBlock report={report} live={live} />
+			</section>
 
-				{/* Act 0 -- the title. One DOM instance, full contrast, crossfades out. */}
-				<div
-					ref={titleRef}
-					className="absolute inset-0 flex items-center justify-center will-change-transform"
-				>
-					<div className="relative w-full">
-						<TitleBlock report={report} live={live} compact />
-					</div>
-				</div>
-
-				{/* Acts 1-6 -- one card at a time, alternating edges. */}
-				{ACTS.map((a, i) => (
+			{/*
+			  * The scene. Full-bleed on purpose: it breaks out of the max-w-6xl
+			  * main container with left-1/2 / w-screen / -translate-x-1/2. Being
+			  * inset-0 of that padded container is exactly what drew a black
+			  * rectangle around the canvas.
+			  */}
+			<section
+				id="scene"
+				ref={sectionRef}
+				className="relative left-1/2 h-[560vh] w-screen -translate-x-1/2 scroll-mt-24"
+			>
+				<div className="sticky top-0 h-screen overflow-hidden">
+					{/* Instrument chrome: axis triad, readouts, ground-truth key. */}
+					<HeroHud act={act} className="pointer-events-none absolute inset-0 z-10 h-full w-full" />
+					{/* The Grid. Purely decorative: every fact is also in the HTML below. */}
 					<div
-						key={a.id}
-						className={cn(
-							'absolute top-1/2 w-[min(340px,82vw)] -translate-y-1/2 transition-all duration-[620ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
-							i % 2 === 0 ? 'left-[clamp(16px,6vw,96px)]' : 'right-[clamp(16px,6vw,96px)]',
-							act === i + 1
-								? 'translate-y-[-50%] scale-100 opacity-100 blur-none'
-								: 'pointer-events-none translate-y-[calc(-50%+20px)] scale-[0.97] opacity-0 blur-[3px]',
-						)}
-					>
-						<ActCard act={a} live={act === i + 1} probRef={probRef} />
-					</div>
-				))}
+						ref={mountRef}
+						className="absolute inset-0"
+						style={{ opacity: 0 }}
+						role="img"
+						aria-label="Animated 3D scatter plot of the 11,326 held-out test windows. Horizontal axes are the first two principal components of the 40 features; height is the model log-odds. Colour is the ground-truth attack family. As you scroll, the points settle from a raw stream into the feature manifold, rise into score space, and a horizontal threshold plane sweeps to 0.6303, leaving 49 points above it: 39 true detections and 10 false positives, with 20 attacks left below."
+					/>
 
-				{/* Progress rail */}
-				{/* Act rail. Hidden at rest: before the first scroll the hero is just
-				    the galaxy and the title, with no chrome competing with it. */}
-				<div
-					className="absolute right-4 top-1/2 flex -translate-y-1/2 flex-col gap-2 transition-opacity duration-500"
-					style={{ opacity: act > 0 ? 1 : 0 }}
-					aria-hidden
-				>
+
+					{/* Acts 1-6 -- one card at a time, alternating edges. */}
 					{ACTS.map((a, i) => (
-						<span
+						<div
 							key={a.id}
-							className="h-1.5 w-1.5 rounded-full transition-all duration-300"
-							style={{
-								backgroundColor: act === i + 1 ? a.color : 'var(--color-line-strong)',
-								transform: act === i + 1 ? 'scale(1.6)' : undefined,
-							}}
-						/>
+							className={cn(
+								'absolute top-1/2 w-[min(340px,82vw)] -translate-y-1/2 transition-all duration-[620ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
+								i % 2 === 0 ? 'left-[clamp(16px,6vw,96px)]' : 'right-[clamp(16px,6vw,96px)]',
+								act === i + 1
+									? 'translate-y-[-50%] scale-100 opacity-100 blur-none'
+									: 'pointer-events-none translate-y-[calc(-50%+20px)] scale-[0.97] opacity-0 blur-[3px]',
+							)}
+						>
+							<ActCard act={a} live={act === i + 1} probRef={probRef} />
+						</div>
 					))}
-				</div>
 
-				<a
-					href="#explain"
-					className="panel absolute bottom-5 left-1/2 -translate-x-1/2 px-3 py-1.5 text-[13px] text-ink-dim transition-colors hover:text-ink"
-				>
-					skip to the console &darr;
-				</a>
-			</div>
-		</section>
+					{/* Progress rail */}
+					{/* Act rail. Hidden at rest: before the first scroll the hero is just
+					    the galaxy and the title, with no chrome competing with it. */}
+					<div
+						className="absolute right-4 top-1/2 flex -translate-y-1/2 flex-col gap-2 transition-opacity duration-500"
+						style={{ opacity: act > 0 ? 1 : 0 }}
+						aria-hidden
+					>
+						{ACTS.map((a, i) => (
+							<span
+								key={a.id}
+								className="h-1.5 w-1.5 rounded-full transition-all duration-300"
+								style={{
+									backgroundColor: act === i + 1 ? a.color : 'var(--color-line-strong)',
+									transform: act === i + 1 ? 'scale(1.6)' : undefined,
+								}}
+							/>
+						))}
+					</div>
+
+					<a
+						href="#explain"
+						className="panel absolute bottom-5 left-1/2 -translate-x-1/2 px-3 py-1.5 text-[13px] text-ink-dim transition-colors hover:text-ink"
+					>
+						skip to the console &darr;
+					</a>
+				</div>
+			</section>
+		</>
 	)
 }
 
+/* --------------------------------------------------------------------------
+ * Hero mark. An SVG, not WebGL, and deliberately not the galaxy: the hero
+ * gets its own identity so the two never read as the same object. The motif
+ * is the one decision this whole system makes -- a threshold plane with the
+ * benign mass packed underneath it and the handful of windows that clear it
+ * sitting above. Geometry is seeded, so it is the same drawing every load.
+ * ------------------------------------------------------------------------ */
+const MARK = (() => {
+	let z = 9
+	const rnd = () => ((z = (z * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff)
+	const below: Array<{ x: number; y: number; r: number; o: number }> = []
+	const above: Array<{ x: number; y: number; r: number }> = []
+	for (let i = 0; i < 300; i++) {
+		const t = Math.pow(rnd(), 2.6)
+		below.push({
+			x: 16 + rnd() * 1168,
+			y: 158 + t * 84,
+			r: 0.65 + rnd() * 1.05,
+			o: 0.14 + rnd() * 0.34,
+		})
+	}
+	for (let i = 0; i < 7; i++) above.push({ x: 130 + rnd() * 940, y: 34 + rnd() * 74, r: 1.5 + rnd() * 1.3 })
+	return { below, above }
+})()
+
+function HeroMark() {
+	return (
+		<svg
+			className="mt-10 block w-full"
+			viewBox="0 0 1200 260"
+			fill="none"
+			aria-hidden
+		>
+			<defs>
+				<linearGradient id="mk-plane" x1="0" x2="1" y1="0" y2="0">
+					<stop offset="0%" stopColor="#5e9fe8" stopOpacity="0" />
+					<stop offset="22%" stopColor="#5e9fe8" stopOpacity="0.85" />
+					<stop offset="78%" stopColor="#5e9fe8" stopOpacity="0.85" />
+					<stop offset="100%" stopColor="#5e9fe8" stopOpacity="0" />
+				</linearGradient>
+				<linearGradient id="mk-sweep" x1="0" x2="1" y1="0" y2="0">
+					<stop offset="0%" stopColor="#8fbdf0" stopOpacity="0" />
+					<stop offset="50%" stopColor="#cfe4ff" stopOpacity="0.55" />
+					<stop offset="100%" stopColor="#8fbdf0" stopOpacity="0" />
+				</linearGradient>
+			</defs>
+
+			{/* the benign mass */}
+			<g>
+				{MARK.below.map((d, i) => (
+					<circle key={i} cx={d.x} cy={d.y} r={d.r} fill="#5e9fe8" opacity={d.o} />
+				))}
+			</g>
+
+			{/* the windows that clear the threshold */}
+			<g className="mark-flare">
+				{MARK.above.map((d, i) => (
+					<circle key={i} cx={d.x} cy={d.y} r={d.r} fill="#e97366" opacity="0.9" />
+				))}
+			</g>
+
+			{/* the decision */}
+			<line x1="0" y1="140" x2="1200" y2="140" stroke="url(#mk-plane)" strokeWidth="1" />
+			<rect className="mark-scan" x="-260" y="132" width="260" height="16" fill="url(#mk-sweep)" />
+
+			{/* rank 1 */}
+			<g>
+				<circle className="mark-ring" cx="742" cy="62" r="7" stroke="#e97366" strokeWidth="0.8" fill="none" />
+				<circle cx="742" cy="62" r="2.6" fill="#e97366" />
+				<line x1="742" y1="70" x2="742" y2="138" stroke="#e97366" strokeWidth="0.5" strokeDasharray="2 4" opacity="0.55" />
+			</g>
+
+			<text x="8" y="130" className="hud-text" fontSize="11" fill="#e97366" opacity="0.75">
+				49 above
+			</text>
+			<text x="8" y="156" className="hud-text" fontSize="11" fill="#5e9fe8" opacity="0.55">
+				11,277 below
+			</text>
+			<text x="1192" y="130" textAnchor="end" className="hud-text" fontSize="11" fill="#f2f4f7" opacity="0.45">
+				threshold 0.6303
+			</text>
+		</svg>
+	)
+}
 function TitleBlock({
 	report,
 	live,
@@ -927,6 +1016,7 @@ function TitleBlock({
 				</div>
 			</div>
 
+			<HeroMark />
 			<div className="rule-x mt-11" />
 
 			{/* Hairline-separated cells: one border, shared by four figures. */}
