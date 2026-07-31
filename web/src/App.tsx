@@ -177,13 +177,6 @@ export default function App() {
 
 	return (
 		<div className="min-h-screen">
-			<a
-				href="#triage"
-				className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-md focus:border focus:border-line focus:bg-surface focus:px-3 focus:py-2"
-			>
-				Skip to triage queue
-			</a>
-
 			<Dock
 				items={present.length ? SECTIONS.filter((s) => present.includes(s.id)) : SECTIONS}
 				active={active}
