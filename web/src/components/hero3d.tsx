@@ -810,7 +810,7 @@ function TitleBlock({
 			</dl>
 
 			<div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-[13px] text-ink-faint">
-				<span className="panel tabular px-2.5 py-1">v1</span>
+				<span className="panel tabular px-2.5 py-1">build 2.6.1</span>
 				<span className="panel tabular px-2.5 py-1">{report.features.count} features</span>
 				<span className="panel tabular px-2.5 py-1">
 					{report.runtime_seconds.toFixed(1)}s end-to-end
