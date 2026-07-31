@@ -508,25 +508,21 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				const mag = new Float32Array(n)
 				const temp = new Float32Array(n)
 				const gcol = new Float32Array(n * 3)
-				/* Lattice dimensions. Roughly 1.9:1 so the grid fills a widescreen frame
-				   edge to edge instead of sitting in the middle as a square patch. */
+				/* Lattice dimensions. The grid stands UPRIGHT in the camera plane rather
+				   than lying flat on the floor. Lying flat was the bug: the camera sits at
+				   y=3.2 looking at the origin, roughly five degrees above a ground plane,
+				   so a flat sheet projected to a one-pixel hairline and the whole model was
+				   invisible. Sized to overfill a 34-unit-distant 50deg frame. */
 				const latCols = Math.ceil(Math.sqrt(n * 1.9))
 				const latRows = Math.ceil(n / latCols)
-				const latStep = 46 / latCols
+				const latStepX = 56 / latCols
+				const latStepY = 29 / latRows
 				const rnd = lcg(7)
 				const tmp = new THREE.Color()
 				const gTmp = new THREE.Color()
 				const gTmp2 = new THREE.Color()
 
 				for (let i = 0; i < n; i++) {
-					/*
-					 * GALAXY STATE. Where each point rests before the first scroll.
-					 *
-					 * Built from the standard disc decomposition -- bulge, halo, exponential
-					 * disc on two logarithmic arms -- rather than a swirl of noise. The morph
-					 * to the true embedding is driven by uSettle, so the pretty state and the
-					 * honest state are never mixed in a frame that reports a figure.
-					 */
 					/* A perfectly regular lattice: one cell per held-out window, dead flat
 					   and evenly spaced. Before any model touches it the corpus is an
 					   undifferentiated table, and a grid is the honest picture of a table.
@@ -537,9 +533,9 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 					const row = Math.floor(i / latCols)
 					/* A hair of jitter only, to kill the moire the eye gets from a pixel-exact
 					   grid at glancing angles. Not enough to read as randomness. */
-					scatter[i * 3] = (col - (latCols - 1) / 2) * latStep + (rnd() - 0.5) * 0.05
-					scatter[i * 3 + 1] = 0
-					scatter[i * 3 + 2] = (row - (latRows - 1) / 2) * latStep + (rnd() - 0.5) * 0.05
+					scatter[i * 3] = (col - (latCols - 1) / 2) * latStepX + (rnd() - 0.5) * 0.04
+					scatter[i * 3 + 1] = ((latRows - 1) / 2 - row) * latStepY + (rnd() - 0.5) * 0.04
+					scatter[i * 3 + 2] = (rnd() - 0.5) * 0.06
 
 					/* Monochrome steel. Colour is held back so it can mean something later:
 					   ground-truth family only arrives with the morph, alarm only above the
