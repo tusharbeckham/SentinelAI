@@ -3,6 +3,25 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v2.6.2 -- The seam above the title
+
+### Fixed
+
+- The black line above the SentinelAI title. The grade pass multiplied the
+  composite by uFade, which is zero while the hero is up, driving the canvas
+  to pure #000000 while the page background is the canvas token #0a0b0d. Two
+  different blacks meeting at the top edge of the sticky stage rendered as a
+  hard horizontal seam. The pass now fades toward the token colour, so the
+  canvas is indistinguishable from the page until the model arrives. This was
+  introduced by the v2.5.0 decision to make the seam literally black.
+
+### Added
+
+- web/HERO-OBJECT-PLAN.md. The hero becomes a single closed surface -- the
+  learned normal region, with anomalies outside it -- rather than a particle
+  field. Every previous hero was a cloud; the repeated rejections were about
+  form, not fidelity.
+
 ## v2.6.1 -- Build stamp and entrance
 
 ### Added
