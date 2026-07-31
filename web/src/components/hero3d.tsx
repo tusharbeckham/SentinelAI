@@ -329,7 +329,7 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				"     does not bleed into its neighbours. */",
 				"  float ring = (1.0 - smoothstep(-w, w, abs(r - 0.46) - 0.020)) * vAlert;",
 				"  vec3 tint = mix(vec3(0.78, 0.86, 1.00), vec3(1.06, 0.98, 0.86), vTemp * 0.5 + 0.5);",
-				"  vec3 c = vColor * tint * (0.40 + 0.75 * vP) * vTw;",
+				"  vec3 c = vColor * tint * (0.85 + 0.80 * vP) * vTw;",
 				"  c += vColor * edge * 0.9;",
 				"  c = mix(c, c * 3.2 + vec3(0.24, 0.10, 0.04), vAlert);",
 				"  c += vColor * vRank * 2.4;",
