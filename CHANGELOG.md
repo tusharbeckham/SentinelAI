@@ -3,6 +3,21 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v2.6.3 -- Black is black again
+
+### Fixed
+
+- The grey wash over the hero, introduced by v2.6.2. The grade pass had the
+  canvas token #0a0b0d hardcoded into it, but OutputPass runs after grade and
+  applies ACES tone mapping plus sRGB encoding, so a display-space constant
+  written there is re-encoded on the way out and lands near #343434.
+- The reveal no longer depends on shader arithmetic at all. The canvas keeps
+  its own opaque CANVAS background and the mount is faded with CSS. Page and
+  canvas backgrounds are the same token, so at every opacity between 0 and 1
+  they are the same colour and a seam cannot occur by construction.
+- The build stamp was left at 2.6.1 during the v2.6.2 release, which made the
+  running build unreadable from the page. It is now 2.6.3.
+
 ## v2.6.2 -- The seam above the title
 
 ### Fixed
