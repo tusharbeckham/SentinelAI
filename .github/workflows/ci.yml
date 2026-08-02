@@ -21,14 +21,26 @@ concurrency:
 
 jobs:
   tests:
-    name: unit tests (py${{ matrix.python }})
-    runs-on: ubuntu-latest
+    name: unit tests (py${{ matrix.python }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         # 3.14 is included because that is what the project was first run on in
         # the wild; 3.11 is the floor we claim to support.
+        os: [ubuntu-latest]
         python: ["3.11", "3.12", "3.13", "3.14"]
+        include:
+          # Windows is not cosmetic coverage. v3.0.1 fixed a genuine connection
+          # leak in Store that only Windows could surface: POSIX permits
+          # unlinking a file that is still open, so the leak was invisible on
+          # Linux and the suite passed, while Windows refuses and raised
+          # PermissionError [WinError 32] during temp-directory cleanup. A
+          # Linux-only matrix cannot see that class of bug at all.
+          - os: windows-latest
+            python: "3.13"
+          - os: macos-latest
+            python: "3.13"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
