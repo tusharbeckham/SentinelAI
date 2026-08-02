@@ -107,7 +107,7 @@ slice, and the hybrid **lost to the supervised leg alone**. Two defects, both fi
   the split boundary and inflate everything.
 
 Learned weights: `gbdt_logit 1.101`, `iforest_logit 0.343`, `graph_score 0.113`,
-intercept `-8.23`. (Before the trailing-window features the unsupervised weight was `0.098`;
+intercept `-8.433969`. (Before the trailing-window features the unsupervised weight was `0.098`;
 giving Isolation Forest a memory more than tripled how much the stacker trusts it.) The stacker itself tells you the supervised leg carries the aggregate
 signal on this corpus — see §3.2 for where the other two legs actually earn their place.
 
