@@ -7,7 +7,7 @@ audit log, an authenticated scoring API, an analyst triage dashboard, and an act
 drift loop. Every number in this document was produced by running the code in this repo.
 
 ```
-python3 -m unittest discover -s tests        # 46 tests, ~4.9 s
+python3 -m unittest discover -s tests        # 198 tests, ~5.3 s
 python3 -m sentinelai.pipeline --out artifacts   # full experiment, ~136 s
 python3 -m sentinelai.build_dashboard            # dashboard.html from measured artifacts
 python3 -m sentinelai.api                        # authenticated scoring service
@@ -314,7 +314,7 @@ sentinelai/
 Dockerfile            non-root runtime image; runs its own test suite during build; fails closed without a signing secret
 requirements.txt      two runtime dependencies: numpy, pandas
 .github/workflows/ci.yml  tests on py3.11-3.14, determinism check, ruff, bandit SAST, pip-audit, gitleaks, Trivy, container build
-tests/                46 tests: closed-form metric checks, Shapley local accuracy, leakage,
+tests/                198 tests: closed-form metric checks, Shapley local accuracy, leakage,
                       auth/tamper/RBAC, audit-chain tamper detection, live HTTP route tests
 artifacts/            report.json, alerts.json, soar_decisions.json, audit_log.json,
                       drift_psi.json, scored_test_windows.csv
