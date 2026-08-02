@@ -1,0 +1,54 @@
+cff-version: 1.2.0
+message: If you use this software or its results, please cite it.
+title: "SentinelAI: hybrid intrusion detection built around the analyst's budget"
+abstract: >-
+  A hybrid network intrusion detection platform combining an isolation forest,
+  gradient-boosted trees and an authentication-graph detector, fused by an
+  out-of-fold logistic stacker and evaluated under an explicit alert budget
+  rather than by threshold-free ranking metrics alone. Includes Shapley
+  attributions on every alert, a hash-chained SOAR audit log, and a persistence
+  layer with append-only audit guarantees. Implemented in NumPy and the Python
+  standard library with no third-party machine learning dependencies.
+type: software
+authors:
+  - alias: tusharentheoria
+    email: tusharentheoria@gmail.com
+repository-code: "https://github.com/tusharbeckham/SentinelAI"
+license: MIT
+version: 3.0.1
+date-released: "2026-08-03"
+keywords:
+  - intrusion detection
+  - anomaly detection
+  - base-rate fallacy
+  - explainable AI
+  - Shapley values
+  - security operations
+references:
+  - type: article
+    title: "The base-rate fallacy and the difficulty of intrusion detection"
+    authors:
+      - family-names: Axelsson
+        given-names: Stefan
+    journal: ACM Transactions on Information and System Security
+    year: 2000
+  - type: conference-paper
+    title: "Isolation Forest"
+    authors:
+      - family-names: Liu
+        given-names: Fei Tony
+      - family-names: Ting
+        given-names: Kai Ming
+      - family-names: Zhou
+        given-names: Zhi-Hua
+    collection-title: IEEE International Conference on Data Mining
+    year: 2008
+  - type: conference-paper
+    title: "XGBoost: A Scalable Tree Boosting System"
+    authors:
+      - family-names: Chen
+        given-names: Tianqi
+      - family-names: Guestrin
+        given-names: Carlos
+    collection-title: ACM SIGKDD
+    year: 2016
