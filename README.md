@@ -159,7 +159,7 @@ Strictly chronological split — 22,673 train / 11,341 calibration / 11,326 test
 
 | Metric | Value |
 |---|---|
-| Threshold | 0.664 |
+| Threshold | 0.6303 |
 | Alerts/day | 49.8 |
 | Recall | 66.1 % |
 | Precision (test prior 5.2e-3) | 79.6 % |
