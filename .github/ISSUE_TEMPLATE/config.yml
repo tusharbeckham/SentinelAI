@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/tusharbeckham/SentinelAI/security/advisories/new
+    about: Report privately. Please do not open a public issue for a security flaw.
+  - name: Known limitations
+    url: https://github.com/tusharbeckham/SentinelAI/blob/main/README.md
+    about: Section 7 lists what the model does badly, with numbers. Check there first.
