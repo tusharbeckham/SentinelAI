@@ -246,6 +246,10 @@ class Store:
         self.db_path = Path(db_path)
         self._local = threading.local()
         self._write_lock = threading.Lock()
+        # Every connection handed out, so close_all() can reach the ones
+        # belonging to threads that have already finished.
+        self._conns: set = set()
+        self._conns_lock = threading.Lock()
 
     # -- connection handling ------------------------------------------------
 
@@ -253,8 +257,13 @@ class Store:
         conn = getattr(self._local, "conn", None)
         if conn is None:
             self.db_path.parent.mkdir(parents=True, exist_ok=True)
+            # check_same_thread=False is safe here precisely because the
+            # connection is kept in threading.local and is therefore still only
+            # ever used by one thread. It exists so close_all() can shut a
+            # connection down from the thread doing the cleanup, which the
+            # default guard forbids.
             conn = sqlite3.connect(str(self.db_path), timeout=5.0,
-                                   isolation_level=None)
+                                   isolation_level=None, check_same_thread=False)
             conn.row_factory = sqlite3.Row
             # foreign_keys is per-connection and off by default; the others are
             # cheap to reassert.
@@ -262,13 +271,44 @@ class Store:
             conn.execute("PRAGMA busy_timeout = 5000")
             conn.execute("PRAGMA synchronous = NORMAL")
             self._local.conn = conn
+            with self._conns_lock:
+                self._conns.add(conn)
         return conn
 
     def close(self) -> None:
+        """Close this thread's connection only.
+
+        Note the asymmetry: connections live in threading.local, so a caller
+        that spawned worker threads cannot release their handles with this.
+        Use close_all() for that.
+        """
         conn = getattr(self._local, "conn", None)
         if conn is not None:
             conn.close()
+            with self._conns_lock:
+                self._conns.discard(conn)
             self._local.conn = None
+
+    def close_all(self) -> int:
+        """Close every connection this Store has opened, on any thread.
+
+        Needed for orderly shutdown, and on Windows for correctness of cleanup:
+        an open handle blocks deletion of the underlying file. POSIX will
+        happily unlink a file that is still open, which hides the leak rather
+        than fixing it.
+        """
+        with self._conns_lock:
+            conns = list(self._conns)
+            self._conns.clear()
+        closed = 0
+        for conn in conns:
+            try:
+                conn.close()
+                closed += 1
+            except Exception:
+                pass
+        self._local = threading.local()
+        return closed
 
     def migrate(self) -> int:
         """Apply pending migrations. Idempotent, safe to call at every boot."""

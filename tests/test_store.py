@@ -36,13 +36,19 @@ def make_alert(i, prob=0.9, entity="h002", suspected="dos"):
 
 class StoreTestCase(unittest.TestCase):
     def setUp(self):
-        self.tmp = tempfile.TemporaryDirectory()
+        # ignore_cleanup_errors is a backstop, not the fix. On Windows an open
+        # sqlite handle blocks deletion of the file, so a leaked connection
+        # surfaces as PermissionError [WinError 32] in tearDown instead of
+        # leaking silently as it does on POSIX. The real fix is close_all().
+        self.tmp = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
         self.path = Path(self.tmp.name) / "test.db"
         self.store = Store(self.path)
         self.store.migrate()
 
     def tearDown(self):
-        self.store.close()
+        # close() would release only the main thread's connection and leave
+        # every worker thread's handle open.
+        self.store.close_all()
         self.tmp.cleanup()
 
 
@@ -59,7 +65,7 @@ class TestMigrations(StoreTestCase):
         self.assertEqual(
             fresh.connect().execute("PRAGMA journal_mode").fetchone()[0].lower(),
             "wal")
-        fresh.close()
+        fresh.close_all()
 
     def test_foreign_keys_are_on(self):
         self.assertEqual(
@@ -186,7 +192,7 @@ class TestAuditChain(StoreTestCase):
         self.assertEqual(result["checked"], 5)
         reopened.append_audit("bob", "contain", {"host": "h999"})
         self.assertTrue(reopened.verify_chain()["valid"])
-        reopened.close()
+        reopened.close_all()
 
     def test_update_and_delete_are_refused_by_triggers(self):
         self.store.append_audit("ana", "contain", {"host": "h001"})
@@ -210,15 +216,23 @@ class TestAuditChain(StoreTestCase):
         raw.commit()
         raw.close()
 
-        result = Store(self.path).verify_chain()
+        verifier = Store(self.path)
+        try:
+            result = verifier.verify_chain()
+        finally:
+            verifier.close_all()
         self.assertFalse(result["valid"])
         self.assertEqual(result["broken_at"], 2)
         self.assertEqual(result["reason"], "hash mismatch")
 
     def test_concurrent_appends_produce_one_unbroken_chain(self):
         def worker(n):
-            for i in range(20):
-                Store(self.path).append_audit("w%d" % n, "scan", {"i": i})
+            store = Store(self.path)
+            try:
+                for i in range(20):
+                    store.append_audit("w%d" % n, "scan", {"i": i})
+            finally:
+                store.close_all()
 
         threads = [threading.Thread(target=worker, args=(n,)) for n in range(4)]
         for t in threads:
@@ -299,7 +313,7 @@ class TestIdempotency(StoreTestCase):
             except (IdempotencyInFlight, IdempotencyConflict, sqlite3.OperationalError):
                 pass
             finally:
-                store.close()
+                store.close_all()
 
         threads = [threading.Thread(target=attempt) for _ in range(10)]
         for t in threads:
@@ -326,11 +340,11 @@ class TestDurability(StoreTestCase):
     def test_feedback_survives_a_restart(self):
         self.store.insert_alert(make_alert(1))
         self.store.add_feedback("AL-000001", 1, "ana", note="real brute force")
-        self.store.close()
+        self.store.close_all()
         reopened = Store(self.path)
         self.assertEqual(reopened.count_feedback(), 1)
         self.assertEqual(reopened.feedback_for("AL-000001")[0]["label"], 1)
-        reopened.close()
+        reopened.close_all()
 
     def test_one_verdict_per_actor_per_alert(self):
         self.store.insert_alert(make_alert(1))
@@ -343,9 +357,11 @@ class TestDurability(StoreTestCase):
     def test_many_writers_do_not_lose_writes(self):
         def worker(n):
             store = Store(self.path)
-            for i in range(25):
-                store.insert_alert(make_alert(n * 100 + i))
-            store.close()
+            try:
+                for i in range(25):
+                    store.insert_alert(make_alert(n * 100 + i))
+            finally:
+                store.close_all()
 
         threads = [threading.Thread(target=worker, args=(n,)) for n in range(4)]
         for t in threads:
