@@ -3,6 +3,37 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v3.0.0 - backend foundation
+
+The backend stops being a demo process that forgets everything it learned.
+
+### Added
+- `docs/backend/`: five implementation documents covering the plan, data model,
+  v2 API surface, observability and the model registry.
+- `sentinelai/config.py`: one frozen, validated `Settings` object built at boot.
+  Fails closed on a missing or short `SENTINELAI_JWT_SECRET` and reports every
+  configuration problem at once.
+- `sentinelai/obs.py`: JSON logging with a `contextvars` correlation id,
+  formatter-level credential redaction, and a Prometheus registry with twelve
+  metrics and a label-cardinality guard. Standard library only.
+- `sentinelai/store.py`: SQLite persistence in WAL mode for alerts, cases,
+  feedback, the audit chain, an outbox with consumer offsets, and idempotency
+  keys.
+- `tests/test_store.py`: 33 tests, including four concurrent writers, a race
+  between two analysts, a containment stampede, and file-level tamper detection.
+
+### Fixed
+- Migrations aborted with `cannot commit - no transaction is active`.
+  `executescript()` implicitly commits before running, discarding an enclosing
+  `BEGIN IMMEDIATE`.
+
+### Notes
+- The audit hash chain now survives a restart. Previously it lived in memory,
+  so its tamper-evidence ended when the process did.
+- Analyst feedback is no longer lost on restart.
+- Still exactly two runtime dependencies: numpy and pandas.
+- Test count: 118 -> 151.
+
 ## v2.9.2 -- The stage retires as one
 
 - **Chrome outlived the object.** The canvas faded on the model exit but the
