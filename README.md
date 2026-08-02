@@ -1,5 +1,10 @@
 # SentinelAI — Adaptive Threat Detection & Auto-Response Platform
 
+[![ci](https://github.com/tusharbeckham/SentinelAI/actions/workflows/ci.yml/badge.svg)](https://github.com/tusharbeckham/SentinelAI/actions/workflows/ci.yml)
+[![licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
+[![python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue.svg)](https://www.python.org/)
+[![dependencies](https://img.shields.io/badge/runtime%20deps-numpy%20%2B%20pandas-lightgrey.svg)](requirements.txt)
+
 A **working** hybrid intrusion-detection platform: entity-behaviour telemetry generation,
 windowed feature engineering, three complementary detectors fused by a calibrated stacker,
 Shapley explanations on every alert, a policy-driven SOAR response engine with a hash-chained
@@ -7,7 +12,7 @@ audit log, an authenticated scoring API, an analyst triage dashboard, and an act
 drift loop. Every number in this document was produced by running the code in this repo.
 
 ```
-python3 -m unittest discover -s tests        # 46 tests, ~4.9 s
+python3 -m unittest discover -s tests        # 198 tests, ~5.3 s
 python3 -m sentinelai.pipeline --out artifacts   # full experiment, ~136 s
 python3 -m sentinelai.build_dashboard            # dashboard.html from measured artifacts
 python3 -m sentinelai.api                        # authenticated scoring service
@@ -107,7 +112,7 @@ slice, and the hybrid **lost to the supervised leg alone**. Two defects, both fi
   the split boundary and inflate everything.
 
 Learned weights: `gbdt_logit 1.101`, `iforest_logit 0.343`, `graph_score 0.113`,
-intercept `-8.23`. (Before the trailing-window features the unsupervised weight was `0.098`;
+intercept `-8.433969`. (Before the trailing-window features the unsupervised weight was `0.098`;
 giving Isolation Forest a memory more than tripled how much the stacker trusts it.) The stacker itself tells you the supervised leg carries the aggregate
 signal on this corpus — see §3.2 for where the other two legs actually earn their place.
 
@@ -159,7 +164,7 @@ Strictly chronological split — 22,673 train / 11,341 calibration / 11,326 test
 
 | Metric | Value |
 |---|---|
-| Threshold | 0.664 |
+| Threshold | 0.6303 |
 | Alerts/day | 49.8 |
 | Recall | 66.1 % |
 | Precision (test prior 5.2e-3) | 79.6 % |
@@ -314,7 +319,7 @@ sentinelai/
 Dockerfile            non-root runtime image; runs its own test suite during build; fails closed without a signing secret
 requirements.txt      two runtime dependencies: numpy, pandas
 .github/workflows/ci.yml  tests on py3.11-3.14, determinism check, ruff, bandit SAST, pip-audit, gitleaks, Trivy, container build
-tests/                46 tests: closed-form metric checks, Shapley local accuracy, leakage,
+tests/                198 tests: closed-form metric checks, Shapley local accuracy, leakage,
                       auth/tamper/RBAC, audit-chain tamper detection, live HTTP route tests
 artifacts/            report.json, alerts.json, soar_decisions.json, audit_log.json,
                       drift_psi.json, scored_test_windows.csv
@@ -363,6 +368,21 @@ replacing a runtime never changes the science.
    (the top alert in the dashboard is a brute-force window called `dos`); the ground-truth
    column is shown so the analyst is never misled.
 6. Graph leg alone is weak (PR-AUC 0.039) — it is a specialist, not a detector.
+
+## 8. References
+
+- Axelsson, *The Base-Rate Fallacy and its Implications for the Difficulty of Intrusion Detection*, ACM CCS 1999 / TISSEC 3(3):186–205, 2000.
+- Engelen, Rimmer & Joosen, *Troubleshooting an Intrusion Detection Dataset: the CICIDS2017 Case Study*, IEEE WTMC 2021.
+- Lanvin et al., *Errors in the CICIDS2017 Dataset and the Significant Differences in Detection Performances It Makes*, 2022.
+- Dube, *Faulty use of the CIC-IDS 2017 dataset in information security research*, J. Computer Virology & Hacking Techniques 20:203–211, 2024.
+- Sharafaldin, Lashkari & Ghorbani, *Toward Generating a New Intrusion Detection Dataset and Intrusion Traffic Characterization*, ICISSP 2018.
+- Liu, Ting & Zhou, *Isolation Forest*, ICDM 2008.
+- Chen & Guestrin, *XGBoost: A Scalable Tree Boosting System*, KDD 2016.
+- Štrumbelj & Kononenko, *Explaining prediction models and individual predictions with feature contributions*, KAIS 41:647–665, 2014.
+- Larroche, *Designing a Reliable Lateral Movement Detector Using a Graph Foundation Model*, 2025.
+- *LMDetect: Lateral Movement Detection via Time-aware Subgraph Classification on Authentication Logs*, 2024.
+- Soheily-Khah, Marteau & Béchet, *Intrusion Detection in Network Systems Through Hybrid Supervised and Unsupervised Mining*, IEEE 2018.
+- Bohara et al. / Wiley 2024, *Hybrid supervised + unsupervised stacking for intrusion detection*.
 
 ## 9. The alert explainer (`explain_trace.py`)
 
@@ -445,18 +465,3 @@ features are in this window, ignoring the model entirely). For this alert:
 Brute force has the highest corroboration of any family and no attributed
 credit at all. A model-only explanation cannot express that; two independent
 views can.
-
-## 8. References
-
-- Axelsson, *The Base-Rate Fallacy and its Implications for the Difficulty of Intrusion Detection*, ACM CCS 1999 / TISSEC 3(3):186–205, 2000.
-- Engelen, Rimmer & Joosen, *Troubleshooting an Intrusion Detection Dataset: the CICIDS2017 Case Study*, IEEE WTMC 2021.
-- Lanvin et al., *Errors in the CICIDS2017 Dataset and the Significant Differences in Detection Performances It Makes*, 2022.
-- Dube, *Faulty use of the CIC-IDS 2017 dataset in information security research*, J. Computer Virology & Hacking Techniques 20:203–211, 2024.
-- Sharafaldin, Lashkari & Ghorbani, *Toward Generating a New Intrusion Detection Dataset and Intrusion Traffic Characterization*, ICISSP 2018.
-- Liu, Ting & Zhou, *Isolation Forest*, ICDM 2008.
-- Chen & Guestrin, *XGBoost: A Scalable Tree Boosting System*, KDD 2016.
-- Štrumbelj & Kononenko, *Explaining prediction models and individual predictions with feature contributions*, KAIS 41:647–665, 2014.
-- Larroche, *Designing a Reliable Lateral Movement Detector Using a Graph Foundation Model*, 2025.
-- *LMDetect: Lateral Movement Detection via Time-aware Subgraph Classification on Authentication Logs*, 2024.
-- Soheily-Khah, Marteau & Béchet, *Intrusion Detection in Network Systems Through Hybrid Supervised and Unsupervised Mining*, IEEE 2018.
-- Bohara et al. / Wiley 2024, *Hybrid supervised + unsupervised stacking for intrusion detection*.
