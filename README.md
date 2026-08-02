@@ -1,5 +1,10 @@
 # SentinelAI — Adaptive Threat Detection & Auto-Response Platform
 
+[![ci](https://github.com/tusharbeckham/SentinelAI/actions/workflows/ci.yml/badge.svg)](https://github.com/tusharbeckham/SentinelAI/actions/workflows/ci.yml)
+[![licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
+[![python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue.svg)](https://www.python.org/)
+[![dependencies](https://img.shields.io/badge/runtime%20deps-numpy%20%2B%20pandas-lightgrey.svg)](requirements.txt)
+
 A **working** hybrid intrusion-detection platform: entity-behaviour telemetry generation,
 windowed feature engineering, three complementary detectors fused by a calibrated stacker,
 Shapley explanations on every alert, a policy-driven SOAR response engine with a hash-chained
