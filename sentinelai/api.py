@@ -35,11 +35,22 @@ import os
 import re
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from typing import Any, Callable, Dict, List, Sequence
+from typing import Any, Callable, Dict, List, Optional, Sequence
 from urllib.parse import parse_qs, urlparse
+
+from . import obs
+from .apiv2 import ApiError, V2Router
 
 ROLE_ORDER = {"viewer": 0, "analyst": 1, "responder": 2, "admin": 3}
 MAX_BODY = 64 * 1024
+# Paths served by the v2 router rather than the frozen v1 table.
+V2_PUBLIC = ("/readyz", "/metrics")
+
+
+def _err(error: str, message: str, details: Dict[str, Any] | None = None) -> dict:
+    """The v2 error shape. v1 keeps its own {"error": "..."} bodies untouched."""
+    return {"error": error, "message": message,
+            "request_id": obs.request_id_var.get(), "details": details or {}}
 REDACT = re.compile(
     r"(?i)(\"?(?:authorization|token|secret|password|api[-_]?key)\"?\s*[:=]\s*)"
     r"(?:\"[^\"]*\"|[^\s\",}]+)"
@@ -158,7 +169,8 @@ class ScoringService:
         return {"accepted": True, "queued_verdicts": len(self.feedback)}
 
 
-def make_handler(service: ScoringService, secret: str, bucket: TokenBucket, logger: logging.Logger):
+def make_handler(service: ScoringService, secret: str, bucket: TokenBucket,
+                 logger: logging.Logger, router: Optional[V2Router] = None):
     ROUTES = {
         ("GET", "/healthz"): None,
         ("GET", "/v1/alerts"): "viewer",
@@ -176,10 +188,12 @@ def make_handler(service: ScoringService, secret: str, bucket: TokenBucket, logg
         def log_message(self, fmt: str, *args) -> None:  # structured + redacted
             logger.info(redact(json.dumps({"client": self.client_address[0], "msg": fmt % args})))
 
-        def _send(self, code: int, body: dict, extra: Dict[str, str] | None = None) -> None:
-            raw = json.dumps(body).encode()
+        def _send(self, code: int, body: Any, extra: Dict[str, str] | None = None,
+                  content_type: str = "application/json") -> None:
+            # A str body is sent verbatim; /metrics is Prometheus text, not JSON.
+            raw = body.encode("utf-8") if isinstance(body, str) else json.dumps(body).encode()
             self.send_response(code)
-            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(raw)))
             self.send_header("X-Content-Type-Options", "nosniff")
             self.send_header("X-Frame-Options", "DENY")
@@ -230,9 +244,103 @@ def make_handler(service: ScoringService, secret: str, bucket: TokenBucket, logg
                 self._send(400, {"error": "invalid json"})
                 return None
 
+        # ---------------------------------------------------------------- v2
+        def _is_v2(self, path: str) -> bool:
+            return path.startswith("/v2/") or path in V2_PUBLIC
+
+        def _v2_claims(self, path: str):
+            """Returns (claims, ok). Readiness and metrics carry no token.
+
+            Scrape targets that require a bearer token get scraped by nobody,
+            and a readiness probe that needs credentials cannot be used by a
+            load balancer.
+            """
+            if path in V2_PUBLIC:
+                return None, True
+            header = self.headers.get("Authorization", "")
+            if not header.startswith("Bearer "):
+                self._send(401, _err("unauthenticated", "authentication required"))
+                return None, False
+            try:
+                claims = verify_token(secret, header[7:])
+            except AuthError:
+                # The reason goes to the log and to the auth-failure metric, not
+                # to the client. Telling an attacker which part of their forged
+                # token was wrong is free help.
+                obs.AUTH_FAILURES.inc({"reason": "invalid_token"})
+                self._send(401, _err("unauthenticated", "authentication required"))
+                return None, False
+            ok, wait = bucket.allow(claims.get("sub", "anon"))
+            if not ok:
+                obs.RATE_LIMITED.inc({"route": path})
+                self._send(429, _err("rate_limited", "too many requests"),
+                           {"Retry-After": str(int(wait) + 1)})
+                return None, False
+            return claims, True
+
+        def _raw_body(self):
+            """Raw bytes, because the idempotency body hash must see exactly what
+            the client sent. Re-serialising parsed JSON would let a whitespace
+            change look like a different request."""
+            if "application/json" not in (self.headers.get("Content-Type") or ""):
+                self._send(415, _err("unsupported_media_type",
+                                     "content-type must be application/json"))
+                return None
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+            except ValueError:
+                self._send(400, _err("bad_content_length", "bad content-length"))
+                return None
+            if length < 0 or length > MAX_BODY:
+                self._send(413, _err("body_too_large", "body missing or too large"))
+                return None
+            return self.rfile.read(length) if length else b""
+
+        def _v2(self, method: str) -> None:
+            parsed = urlparse(self.path)
+            path = parsed.path
+            if router is None:
+                self._send(503, _err("v2_unavailable",
+                                     "no store is attached to this server"))
+                return
+            claims, ok = self._v2_claims(path)
+            if not ok:
+                return
+            raw = b""
+            if method in ("POST", "PATCH", "PUT"):
+                raw = self._raw_body()
+                if raw is None:
+                    return
+            try:
+                status, payload, extra = router.dispatch(
+                    method, path, parse_qs(parsed.query), raw, claims,
+                    {k: v for k, v in self.headers.items()})
+            except ApiError as exc:
+                self._send(exc.status, exc.body(), exc.headers)
+                return
+            except Exception:
+                logger.exception("unhandled v2 error")
+                self._send(500, _err("internal_error", "internal error"))
+                return
+            if isinstance(payload, str):
+                self._send(status, payload, extra,
+                           content_type="text/plain; version=0.0.4; charset=utf-8")
+            else:
+                self._send(status, payload, extra)
+
+        def do_PATCH(self) -> None:  # noqa: N802
+            path = urlparse(self.path).path
+            if self._is_v2(path):
+                self._v2("PATCH")
+                return
+            self._send(404, {"error": "not found"})
+
         # ------------------------------------------------------------ routes
         def do_GET(self) -> None:  # noqa: N802
             path = urlparse(self.path).path
+            if self._is_v2(path):
+                self._v2("GET")
+                return
             key = ("GET", path)
             if key not in ROUTES:
                 self._send(404, {"error": "not found"})
@@ -253,6 +361,9 @@ def make_handler(service: ScoringService, secret: str, bucket: TokenBucket, logg
 
         def do_POST(self) -> None:  # noqa: N802
             path = urlparse(self.path).path
+            if self._is_v2(path):
+                self._v2("POST")
+                return
             key = ("POST", path)
             if key not in ROUTES:
                 self._send(404, {"error": "not found"})
@@ -282,10 +393,21 @@ def make_handler(service: ScoringService, secret: str, bucket: TokenBucket, logg
     return Handler
 
 
-def serve(service: ScoringService, host: str = "127.0.0.1", port: int = 8088) -> ThreadingHTTPServer:
+def serve(service: ScoringService, host: str = "127.0.0.1", port: int = 8088,
+          store: Any = None, execute: bool = False) -> ThreadingHTTPServer:
+    """Build the server. Passing a Store mounts /v2; without one, /v2 answers 503.
+
+    v1 behaves identically either way. That is the point of the version split:
+    adding persistence must not change a single response the console already
+    depends on.
+    """
     secret = os.environ.get("SENTINELAI_JWT_SECRET")
     if not secret:
         raise RuntimeError("SENTINELAI_JWT_SECRET must be set in the environment")
     logger = logging.getLogger("sentinelai.api")
-    handler = make_handler(service, secret, TokenBucket(), logger)
+    router = None
+    if store is not None:
+        store.migrate()
+        router = V2Router(store, scorer=service.score, execute=execute)
+    handler = make_handler(service, secret, TokenBucket(), logger, router)
     return ThreadingHTTPServer((host, port), handler)
