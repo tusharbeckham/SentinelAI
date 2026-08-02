@@ -3,6 +3,26 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v3.0.1 - close what you open
+
+### Fixed
+- `Store.close()` could only release the calling thread's connection, because
+  connections are held in `threading.local`. Any `Store` used from a worker
+  thread leaked that handle. Added `Store.close_all()`, which closes every
+  connection the instance has opened on any thread.
+- Surfaced on Windows as `PermissionError: [WinError 32]` during temp-directory
+  cleanup in three tests. POSIX permits unlinking an open file, so the same
+  leak left no trace there. The platform difference was in the reporting, not
+  in the bug.
+
+### Changed
+- `connect()` now passes `check_same_thread=False`. Safe because
+  `threading.local` still confines each connection to one thread; required so
+  that shutdown can close a handle it did not open.
+
+### Verified
+- 151 tests pass on Python 3.13 (Linux) and 3.14 (Windows).
+
 ## v3.0.0 - backend foundation
 
 The backend stops being a demo process that forgets everything it learned.
