@@ -364,6 +364,21 @@ replacing a runtime never changes the science.
    column is shown so the analyst is never misled.
 6. Graph leg alone is weak (PR-AUC 0.039) — it is a specialist, not a detector.
 
+## 8. References
+
+- Axelsson, *The Base-Rate Fallacy and its Implications for the Difficulty of Intrusion Detection*, ACM CCS 1999 / TISSEC 3(3):186–205, 2000.
+- Engelen, Rimmer & Joosen, *Troubleshooting an Intrusion Detection Dataset: the CICIDS2017 Case Study*, IEEE WTMC 2021.
+- Lanvin et al., *Errors in the CICIDS2017 Dataset and the Significant Differences in Detection Performances It Makes*, 2022.
+- Dube, *Faulty use of the CIC-IDS 2017 dataset in information security research*, J. Computer Virology & Hacking Techniques 20:203–211, 2024.
+- Sharafaldin, Lashkari & Ghorbani, *Toward Generating a New Intrusion Detection Dataset and Intrusion Traffic Characterization*, ICISSP 2018.
+- Liu, Ting & Zhou, *Isolation Forest*, ICDM 2008.
+- Chen & Guestrin, *XGBoost: A Scalable Tree Boosting System*, KDD 2016.
+- Štrumbelj & Kononenko, *Explaining prediction models and individual predictions with feature contributions*, KAIS 41:647–665, 2014.
+- Larroche, *Designing a Reliable Lateral Movement Detector Using a Graph Foundation Model*, 2025.
+- *LMDetect: Lateral Movement Detection via Time-aware Subgraph Classification on Authentication Logs*, 2024.
+- Soheily-Khah, Marteau & Béchet, *Intrusion Detection in Network Systems Through Hybrid Supervised and Unsupervised Mining*, IEEE 2018.
+- Bohara et al. / Wiley 2024, *Hybrid supervised + unsupervised stacking for intrusion detection*.
+
 ## 9. The alert explainer (`explain_trace.py`)
 
 Every pipeline run writes `artifacts/alert_trace.json`: a single real alert
@@ -445,18 +460,3 @@ features are in this window, ignoring the model entirely). For this alert:
 Brute force has the highest corroboration of any family and no attributed
 credit at all. A model-only explanation cannot express that; two independent
 views can.
-
-## 8. References
-
-- Axelsson, *The Base-Rate Fallacy and its Implications for the Difficulty of Intrusion Detection*, ACM CCS 1999 / TISSEC 3(3):186–205, 2000.
-- Engelen, Rimmer & Joosen, *Troubleshooting an Intrusion Detection Dataset: the CICIDS2017 Case Study*, IEEE WTMC 2021.
-- Lanvin et al., *Errors in the CICIDS2017 Dataset and the Significant Differences in Detection Performances It Makes*, 2022.
-- Dube, *Faulty use of the CIC-IDS 2017 dataset in information security research*, J. Computer Virology & Hacking Techniques 20:203–211, 2024.
-- Sharafaldin, Lashkari & Ghorbani, *Toward Generating a New Intrusion Detection Dataset and Intrusion Traffic Characterization*, ICISSP 2018.
-- Liu, Ting & Zhou, *Isolation Forest*, ICDM 2008.
-- Chen & Guestrin, *XGBoost: A Scalable Tree Boosting System*, KDD 2016.
-- Štrumbelj & Kononenko, *Explaining prediction models and individual predictions with feature contributions*, KAIS 41:647–665, 2014.
-- Larroche, *Designing a Reliable Lateral Movement Detector Using a Graph Foundation Model*, 2025.
-- *LMDetect: Lateral Movement Detection via Time-aware Subgraph Classification on Authentication Logs*, 2024.
-- Soheily-Khah, Marteau & Béchet, *Intrusion Detection in Network Systems Through Hybrid Supervised and Unsupervised Mining*, IEEE 2018.
-- Bohara et al. / Wiley 2024, *Hybrid supervised + unsupervised stacking for intrusion detection*.
