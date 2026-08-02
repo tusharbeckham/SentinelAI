@@ -3,6 +3,36 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v3.1.0 - the API grows a second version
+
+### Added
+
+- `sentinelai/apiv2.py`: the `/v2` router, backed by `Store`. Alerts, cases, feedback, response and audit, plus `/readyz` and `/metrics`.
+- Cursor pagination on every listing route, clamped to 200 items.
+- Optimistic concurrency on cases over HTTP: `ETag` on read, `If-Match` required on `PATCH`, `412` on a stale version and `428` when the header is missing.
+- Idempotency keys on every mutating route, required on `/v2/respond`.
+- `LICENSE` (MIT), `SECURITY.md`, `CITATION.cff`, issue and pull request templates, and `.github/dependabot.yml`.
+- `tests/test_apiv2.py`: 47 tests. The suite is now 198.
+
+### Changed
+
+- CI runs on Windows and macOS as well as Linux. The v3.0.1 leak reached a user because a Linux-only matrix structurally cannot observe a file handle left open.
+- `serve()` accepts a `Store`. Passing one mounts `/v2`; without one `/v2` answers `503` and v1 is unchanged.
+- Seven `web/HERO-*.md` plans collapsed into one `web/HERO.md`.
+- `dashboard.html` moved to `legacy/dashboard.html`.
+
+### Fixed
+
+- Feedback on a nonexistent alert was accepted. The `feedback` table does not constrain `alert_id`, so the verdict was stored as a label that could never be joined back to features. Now `422`.
+- README: intercept `-8.23` corrected to `-8.433969`, threshold `0.664` to `0.6303`, test count `46` to `198`, and sections 8 and 9 restored to numeric order.
+
+### Not done
+
+- `registry.py` is still unwritten, so `serve.py` continues to call `fit_pipeline()` at boot and takes roughly 136 seconds to start.
+- `/v2/models`, `/v2/models/{v}/promote`, `/v2/drift` and `/openapi.json` are specified in `docs/backend/API-V2.md` and not yet implemented.
+- `bus.py` and `worker.py` are not written; the outbox is written to but nothing drains it.
+- The `/v1` `ScoringService` still keeps feedback in a Python list. It is frozen, so this is deliberate.
+
 ## v3.0.1 - close what you open
 
 ### Fixed
