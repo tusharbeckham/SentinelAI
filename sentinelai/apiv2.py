@@ -37,6 +37,14 @@ Routes
   POST   /v2/respond                responder  idempotent, dry-run by default
   GET    /v2/audit                  admin      paginated
   GET    /v2/audit/verify           admin      recomputes the whole chain
+  GET    /v2/models                 viewer     registered versions and stages
+  GET    /v2/models/{version}       viewer     one manifest
+  POST   /v2/models/{v}/promote     admin      runs the promotion gate
+  GET    /v2/drift                  viewer     latest sweep and recommendation
+
+This list is prose and prose rots. ROUTE_SPECS below is the machine-readable
+version, and it is what /openapi.json is generated from and what the parity
+test walks, so the specification cannot silently disagree with the dispatcher.
 """
 
 from __future__ import annotations
@@ -174,11 +182,17 @@ class V2Router:
     """
 
     def __init__(self, store: Store, scorer: Optional[Callable[[Dict[str, Any]], Dict[str, Any]]] = None,
-                 idempotency_ttl: int = 86400, execute: bool = False) -> None:
+                 idempotency_ttl: int = 86400, execute: bool = False,
+                 registry: Any = None, bus: Any = None) -> None:
         self.store = store
         self.scorer = scorer
         self.idempotency_ttl = int(idempotency_ttl)
         self.execute = bool(execute)
+        # Optional on purpose. A router with no registry still serves alerts
+        # and cases; the model routes answer 503 rather than the whole surface
+        # refusing to start.
+        self.registry = registry
+        self.bus = bus
 
     # -- entry point --------------------------------------------------------
 
@@ -195,6 +209,8 @@ class V2Router:
             return self.readyz()
         if method == "GET" and path == "/metrics":
             return (200, obs.REGISTRY.render(), {})
+        if method == "GET" and path == "/openapi.json":
+            return (200, openapi_document(), {})
 
         if not parts or parts[0] != "v2":
             raise ApiError(404, "not_found", "no such route", {"path": path})
@@ -227,6 +243,15 @@ class V2Router:
                 return self.audit(query, claims)
             if method == "GET" and rest[1:] == ["verify"]:
                 return self.audit_verify(claims)
+        elif rest[:1] == ["models"]:
+            if method == "GET" and len(rest) == 1:
+                return self.list_models(claims)
+            if method == "GET" and len(rest) == 2:
+                return self.get_model(rest[1], claims)
+            if method == "POST" and len(rest) == 3 and rest[2] == "promote":
+                return self.promote_model(rest[1], body, claims, headers)
+        elif rest == ["drift"] and method == "GET":
+            return self.drift(claims)
 
         raise ApiError(404, "not_found", "no such route",
                        {"path": path, "method": method})
@@ -250,6 +275,11 @@ class V2Router:
             version = 0
         if self.scorer is None:
             problems.append("model not loaded")
+        if self.registry is not None and not self.registry.production_version():
+            # A registry with nothing promoted cannot score. The process should
+            # still start and answer /metrics so an operator can fix it, but it
+            # must not be handed traffic.
+            problems.append("no production model")
         if problems:
             return (503, {"ready": False, "problems": problems,
                           "schema_version": version}, {})
@@ -556,3 +586,201 @@ class V2Router:
         # A broken chain is not a server error; the server is working correctly
         # and is reporting a true fact about its data. 200 with valid=false.
         return (200, result, {})
+
+    # -- models -------------------------------------------------------------
+
+    def _need_registry(self) -> Any:
+        if self.registry is None:
+            raise ApiError(503, "registry_unavailable",
+                           "this deployment was started without a model registry")
+        return self.registry
+
+    def list_models(self, claims: Optional[Dict[str, Any]]) -> Result:
+        require_role(claims, "viewer")
+        registry = self._need_registry()
+        payload = {
+            "versions": registry.list_versions(),
+            "stages": registry.stages(),
+            "production": registry.production_version(),
+        }
+        return (200, payload, {"ETag": etag_of(payload)})
+
+    def get_model(self, version: str,
+                  claims: Optional[Dict[str, Any]]) -> Result:
+        require_role(claims, "viewer")
+        registry = self._need_registry()
+        from .registry import RegistryError
+
+        try:
+            manifest = registry.show(version)
+        except RegistryError as exc:
+            raise ApiError(404, "model_not_found", str(exc), {"version": version})
+        return (200, manifest, {"ETag": etag_of(manifest)})
+
+    def promote_model(self, version: str, body: bytes,
+                      claims: Optional[Dict[str, Any]],
+                      headers: Dict[str, str]) -> Result:
+        """Move a version between stages, subject to the promotion gate.
+
+        Admin only, and the refusal is a 422 carrying every failed check rather
+        than a bare 'no'. An operator who cannot see which gate tripped will
+        reach for force=true, so the useful thing to return is the list.
+        """
+        actor = require_role(claims, "admin")
+        registry = self._need_registry()
+        from .registry import PromotionRefused, RegistryError
+
+        payload = parse_json(body) if body else {}
+        to = str(payload.get("to", "production"))
+        force = bool(payload.get("force", False))
+        if to not in STAGE_NAMES:
+            raise ApiError(422, "invalid_stage", "unknown stage",
+                           {"stage": to, "allowed": list(STAGE_NAMES)})
+
+        def run() -> Result:
+            try:
+                manifest = registry.promote(version, to, actor=actor, force=force)
+            except PromotionRefused as exc:
+                raise ApiError(
+                    422, "promotion_refused",
+                    "the promotion gate refused this version",
+                    {"problems": list(exc.problems), "version": version,
+                     "to": to, "overridable": True})
+            except RegistryError as exc:
+                raise ApiError(404, "model_not_found", str(exc),
+                               {"version": version})
+            self.store.publish("model.promoted", {
+                "version": version, "stage": to, "actor": actor, "forced": force})
+            return (200, manifest, {"ETag": etag_of(manifest)})
+
+        return self._idempotent(headers.get("idempotency-key"),
+                                "/v2/models/promote", body, run)
+
+    # -- drift --------------------------------------------------------------
+
+    def drift(self, claims: Optional[Dict[str, Any]]) -> Result:
+        """The most recent drift sweep and whether it recommended a retrain.
+
+        Reads the last retrain_recommended event from the outbox. Note the
+        consequence honestly: worker retention purges consumed outbox rows, so
+        this is a recent-history view and not an archive. A drift table would
+        be the right home if anyone needs the long series.
+        """
+        require_role(claims, "viewer")
+        conn = self.store.connect()
+        row = conn.execute(
+            "SELECT id, payload, created_at FROM outbox WHERE topic = ?"
+            " ORDER BY id DESC LIMIT 1", ("retrain_recommended",)).fetchone()
+        current = float(obs.DRIFT_PSI_MAX.value())
+
+        if row is None:
+            return (200, {"status": "no_recommendation",
+                          "psi_current": current,
+                          "last_recommendation": None}, {})
+        try:
+            event = json.loads(row["payload"])
+        except (json.JSONDecodeError, TypeError):
+            event = {}
+        event["event_id"] = int(row["id"])
+        event["at"] = row["created_at"]
+        return (200, {"status": "recommended",
+                      "psi_current": current,
+                      "last_recommendation": event}, {})
+
+
+# ---------------------------------------------------------------------------
+# The route table, and the OpenAPI document generated from it
+# ---------------------------------------------------------------------------
+
+STAGE_NAMES: Tuple[str, ...] = ("staging", "production", "archived")
+
+# (method, path, minimum role, summary). One source of truth: dispatch is
+# checked against this by tests, and openapi_document() renders it. Writing the
+# specification by hand and testing that it matches was the alternative; making
+# disagreement impossible is better than detecting it.
+ROUTE_SPECS: Tuple[Tuple[str, str, str, str], ...] = (
+    ("GET", "/readyz", "public", "Readiness: schema migrated and model loaded."),
+    ("GET", "/metrics", "public", "Prometheus text exposition."),
+    ("GET", "/openapi.json", "public", "This document."),
+    ("GET", "/v2/alerts", "viewer", "List alerts, cursor paginated."),
+    ("GET", "/v2/alerts/{alert_id}", "viewer", "Fetch a single alert."),
+    ("POST", "/v2/score", "analyst", "Score a feature vector. Idempotent."),
+    ("GET", "/v2/cases", "viewer", "List cases, cursor paginated."),
+    ("POST", "/v2/cases", "analyst", "Open a case from an alert. Idempotent."),
+    ("GET", "/v2/cases/{case_id}", "viewer", "Fetch a case. ETag carries the version."),
+    ("PATCH", "/v2/cases/{case_id}", "analyst", "Transition a case. Requires If-Match."),
+    ("POST", "/v2/cases/{case_id}/notes", "analyst", "Append a note to a case."),
+    ("POST", "/v2/feedback", "analyst", "Record an analyst verdict. Idempotent."),
+    ("POST", "/v2/respond", "responder", "SOAR action. Idempotency-Key required."),
+    ("GET", "/v2/audit", "admin", "Paginated audit log."),
+    ("GET", "/v2/audit/verify", "admin", "Recompute the whole hash chain."),
+    ("GET", "/v2/models", "viewer", "Registered model versions and stage pointers."),
+    ("GET", "/v2/models/{version}", "viewer", "Manifest for one model version."),
+    ("POST", "/v2/models/{version}/promote", "admin", "Run the promotion gate."),
+    ("GET", "/v2/drift", "viewer", "Latest drift sweep and retrain recommendation."),
+)
+
+ERROR_SCHEMA: Dict[str, Any] = {
+    "type": "object",
+    "required": ["error", "message", "request_id"],
+    "properties": {
+        "error": {"type": "string", "description": "Stable machine-readable token."},
+        "message": {"type": "string"},
+        "request_id": {"type": "string"},
+        "details": {"type": "object", "additionalProperties": True},
+    },
+}
+
+
+def _path_parameters(path: str) -> List[Dict[str, Any]]:
+    params = []
+    for chunk in path.split("/"):
+        if chunk.startswith("{") and chunk.endswith("}"):
+            params.append({
+                "name": chunk[1:-1], "in": "path", "required": True,
+                "schema": {"type": "string"},
+            })
+    return params
+
+
+def openapi_document() -> Dict[str, Any]:
+    """Render OpenAPI 3.1 from ROUTE_SPECS."""
+    paths: Dict[str, Any] = {}
+    for method, path, role, summary in ROUTE_SPECS:
+        operation: Dict[str, Any] = {
+            "summary": summary,
+            "operationId": method.lower() + path.replace("/", "_")
+                                                .replace("{", "").replace("}", ""),
+            "responses": {
+                "200": {"description": "Success."},
+                "4XX": {
+                    "description": "Client error, in the common error shape.",
+                    "content": {"application/json": {"schema": ERROR_SCHEMA}},
+                },
+            },
+        }
+        if role != "public":
+            operation["security"] = [{"bearerAuth": []}]
+            operation["x-minimum-role"] = role
+        params = _path_parameters(path)
+        if params:
+            operation["parameters"] = params
+        paths.setdefault(path, {})[method.lower()] = operation
+
+    return {
+        "openapi": "3.1.0",
+        "info": {
+            "title": "SentinelAI",
+            "version": "2",
+            "description": "Hybrid intrusion detection. /v1 is frozen; /v2 is "
+                           "persistent, paginated and idempotent.",
+        },
+        "components": {
+            "securitySchemes": {
+                "bearerAuth": {"type": "http", "scheme": "bearer",
+                               "bearerFormat": "JWT"},
+            },
+            "schemas": {"Error": ERROR_SCHEMA},
+        },
+        "paths": paths,
+    }
