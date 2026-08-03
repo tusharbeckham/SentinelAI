@@ -213,7 +213,8 @@ def _fmt(value: float) -> str:
 class _Metric:
     kind = "untyped"
 
-    def __init__(self, name: str, help_text: str, labelnames: Sequence[str] = ()) -> None:
+    def __init__(self, name: str, help_text: str, labelnames: Sequence[str] = (),
+                 allow_identifier_labels: bool = False) -> None:
         if not _NAME_RE.match(name):
             raise ValueError("invalid metric name: " + name)
         for label in labelnames:
@@ -222,6 +223,12 @@ class _Metric:
         self.name = name
         self.help_text = help_text
         self.labelnames: Tuple[str, ...] = tuple(labelnames)
+        # Opt-out for metrics whose label really is a bounded identifier. The
+        # high-cardinality guard is a heuristic on the shape of the value, so
+        # it cannot tell a model version (a handful, ever) from an alert id
+        # (unbounded). Only set this where the bound is a fact about the
+        # domain, not a hope about traffic.
+        self.allow_identifier_labels = bool(allow_identifier_labels)
         self._lock = threading.Lock()
 
     def _key(self, labels: Optional[Mapping[str, str]]) -> Tuple[str, ...]:
@@ -232,7 +239,7 @@ class _Metric:
         key: List[str] = []
         for label in self.labelnames:
             value = str(given[label])
-            if _HIGH_CARD_RE.search(value):
+            if not self.allow_identifier_labels and _HIGH_CARD_RE.search(value):
                 raise CardinalityError(
                     "label " + label + "=" + repr(value) + " on " + self.name
                     + " looks like an identifier; use a route pattern, not a resolved path")
@@ -288,8 +295,9 @@ class Counter(_Metric):
 class Gauge(_Metric):
     kind = "gauge"
 
-    def __init__(self, name: str, help_text: str, labelnames: Sequence[str] = ()) -> None:
-        super().__init__(name, help_text, labelnames)
+    def __init__(self, name: str, help_text: str, labelnames: Sequence[str] = (),
+                 allow_identifier_labels: bool = False) -> None:
+        super().__init__(name, help_text, labelnames, allow_identifier_labels)
         self._values: Dict[Tuple[str, ...], float] = {}
 
     def set(self, value: float, labels: Optional[Mapping[str, str]] = None) -> None:
@@ -388,8 +396,10 @@ class Registry:
         metric = self.register(Counter(name, help_text, labelnames))
         return metric  # type: ignore[return-value]
 
-    def gauge(self, name: str, help_text: str, labelnames: Sequence[str] = ()) -> Gauge:
-        metric = self.register(Gauge(name, help_text, labelnames))
+    def gauge(self, name: str, help_text: str, labelnames: Sequence[str] = (),
+              allow_identifier_labels: bool = False) -> Gauge:
+        metric = self.register(Gauge(name, help_text, labelnames,
+                                     allow_identifier_labels))
         return metric  # type: ignore[return-value]
 
     def histogram(self, name: str, help_text: str, labelnames: Sequence[str] = (),
@@ -435,8 +445,13 @@ SOAR_ACTIONS = REGISTRY.counter(
     "sentinelai_soar_actions_total", "SOAR decisions by action.", ("action",))
 AUDIT_CHAIN_VALID = REGISTRY.gauge(
     "sentinelai_audit_chain_valid", "1 if the audit hash chain verifies, else 0.")
+# The version label is exempt from the identifier heuristic: a registry version
+# id such as v20260802T212224Z-4aa856 contains a long digit run and would
+# otherwise raise CardinalityError the first time a model was loaded. The set of
+# versions is bounded by the number of models ever promoted.
 MODEL_INFO = REGISTRY.gauge(
-    "sentinelai_model_info", "Loaded model version and stage.", ("version", "stage"))
+    "sentinelai_model_info", "Loaded model version and stage.", ("version", "stage"),
+    allow_identifier_labels=True)
 DRIFT_PSI_MAX = REGISTRY.gauge(
     "sentinelai_drift_psi_max", "Largest per-feature PSI in the last drift sweep.")
 OUTBOX_LAG = REGISTRY.gauge(
