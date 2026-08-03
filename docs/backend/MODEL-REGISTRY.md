@@ -63,9 +63,22 @@ when the new model is worse.
 }
 ```
 
-`content_hash` is SHA-256 over the concatenated `.npz` bytes and the sorted
-feature names. Two runs producing byte-identical models get the same hash, which
-makes the determinism check in CI meaningful rather than decorative.
+`content_hash` is SHA-256 over the canonical array contents: for each array, in
+sorted key order, the key, its dtype string, its shape and its contiguous bytes.
+
+This paragraph previously said the hash was taken over the concatenated `.npz`
+bytes and the *sorted* feature names. Both halves were wrong, and implementing
+the spec exposed it:
+
+- An `.npz` is a zip archive, and zip records modification times. Two runs
+  producing bit-identical models therefore produce different archive bytes, so a
+  hash over the file could never be stable and the CI determinism check would
+  have been decorative after all.
+- Sorting the feature names would let two positionally incompatible models hash
+  equal. The model indexes feature columns by position, so the contract is the
+  *ordered* list. `feature_hash` joins the names in their given order; a model
+  handed the right names in the wrong order scores confident garbage, and that
+  is precisely what the hash exists to prevent.
 
 `stacker.coef` and `intercept` are duplicated into the manifest even though they
 live in the `.npz`, because they are the numbers a human reads during an
@@ -95,17 +108,27 @@ Every promotion writes to `model_versions` and to the outbox.
 
 ## 5. `model_versions` table
 
+The shipped table is narrower than this section originally described. The
+columns `content_hash`, `feature_hash`, `threshold`, `promoted_by` and `forced`
+were specified here but never existed in migration 4:
+
 | Column | Type | Notes |
 | --- | --- | --- |
 | `version` | TEXT PK | directory name |
 | `stage` | TEXT NOT NULL | `staging` / `production` / `archived` |
-| `content_hash` | TEXT NOT NULL | |
-| `feature_hash` | TEXT NOT NULL | |
-| `pr_auc`, `ece`, `threshold` | REAL | promotion-gate inputs |
 | `created_at`, `promoted_at` | TEXT | |
-| `promoted_by` | TEXT | JWT `sub`, or `system` |
-| `forced` | INTEGER | 0/1 |
-| `manifest` | TEXT | full JSON, for the record |
+| `manifest` | TEXT NOT NULL | full JSON, for the record |
+| `pr_auc`, `ece` | REAL | promotion-gate inputs |
+| `notes` | TEXT | the promotion event as JSON |
+
+The missing columns were not added, because adding them would duplicate fields
+that already live in `manifest` and invite the two copies to disagree. The
+filesystem manifest is the source of truth; this table is a queryable mirror.
+
+The one genuinely important omission was `promoted_by` and `forced` -- who
+overrode the gate, and that they did. Those go into the hash-chained audit log
+via `append_audit`, and into `notes`. An append-only, verifiable chain is a
+better home for "who forced this" than a plain column an operator can UPDATE.
 
 A partial unique index enforces at most one production version:
 
@@ -115,7 +138,10 @@ CREATE UNIQUE INDEX one_production
 ```
 
 The database refuses two production models. That invariant is too important to
-leave to application code.
+leave to application code -- and it earned its keep immediately: the first
+implementation of `_record` inserted the new production row without stepping the
+displaced one down, and the index caught it as an `IntegrityError` during the
+rollback test. `_record` now demotes the incumbent in the same call.
 
 ## 6. Serialisation
 
