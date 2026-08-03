@@ -3,6 +3,9 @@
 # Stage 1 builds the React console, stage 2 runs the Python scorer and serves the
 # built bundle from the same port, so the browser gets one origin and no CORS.
 #
+# Requires web/package-lock.json to be committed and in sync with
+# web/package.json. Regenerate with `npm install` inside web/.
+#
 #   docker build -f Dockerfile.space -t sentinelai-space .
 #   docker run -p 7860:7860 -e SENTINELAI_JWT_SECRET=$(openssl rand -hex 32) sentinelai-space
 
@@ -12,16 +15,23 @@ WORKDIR /build
 
 # Artifacts first: the console renders measured numbers, so the sync step must
 # have them before the bundle is built.
-COPY artifacts ./artifacts
-COPY web/package.json ./web/
+COPY artifacts/*.json ./artifacts/
+
+# Lockfile first, then `npm ci`, which installs the exact resolved tree and
+# fails loudly if package.json and the lockfile disagree. `npm install`
+# would silently re-resolve versions at build time, so a three.js patch
+# release could change the hero without a single commit in this repo.
+COPY web/package.json web/package-lock.json ./web/
 WORKDIR /build/web
-RUN corepack enable && pnpm install --no-frozen-lockfile
+RUN npm ci --no-audit --fund=false
 
 COPY web ./
-RUN node scripts/sync-artifacts.mjs ../artifacts && pnpm build
+RUN node scripts/sync-artifacts.mjs ../artifacts && npm run build
 
 # ---------- stage 2: runtime ----------
-FROM python:3.12-slim AS runtime
+# Matches the root Dockerfile and the CI matrix ceiling. Two Python versions
+# across two images is a defect waiting to be blamed on the model.
+FROM python:3.13-slim AS runtime
 
 # Non-root by default. A security project that ships a root container is not
 # making its own argument credibly.
@@ -36,7 +46,7 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY sentinelai ./sentinelai
-COPY artifacts ./artifacts
+COPY artifacts/*.json ./artifacts/
 COPY README.md ./
 COPY --from=web /build/web/dist ./web/dist
 
