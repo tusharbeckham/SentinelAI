@@ -3,6 +3,55 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v3.2.0 - the model gets a registry and the events get a reader
+
+### Added
+
+- `sentinelai/registry.py`: versioned model artifacts with a promotion gate.
+  Models serialise to a flat `.npz` loaded with `allow_pickle=False`, are
+  identified by a hash over canonical array contents, and carry an ordered
+  feature contract. Promotion refuses a version whose calibration has degraded
+  or whose feature contract differs from the incumbent, and reports every
+  failed check at once. Rollback is a legal transition, on purpose.
+- `sentinelai/bus.py` and `sentinelai/worker.py`: the outbox finally has a
+  reader. Until now every domain event since v3.0.0 was written and consumed by
+  nothing. Delivery is at-least-once with per-consumer offsets; a failing
+  handler blocks rather than skips.
+- `/v2/models`, `/v2/models/{version}`, `/v2/models/{version}/promote` and
+  `/v2/drift`.
+- `/openapi.json`, generated from a single route table and committed to
+  `docs/openapi.json`.
+- `tests/test_registry.py`, `tests/test_bus.py`, `tests/test_http_e2e.py` and
+  `tests/test_openapi_parity.py`. The suite is 255 tests.
+
+### Changed
+
+- Startup loads the promoted model instead of fitting one. Cold start is
+  0.367s, measured, against a 61s fit.
+
+### Fixed
+
+- A malformed bearer token dropped the connection instead of returning 401.
+  Unauthenticated callers could kill handler threads at will.
+- Topic-filtered consumers could never advance their offset, so their lag rose
+  forever.
+- Promoting a second model violated the one-production index.
+- Two saves in the same second collided and the second overwrote the first.
+
+### Not done
+
+- Nothing has ever been pushed to a remote. The history is real; its publication
+  is not.
+- `/v2/drift` reads the outbox, which retention purges after 30 days. It is
+  recent history, not an archive. A drift table is the right fix and is not
+  built.
+- The model itself is unchanged and its known weaknesses stand: the hybrid
+  average precision of 0.811 is below the gradient-boosted leg alone at 0.858,
+  zero-day recall at budget is approximately zero, and lateral movement recall
+  is 0 of 1.
+- No load testing. Concurrency is argued from SQLite WAL semantics and proven
+  only by the test suite.
+
 ## v3.1.0 - the API grows a second version
 
 ### Added
