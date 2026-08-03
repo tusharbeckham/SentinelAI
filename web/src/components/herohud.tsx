@@ -40,13 +40,13 @@ const READOUTS: Array<Array<[string, string]>> = [
 	],
 	[
 		["stacker", "logistic, calibrated"],
-		["p rank 1", "0.9866"],
+		["p rank 1", "0.9858"],
 	],
 	[
-		["threshold", "0.6303"],
+		["threshold", "0.6252"],
 		["above plane", "49 = 39 true + 10 false"],
 		["missed", "20"],
-		["precision / recall", "0.796 / 0.661"],
+		["precision / recall", "0.857 / 0.712"],
 	],
 	[
 		["alert", "AL-1767491700-h002"],
