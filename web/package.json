@@ -27,6 +27,7 @@
     "@types/react-dom": "19.2.0",
     "@vitejs/plugin-react": "5.0.0",
     "tailwindcss": "4.1.11",
+    "@types/node": "^22.0.0",
     "typescript": "5.9.2",
     "vite": "7.0.6",
     "@types/three": "^0.166.0"

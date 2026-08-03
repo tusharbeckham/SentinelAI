@@ -3,7 +3,11 @@
 .github
 **/__pycache__
 **/*.pyc
-artifacts
+# Only the 4.5 MB scored-window dump is excluded. The measured JSON
+# artifacts ARE build inputs: the console renders them, so the Space
+# build needs them in context. Excluding the whole directory silently
+# broke `docker build -f Dockerfile.space`.
+artifacts/scored_test_windows.csv
 ci_a
 ci_b
 dashboard.html

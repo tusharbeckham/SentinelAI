@@ -3,6 +3,114 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v3.4.1 - the front end had never passed its own typecheck
+
+`npm run build` runs `tsc --noEmit` before `vite build`, and it reported 61
+errors across 5 files. It had presumably never been run: `vite dev` does not
+typecheck, so the console worked in the browser the entire time. This blocked
+the Space, whose build stage runs exactly that command.
+
+### Fixed
+
+- **30 errors of one shape.** three.js types `Material.uniforms` as
+  `Record<string, IUniform>`, so under `noUncheckedIndexedAccess` every
+  `pointMat.uniforms.uTime` in the render loop is possibly-undefined. The
+  three uniform literals are now bound to named consts
+  (`pointUniforms`, `gradeUniforms`, `hullUniforms`) that keep their precise
+  inferred shape, and the loop reads real properties. Structurally identical
+  object, no runtime change, and no cast: a cast would have silenced the
+  compiler without telling it anything true.
+- `utils.$(selector, host)` was called with two arguments in three places.
+  animejs 4.0.2 declares one. Replaced with `querySelectorAll`, which
+  expresses the same scoped lookup without relying on an overload that does
+  not exist.
+- Two `useEffect` cleanups returned `() => instance.pause()`, whose value is
+  the animation object rather than void. React would have treated the return
+  as a further cleanup.
+- Array indexing that genuinely can miss: camera keyframe neighbours, act
+  boundaries, `emb.fam[i]`, `emb.p[i]`, `SECTIONS[0]`, and the last seen
+  section. Each is now checked rather than asserted; there is not one `!` in
+  the patch, because a non-null assertion is a promise the compiler cannot
+  keep if the keyframe table is ever shortened.
+- `vite.config.ts` imports `node:url` and refers to `NodeJS.ErrnoException`
+  in a file Node executes. The types were never installed. Added
+  `@types/node` and `"node"` to `compilerOptions.types`.
+- Dead code the compiler had been trying to report: the unused `GRAPH`
+  colour constant and an unused `fade` local.
+
+### Not done
+
+- **No compiler flag was relaxed.** `strict`, `noUncheckedIndexedAccess`,
+  `noUnusedLocals` and `noUnusedParameters` all stand. Turning off
+  `noUncheckedIndexedAccess` would have cleared 40 of the 61 errors in one
+  line, and would have been the same mistake as v3.3.1's CI gates: editing
+  the instrument instead of reading it.
+- `npm audit` reports 1 high-severity advisory in the dev dependency tree.
+  Not addressed here, and deliberately not with `--force`, which resolves
+  advisories by installing semver-major upgrades.
+
+## v3.4.0 - the Space build, fixed before its first run
+
+Deployment. The Hugging Face Docker Space could not have built before this
+release, for three separate reasons, none of which any test covered.
+
+### Fixed
+
+- `.dockerignore` excluded `artifacts`, so `COPY artifacts ./artifacts` in
+  `Dockerfile.space` had no source files and the build failed before the
+  console could be assembled. Only `artifacts/scored_test_windows.csv` (4.5
+  MB) is excluded now; the measured JSON the console renders is a build
+  input, not local state.
+- The web stage ran `corepack enable && pnpm install --no-frozen-lockfile`
+  with no `packageManager` field and no pnpm lockfile in the repository.
+  That downloads a package manager and re-resolves every dependency range
+  at build time. Replaced with `npm ci` against a committed
+  `web/package-lock.json`, which fails loudly on drift instead of quietly
+  shipping different code than the last build.
+- The runtime stage was `python:3.13-slim` while the root `Dockerfile` and
+  the CI matrix ceiling were not aligned with it. One Python per project.
+
+### Added
+
+- `docs/DEPLOYMENT.md`: the Space architecture, the lockfile rationale, the
+  `space` branch workflow, free-tier limits, and local verification.
+- `docs/space/README-space.md`: the Hugging Face Space card, including the
+  YAML frontmatter HF requires at the repository root.
+- A `space` branch: `main` plus exactly two overrides, `Dockerfile` and
+  `README.md`, because HF requires both at the root under those exact names
+  and neither can take that shape on `main` without damaging it.
+
+### Known
+
+- The image has never been built. There is no Docker daemon and no network
+  in the environment these changes were authored in, so `docker build -f
+  Dockerfile.space .` is unverified and the first real build may still fail.
+- `web/package-lock.json` must be generated with `npm install` and committed
+  before the Space can build at all. `npm ci` has nothing to install from
+  until it exists.
+
+
+## v3.3.1 - CI gates verify invariants, not architectures
+
+Shipped without a changelog entry. Recorded here.
+
+### Fixed
+
+- `explainer-integrity` went red on v3.3.0. `scripts/verify_trace.py`
+  asserted `len(terms) == 3`, which is the number of legs the ensemble
+  happened to have, not a property the explanation must satisfy. A gate
+  that encodes the model shape has to be edited every time the architecture
+  legitimately changes, which trains people to edit the gate instead of
+  reading it. Now `len(terms) >= 2` plus a check that every leg is fully
+  specified: label, coefficient, value, mean, scale, term.
+- `secret-hygiene` had been failing on its own documentation. The tree-wide
+  grep for a hardcoded JWT secret matched the `export SENTINELAI_JWT_SECRET`
+  shell examples inside the docstrings of `serve.py` and `space_server.py`.
+  A security gate that cries wolf is worse than no gate, because it gets
+  muted. Replaced with two Python-syntax-anchored greps scoped to
+  `sentinelai/`, verified against a planted secret to confirm they still
+  catch a real one.
+
 ## v3.3.0 - the ensemble stops losing to its own best member
 
 ### Fixed
