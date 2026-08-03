@@ -137,4 +137,4 @@ on a GPU, which computes the horizontal layout with UMAP and emits a schema-iden
 
 Only `x` and `z` may ever change. `y` is the model log-odds, which is what makes the
 decision threshold an exact plane rather than an illustration. The notebook asserts the
-plane still reproduces precision 0.7959 and recall 0.6610 before it writes anything.
+plane still reproduces precision 0.8571 and recall 0.7119 before it writes anything.
