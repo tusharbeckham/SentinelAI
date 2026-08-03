@@ -129,3 +129,26 @@ correlation ID plus a duration histogram gives essentially everything a trace
 would, and OTel is a large dependency tree that would break the two-package
 claim. When `store.py` becomes a network call, that calculus changes and this
 decision should be revisited -- noted here so the reasoning is recoverable.
+
+
+## Cardinality: the one deliberate exception
+
+`Registry.gauge` refuses label values matching `[0-9]{5,}`, which is what stops
+an entity id or a timestamp from being used as a label and quietly turning one
+time series into a hundred thousand.
+
+`MODEL_INFO{version,stage}` is exempt via `allow_identifier_labels=True`. A
+registry version id such as `v20260803T061337Z-aecf27` contains eight
+consecutive digits and would otherwise raise `CardinalityError` the first time a
+model loaded -- the guard firing on a series whose cardinality is bounded by the
+number of models ever promoted. The exemption is explicit and opt-in rather than
+a caught exception or a mangled version string, so the guard still protects
+every other metric.
+
+## Outbox lag
+
+`sentinelai_outbox_lag{consumer}` is the number of undelivered events per
+consumer. It is the metric to alert on: a poison event makes a consumer block
+rather than skip, so a stuck consumer shows as monotonically rising lag. That is
+intentional. Skipping a failing event would keep the gauge at zero while quietly
+discarding security events, which is the failure nobody notices.
