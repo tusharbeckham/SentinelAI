@@ -60,7 +60,13 @@ jobs:
       - name: disable jekyll
         run: touch web/dist/.nojekyll
 
+      # enablement: true turns Pages on via the API if it has not been
+      # switched on in Settings, instead of failing with 'Get Pages site
+      # failed'. A deploy workflow that requires an undocumented click is a
+      # deploy workflow that breaks for the next person who clones this.
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: web/dist

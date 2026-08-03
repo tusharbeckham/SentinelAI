@@ -3,6 +3,42 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v3.5.1 - a linter that got newer, not a codebase that got worse
+
+`SAST + lint` failed with **469 errors** across `sentinelai/` and `tests/`,
+none of them caused by a code change. CI installed ruff unpinned
+(`pip install ... ruff bandit[toml]`) and the repository had no ruff
+configuration at all, so lint ran against whatever the current default rule
+set happened to be. A ruff release widened that default - the bulk of the
+findings are UP031, `'%s' % value` style rewrites - and the build went red
+on its own.
+
+`ruff.toml` now selects the rule set explicitly: E4, E7, E9 and the full
+pyflakes F family - undefined names, unused imports, shadowed builtins. Those
+are defects. The pyupgrade family is deliberately not selected; 469
+mechanical rewrites across a tested codebase carry more risk than the
+inconsistency they remove, and adopting them should be a deliberate commit
+with the suite re-run, not a side effect of a dependency upgrade.
+
+This is the third gate in this project to fail for a reason unrelated to what
+it protects, after the trace verifier that asserted an architecture (v3.3.1)
+and the secret scan that matched its own documentation (v3.3.1). The pattern
+is the same every time: an unpinned or over-broad check trains people to mute
+it, and a muted check protects nothing. `ruff --version` is now printed in
+the job log so the exact linter is recoverable and pinnable.
+
+Pages: `configure-pages` gains `enablement: true`, so the workflow turns
+Pages on through the API rather than failing with `Get Pages site failed`
+when the Settings switch has not been flipped. A deploy that depends on an
+undocumented click is not a deploy.
+
+The `space` branch is no longer published. It holds no unique work - it is
+`main` plus two file substitutions - and while it existed on GitHub it
+produced a permanent 'Compare & pull request' banner for a merge that must
+never happen. DEPLOYMENT.md documents how to regenerate it on demand;
+`Dockerfile.space` stays in the tree and `docker build -f Dockerfile.space .`
+is unaffected.
+
 ## v3.5.0 - the free demo, because Docker Spaces stopped being free
 
 Hugging Face moved Docker and Gradio Spaces behind PRO on 8 July 2026.
