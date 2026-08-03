@@ -52,13 +52,13 @@ when the new model is worse.
   "feature_contract": {"n": 40, "hash": "9d2b...", "names": ["..."]},
   "training": {"seed": 7, "days": 4.0, "window_s": 300,
                "n_train": 22673, "n_calib": 11341, "n_positive": 171},
-  "metrics": {"pr_auc": 0.811, "roc_auc": 0.998, "recall_at_budget": 0.661,
-              "precision_at_budget": 0.796, "brier": 0.0024, "ece": 0.0018},
-  "operating_point": {"threshold": 0.6303419959358633, "budget": 50,
+  "metrics": {"pr_auc": 0.866, "roc_auc": 0.999, "recall_at_budget": 0.712,
+              "precision_at_budget": 0.857, "brier": 0.0019, "ece": 0.0018},
+  "operating_point": {"threshold": 0.6251904732503484, "budget": 50,
                       "alerts_per_day": 49.839},
   "deployment_prior": 1e-4,
-  "stacker": {"coef": [0.342546, 1.100883, 0.113480],
-              "intercept": -8.433968927814007},
+  "stacker": {"coef": [0.296404, 1.146281],
+              "intercept": -8.26618014861838},
   "lineage": {"git_sha": "...", "pipeline_version": "2.9.2", "parent": null}
 }
 ```
@@ -83,7 +83,7 @@ the spec exposed it:
 `stacker.coef` and `intercept` are duplicated into the manifest even though they
 live in the `.npz`, because they are the numbers a human reads during an
 incident and nobody should need NumPy to read them. Note that the intercept here
-is `-8.433968927814007` -- the value the artifacts actually carry.
+is `-8.26618014861838` -- the value the artifacts actually carry.
 
 ## 4. The promotion gate
 
