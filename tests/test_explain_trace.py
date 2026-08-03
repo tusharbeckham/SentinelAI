@@ -30,7 +30,6 @@ from sentinelai.explain_trace import (
 COEFFICIENTS = {
     "iforest_logit": 0.34254645234181474,
     "gbdt_logit": 1.1008832230073278,
-    "graph_score": 0.11347992873914635,
 }
 INTERCEPT = -8.433968927814007
 
@@ -151,7 +150,7 @@ class TestPercentile(unittest.TestCase):
 
 class TestLegBreakdown(unittest.TestCase):
     def setUp(self) -> None:
-        self.fusion = leg_breakdown([2.5, 6.0, 0.31613859078764417], COEFFICIENTS, INTERCEPT, ABLATION)
+        self.fusion = leg_breakdown([2.5, 6.0], COEFFICIENTS, INTERCEPT, ABLATION)
 
     def test_terms_sum_to_log_odds(self) -> None:
         # The whole promise of the fusion stage: it is a visible sum.
@@ -168,23 +167,29 @@ class TestLegBreakdown(unittest.TestCase):
     def test_leg_order_is_stable(self) -> None:
         self.assertEqual(
             [leg["label"] for leg in self.fusion["legs"]],
-            ["isolation forest", "gradient boosting", "graph leg"],
+            ["isolation forest", "gradient boosting"],
         )
 
     def test_carries_standalone_quality(self) -> None:
-        # Average precision, because ROC-AUC at a 0.5% base rate flatters all three.
+        # Average precision, because ROC-AUC at a 0.5% base rate flatters both.
         by_label = {leg["label"]: leg for leg in self.fusion["legs"]}
-        self.assertAlmostEqual(by_label["graph leg"]["average_precision"], 0.039)
+        self.assertAlmostEqual(
+            by_label["isolation forest"]["average_precision"], 0.2984837011150931
+        )
         self.assertAlmostEqual(by_label["gradient boosting"]["average_precision"], 0.858)
 
     def test_gbdt_dominates_the_sum(self) -> None:
         by_label = {leg["label"]: leg for leg in self.fusion["legs"]}
-        self.assertGreater(by_label["gradient boosting"]["term"], by_label["graph leg"]["term"])
+        # The supervised leg should carry the decision; if the unsupervised leg
+        # ever outweighs it on a confident alert, the fusion has drifted.
+        self.assertGreater(
+            by_label["gradient boosting"]["term"], by_label["isolation forest"]["term"]
+        )
 
 
 # The fitted stacker standardises its inputs. These numbers stand in for
 # LogisticStacker.mu / .sd.
-STANDARDIZER = {"mean": [0.5, 4.0, 0.1], "scale": [0.25, 3.0, 0.2]}
+STANDARDIZER = {"mean": [0.5, 4.0], "scale": [0.25, 3.0]}
 
 
 class TestStandardisedFusion(unittest.TestCase):
@@ -198,7 +203,7 @@ class TestStandardisedFusion(unittest.TestCase):
     """
 
     def setUp(self) -> None:
-        self.row = [1.0, 10.0, 0.5]
+        self.row = [1.0, 10.0]
         self.std = leg_breakdown(
             self.row,
             COEFFICIENTS,
@@ -228,13 +233,13 @@ class TestStandardisedFusion(unittest.TestCase):
     def test_identity_transform_is_the_default(self) -> None:
         raw = leg_breakdown(self.row, COEFFICIENTS, INTERCEPT, ABLATION)
         ident = leg_breakdown(
-            self.row, COEFFICIENTS, INTERCEPT, ABLATION, mean=[0, 0, 0], scale=[1, 1, 1]
+            self.row, COEFFICIENTS, INTERCEPT, ABLATION, mean=[0, 0], scale=[1, 1]
         )
         self.assertAlmostEqual(raw["log_odds"], ident["log_odds"], places=12)
 
     def test_degenerate_scale_is_clamped_not_infinite(self) -> None:
         f = leg_breakdown(
-            self.row, COEFFICIENTS, INTERCEPT, ABLATION, mean=[0, 0, 0], scale=[0.0, 0.0, 0.0]
+            self.row, COEFFICIENTS, INTERCEPT, ABLATION, mean=[0, 0], scale=[0.0, 0.0]
         )
         for leg in f["legs"]:
             self.assertTrue(math.isfinite(leg["term"]))
@@ -245,10 +250,8 @@ class TestStandardisedFusion(unittest.TestCase):
         # rediscover it.
         mean, scale = STANDARDIZER["mean"], STANDARDIZER["scale"]
         target = math.log(ALERT["probability"] / (1 - ALERT["probability"]))
-        graph = ROW["graph_score"]
         fixed = (
             COEFFICIENTS["iforest_logit"] * ((0.0 - mean[0]) / scale[0])
-            + COEFFICIENTS["graph_score"] * ((graph - mean[2]) / scale[2])
             + INTERCEPT
         )
         z_gbdt = (target - fixed) / COEFFICIENTS["gbdt_logit"]
@@ -256,7 +259,7 @@ class TestStandardisedFusion(unittest.TestCase):
         trace = build_trace(
             alert=ALERT,
             row=ROW,
-            fusion_row=[0.0, gbdt_raw, graph],
+            fusion_row=[0.0, gbdt_raw],
             coefficients=COEFFICIENTS,
             intercept=INTERCEPT,
             prior_shift=-3.9224164612054793,
@@ -369,13 +372,12 @@ class TestBuildTrace(unittest.TestCase):
         # Fusion inputs chosen to land on the published probability, the way the
         # real pipeline's fusion_inputs() does.
         target_logodds = math.log(ALERT["probability"] / (1 - ALERT["probability"]))
-        graph = ROW["graph_score"]
-        rest = target_logodds - INTERCEPT - COEFFICIENTS["graph_score"] * graph
+        rest = target_logodds - INTERCEPT
         gbdt = rest / COEFFICIENTS["gbdt_logit"]
         self.trace = build_trace(
             alert=ALERT,
             row=ROW,
-            fusion_row=[0.0, gbdt, graph],
+            fusion_row=[0.0, gbdt],
             coefficients=COEFFICIENTS,
             intercept=INTERCEPT,
             prior_shift=-3.9224164612054793,
