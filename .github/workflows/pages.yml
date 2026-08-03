@@ -1,0 +1,77 @@
+name: pages
+
+# The public demo. Pages serves the console as static files reading the
+# tracked artifacts/*.json - the same numbers the README quotes, so the demo
+# cannot drift from the paper.
+#
+# Hugging Face made Docker Spaces PRO-only on 8 July 2026, so the free demo
+# lives here. Dockerfile.space remains the full-fidelity path - console plus
+# the authenticated /v1 API - for a local docker build or a paid Space.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Pages deploys with an OIDC token. Nothing here may write to the repository.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Queue deploys instead of cancelling them, so the newest push wins rather
+# than the fastest one. This is the opposite of the ci workflow on purpose.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: build console
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      # npm ci, not npm install: it installs the exact locked tree and fails
+      # if package.json and the lockfile have drifted apart.
+      - name: install
+        working-directory: web
+        run: npm ci --no-audit --fund=false
+
+      # Exits 1 if any required artifact is missing. There is no mock data
+      # anywhere in this app, so a missing artifact must fail the deploy
+      # rather than publish an empty panel.
+      - name: copy measured artifacts into the bundle
+        working-directory: web
+        run: node scripts/sync-artifacts.mjs ../artifacts
+
+      # check-css, then tsc --noEmit, then vite build. The typecheck is a
+      # deployment gate: a type error cannot reach the live site.
+      - name: build
+        working-directory: web
+        run: npm run build
+
+      - name: disable jekyll
+        run: touch web/dist/.nojekyll
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/dist
+
+  deploy:
+    name: deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
