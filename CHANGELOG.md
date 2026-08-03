@@ -3,6 +3,31 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v3.5.0 - the free demo, because Docker Spaces stopped being free
+
+Hugging Face moved Docker and Gradio Spaces behind PRO on 8 July 2026.
+Static Spaces stayed free. Rather than pay 9 USD/month to host a demo, the
+public console now deploys to GitHub Pages from `.github/workflows/pages.yml`
+on every push to `main`.
+
+This cost almost nothing to do, and the reason is worth recording: the
+console never required the API. `sync-artifacts.mjs` copies the tracked
+`artifacts/*.json` into the bundle and `vite.config.ts` already treated a
+refused connection to the scorer as expected behaviour. A decision made for
+honesty - no mock data, every panel reads a measured artifact - turned out to
+be what made the app portable to static hosting.
+
+What the static demo loses: `POST /v1/score`, the one panel that needs the
+Python service. Everything else is artifact-backed and unaffected.
+
+`Dockerfile.space` and the `space` branch are kept, not deleted. They remain
+the only path that serves the console and the authenticated API from one
+origin, and `docker build -f Dockerfile.space .` runs it locally for free.
+
+The deploy job runs the full `npm run build` - check-css, `tsc --noEmit`,
+then `vite build` - not the faster `vite build` alone. After v3.4.1 there was
+no argument for letting a type error reach a published page.
+
 ## v3.4.1 - the front end had never passed its own typecheck
 
 `npm run build` runs `tsc --noEmit` before `vite build`, and it reported 61

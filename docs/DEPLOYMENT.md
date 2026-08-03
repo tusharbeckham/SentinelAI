@@ -14,6 +14,42 @@ requires a signed JWT with the right role, and the responder stays in
 dry-run mode. A demo that quietly disables its own authentication is not a
 demo of a security product.
 
+## The free demo: GitHub Pages
+
+On 8 July 2026 Hugging Face moved Docker and Gradio Spaces behind a paid
+plan (PRO, 9 USD/month for personal accounts). Static Spaces stayed free.
+The public demo therefore runs on GitHub Pages, deployed by
+`.github/workflows/pages.yml` on every push to `main`.
+
+    https://tusharbeckham.github.io/SentinelAI/
+
+This works because the console was never designed to require the API. The
+build copies the tracked `artifacts/*.json` into the bundle, and
+`vite.config.ts` treats a refused connection to the scorer as expected
+behaviour rather than an error. Every figure on the page is the measured
+number the README quotes.
+
+### What the static demo loses
+
+One thing: the live scoring panel. `POST /v1/score` needs the Python
+service, which Pages cannot run. The panel degrades to its static state; the
+triage queue, the SHAP attributions, the sweep, the drift and SOAR views all
+read artifacts and are unaffected.
+
+### Enabling it (once)
+
+Settings -> Pages -> Build and deployment -> Source: **GitHub Actions**.
+No branch is selected; the workflow supplies the artifact. The first deploy
+runs on the next push, or immediately via Actions -> pages -> Run workflow.
+
+### Why the deploy runs the full build
+
+The workflow runs `npm run build`, which is `check-css && tsc --noEmit &&
+vite build`. It would be faster to run `vite build` alone. It would also
+mean a type error could reach the live site, which is exactly what happened
+before v3.4.1: the typecheck had never been run, because `vite dev` does not
+run it. A deploy is the right place to insist.
+
 ## Why there is a lockfile now (and why it matters)
 
 `web/package.json` lists **ranges**, not versions. `three` is `^0.166.1`,
@@ -60,6 +96,12 @@ resulting lockfile churn in the same commit as the `package.json` change.
 
 ## The `space` branch
 
+> **Requires a paid plan since 8 July 2026.** Docker Spaces now need PRO for
+> personal accounts. This path is kept because it is the only one that
+> serves the console *and* the authenticated API from a single origin, and
+> because it is what `docker build -f Dockerfile.space` runs locally - which
+> is free, and is the honest way to demo the whole platform in an interview.
+> For the free hosted demo, see GitHub Pages above.
 Hugging Face requires two things at the **root** of the Space repository:
 
 1. a `Dockerfile` (that exact name), and
