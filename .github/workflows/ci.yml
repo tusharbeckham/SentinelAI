@@ -156,9 +156,25 @@ jobs:
         # serve.py must always read the signing key from the environment. If a
         # default value ever appears next to SENTINELAI_JWT_SECRET, the API
         # could start with a predictable key and every token becomes forgeable.
+        #
+        # The previous pattern was 'SENTINELAI_JWT_SECRET *= *["\']' over the
+        # whole tree, which matched the shell example inside the docstrings of
+        # serve.py and space_server.py:
+        #     export SENTINELAI_JWT_SECRET="$(python3 -c ...)"
+        # so this job failed on the documentation that tells operators how to
+        # generate a secret correctly. Two narrower checks replace it, both
+        # anchored on Python syntax rather than on the variable name appearing
+        # anywhere in the file.
         run: |
-          if grep -rn 'SENTINELAI_JWT_SECRET *= *["'\'']' --include='*.py' .; then
+          # 1. A literal assigned to any SECRET-ish name in the package.
+          if grep -rnE '^[[:space:]]*[A-Za-z_]*SECRET[A-Za-z_]*[[:space:]]*=[[:space:]]*["'\''][^"'\'']' --include='*.py' sentinelai; then
             echo "::error::JWT signing secret must come from the environment, never a literal"
+            exit 1
+          fi
+          # 2. A non-empty fallback passed to .get() for the secret. An empty
+          #    default is fine: config.py uses it and then fails closed.
+          if grep -rnE '\.get\([[:space:]]*["'\'']SENTINELAI_JWT_SECRET["'\''][[:space:]]*,[[:space:]]*["'\''][^"'\'']' --include='*.py' sentinelai; then
+            echo "::error::SENTINELAI_JWT_SECRET must not have a fallback value"
             exit 1
           fi
           echo "no hardcoded signing secret"
