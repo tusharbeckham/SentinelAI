@@ -67,7 +67,7 @@ class ConsoleHandler(SimpleHTTPRequestHandler):
                 req.add_header(header, value)
 
         try:
-            with urllib.request.urlopen(req, timeout=30) as upstream_response:
+            with urllib.request.urlopen(req, timeout=30) as upstream_response:  # nosec B310 - upstream is a hardcoded http://127.0.0.1 loopback URL
                 status = upstream_response.status
                 payload = upstream_response.read()
                 headers = upstream_response.headers.items()
@@ -153,7 +153,7 @@ def main() -> None:
 
     ConsoleHandler.upstream = f"http://127.0.0.1:{args.api_port}"
     handler = partial(ConsoleHandler, directory=str(dist))
-    public = ThreadingHTTPServer(("0.0.0.0", args.port), handler)
+    public = ThreadingHTTPServer(("0.0.0.0", args.port), handler)  # nosec B104 - the console server binds all interfaces by design (container/Space)
     print(f"console on http://0.0.0.0:{args.port} (serving {dist})", flush=True)
     try:
         public.serve_forever()

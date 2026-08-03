@@ -24,7 +24,7 @@ import sqlite3
 import threading
 import time
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 __all__ = [
     "Store", "StoreError", "ConflictError", "NotFound", "InvalidTransition",
@@ -329,7 +329,7 @@ class Store:
             # inlined for the same reason: executescript takes no parameters.
             # Every value interpolated here is a module constant, never input.
             bookkeeping = (
-                "INSERT INTO schema_migrations(version, name, applied_at) VALUES ("
+                "INSERT INTO schema_migrations(version, name, applied_at) VALUES ("  # nosec B608 - version is int()-cast, name is ''-escaped; both module constants
                 + str(int(version)) + ", '" + name.replace("'", "''") + "', '"
                 + _now() + "');")
             script = "BEGIN IMMEDIATE;" + sql + bookkeeping + "COMMIT;"
@@ -398,7 +398,7 @@ class Store:
             where.append("(probability < ? OR (probability = ? AND id < ?))")
             params.extend([float(last_p), float(last_p), last_id])
         clause = (" WHERE " + " AND ".join(where)) if where else ""
-        sql = ("SELECT * FROM alerts" + clause
+        sql = ("SELECT * FROM alerts" + clause  # nosec B608 - clause joins static predicates; all values bound via ?
                + " ORDER BY probability DESC, id DESC LIMIT ?")
         params.append(limit + 1)
         rows = _rows(self.connect().execute(sql, params))
@@ -526,7 +526,7 @@ class Store:
             where.append("(updated_at < ? OR (updated_at = ? AND id < ?))")
             params.extend([last_ts, last_ts, last_id])
         clause = (" WHERE " + " AND ".join(where)) if where else ""
-        sql = ("SELECT * FROM cases" + clause
+        sql = ("SELECT * FROM cases" + clause  # nosec B608 - clause joins static predicates; all values bound via ?
                + " ORDER BY updated_at DESC, id DESC LIMIT ?")
         params.append(limit + 1)
         rows = _rows(self.connect().execute(sql, params))
@@ -624,7 +624,7 @@ class Store:
             params.append(int(last_seq))
         params.append(limit + 1)
         rows = _rows(self.connect().execute(
-            "SELECT * FROM audit_log" + clause + " ORDER BY seq DESC LIMIT ?", params))
+            "SELECT * FROM audit_log" + clause + " ORDER BY seq DESC LIMIT ?", params))  # nosec B608 - clause joins static predicates; all values bound via ?
         next_cursor = None
         if len(rows) > limit:
             rows = rows[:limit]
@@ -654,7 +654,7 @@ class Store:
             params.append(topic)
         params.append(int(limit))
         return _rows(conn.execute(
-            "SELECT * FROM outbox WHERE id > ?" + clause + " ORDER BY id LIMIT ?",
+            "SELECT * FROM outbox WHERE id > ?" + clause + " ORDER BY id LIMIT ?",  # nosec B608 - clause joins static predicates; all values bound via ?
             params))
 
     def commit_offset(self, consumer: str, last_id: int) -> None:
