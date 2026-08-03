@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-07-29T12:52:49.416297+00:00",
-  "runtime_seconds": 102.7,
+  "generated_at": "2026-08-03T07:59:22.935339+00:00",
+  "runtime_seconds": 101.2,
   "dataset": {
     "flows": 563619,
     "auth_events": 49535,
@@ -97,7 +97,7 @@
   "analyst_budget_per_day": 50.0,
   "budget_sweep": [
     {
-      "threshold": 0.9726904488795979,
+      "threshold": 0.9735739747467501,
       "alerts_per_day": 5.085643651774678,
       "recall": 0.0847457627118644,
       "precision_eval": 1.0,
@@ -110,7 +110,7 @@
       "recall_per_alert_per_day": 0.016949
     },
     {
-      "threshold": 0.9665858957936683,
+      "threshold": 0.9678769311257722,
       "alerts_per_day": 10.171287303549356,
       "recall": 0.1694915254237288,
       "precision_eval": 1.0,
@@ -123,7 +123,7 @@
       "recall_per_alert_per_day": 0.016949
     },
     {
-      "threshold": 0.9477240565297319,
+      "threshold": 0.9473656085426575,
       "alerts_per_day": 15.256930955324032,
       "recall": 0.2542372881355932,
       "precision_eval": 1.0,
@@ -136,85 +136,85 @@
       "recall_per_alert_per_day": 0.016949
     },
     {
-      "threshold": 0.8809433678534948,
+      "threshold": 0.9089915606684611,
       "alerts_per_day": 20.34257460709871,
-      "recall": 0.3220338983050847,
-      "precision_eval": 0.95,
-      "fpr": 8.875477056891808e-05,
-      "tpr": 0.3220338983050847,
-      "ppv_at_deployment_prior": 0.2662553139621947,
+      "recall": 0.3389830508474576,
+      "precision_eval": 1.0,
+      "fpr": 0.0,
+      "tpr": 0.3389830508474576,
+      "ppv_at_deployment_prior": 1.0,
       "deployment_prior": 0.0001,
       "budget_per_day": 20.0,
       "requested_budget_per_day": 20.0,
-      "recall_per_alert_per_day": 0.016102
+      "recall_per_alert_per_day": 0.016949
     },
     {
-      "threshold": 0.825224328497808,
+      "threshold": 0.8372733500725164,
       "alerts_per_day": 29.49673318029313,
-      "recall": 0.4406779661016949,
-      "precision_eval": 0.896551724137931,
-      "fpr": 0.00026626431170675426,
-      "tpr": 0.4406779661016949,
-      "ppv_at_deployment_prior": 0.14201423817061082,
+      "recall": 0.4915254237288136,
+      "precision_eval": 1.0,
+      "fpr": 0.0,
+      "tpr": 0.4915254237288136,
+      "ppv_at_deployment_prior": 1.0,
       "deployment_prior": 0.0001,
       "budget_per_day": 30.0,
       "requested_budget_per_day": 30.0,
-      "recall_per_alert_per_day": 0.014689
+      "recall_per_alert_per_day": 0.016384
     },
     {
-      "threshold": 0.6303419959358633,
+      "threshold": 0.6251904732503484,
       "alerts_per_day": 49.83930778739184,
-      "recall": 0.6610169491525424,
-      "precision_eval": 0.7959183673469388,
-      "fpr": 0.0008875477056891808,
-      "tpr": 0.6610169491525424,
-      "ppv_at_deployment_prior": 0.06932091336199164,
+      "recall": 0.711864406779661,
+      "precision_eval": 0.8571428571428571,
+      "fpr": 0.0006212833939824266,
+      "tpr": 0.711864406779661,
+      "ppv_at_deployment_prior": 0.10281000634179056,
       "deployment_prior": 0.0001,
       "budget_per_day": 50.0,
       "requested_budget_per_day": 50.0,
-      "recall_per_alert_per_day": 0.01322
+      "recall_per_alert_per_day": 0.014237
     },
     {
-      "threshold": 0.4123113232249259,
+      "threshold": 0.37028844610385003,
       "alerts_per_day": 75.26752604626523,
-      "recall": 0.7966101694915254,
-      "precision_eval": 0.6351351351351351,
-      "fpr": 0.0023963788053607883,
-      "tpr": 0.7966101694915254,
-      "ppv_at_deployment_prior": 0.03217586679658154,
+      "recall": 0.8135593220338984,
+      "precision_eval": 0.6486486486486487,
+      "fpr": 0.00230762403479187,
+      "tpr": 0.8135593220338984,
+      "ppv_at_deployment_prior": 0.03405796307414907,
       "deployment_prior": 0.0001,
       "budget_per_day": 75.0,
       "requested_budget_per_day": 75.0,
-      "recall_per_alert_per_day": 0.010621
+      "recall_per_alert_per_day": 0.010847
     },
     {
-      "threshold": 0.27390839724347177,
+      "threshold": 0.2509038344399602,
       "alerts_per_day": 99.67861557478368,
-      "recall": 0.864406779661017,
-      "precision_eval": 0.5204081632653061,
-      "fpr": 0.00417147421673915,
-      "tpr": 0.864406779661017,
-      "ppv_at_deployment_prior": 0.020303164698385025,
+      "recall": 0.8813559322033898,
+      "precision_eval": 0.5306122448979592,
+      "fpr": 0.004082719446170231,
+      "tpr": 0.8813559322033898,
+      "ppv_at_deployment_prior": 0.02113336966876444,
       "deployment_prior": 0.0001,
       "budget_per_day": 100.0,
       "requested_budget_per_day": 100.0,
-      "recall_per_alert_per_day": 0.008644
+      "recall_per_alert_per_day": 0.008814
     },
     {
-      "threshold": 0.07648428142735565,
+      "threshold": 0.07249245764187864,
       "alerts_per_day": 149.5179233621755,
-      "recall": 0.9322033898305084,
-      "precision_eval": 0.3741496598639456,
-      "fpr": 0.008165438892340462,
-      "tpr": 0.9322033898305084,
-      "ppv_at_deployment_prior": 0.011288703661659908,
+      "recall": 0.9491525423728814,
+      "precision_eval": 0.38095238095238093,
+      "fpr": 0.008076684121771545,
+      "tpr": 0.9491525423728814,
+      "ppv_at_deployment_prior": 0.011616408499196262,
       "deployment_prior": 0.0001,
       "budget_per_day": 150.0,
       "requested_budget_per_day": 150.0,
-      "recall_per_alert_per_day": 0.006215
+      "recall_per_alert_per_day": 0.006328
     },
     {
-      "threshold": 0.02166805652949335,
+      "threshold": 0.021501578245242018,
       "alerts_per_day": 200.3743598799223,
       "recall": 0.9830508474576272,
       "precision_eval": 0.29441624365482233,
@@ -298,20 +298,20 @@
       "n": 11326,
       "positives": 59,
       "eval_base_rate": 0.0052092530460886455,
-      "roc_auc": 0.9982865816325763,
-      "average_precision": 0.8108728307003292,
+      "roc_auc": 0.9986039927612211,
+      "average_precision": 0.8663734607817649,
       "tpr_at_fpr_1e-2": 0.9491525423728814,
-      "tpr_at_fpr_1e-3": 0.6610169491525424,
+      "tpr_at_fpr_1e-3": 0.7457627118644068,
       "ppv_at_prior_0.0001_fpr_0.01": 0.009403214892005756,
-      "ppv_at_prior_0.0001_fpr_0.001": 0.06200899607435356,
+      "ppv_at_prior_0.0001_fpr_0.001": 0.06940708993423678,
       "operating_point_at_budget": {
-        "threshold": 0.6303419959358633,
+        "threshold": 0.6251904732503484,
         "alerts_per_day": 49.83930778739184,
-        "recall": 0.6610169491525424,
-        "precision_eval": 0.7959183673469388,
-        "fpr": 0.0008875477056891808,
-        "tpr": 0.6610169491525424,
-        "ppv_at_deployment_prior": 0.06932091336199164,
+        "recall": 0.711864406779661,
+        "precision_eval": 0.8571428571428571,
+        "fpr": 0.0006212833939824266,
+        "tpr": 0.711864406779661,
+        "ppv_at_deployment_prior": 0.10281000634179056,
         "deployment_prior": 0.0001,
         "budget_per_day": 50.0
       }
@@ -341,10 +341,10 @@
     },
     "hybrid_ensemble": {
       "alerts": 49,
-      "false_positives": 10,
-      "false_positives_on_benign_anomalies": 10,
+      "false_positives": 7,
+      "false_positives_on_benign_anomalies": 7,
       "share_of_fp_from_benign_anomalies": 1.0,
-      "benign_anomaly_flag_rate": 0.0435
+      "benign_anomaly_flag_rate": 0.0304
     }
   },
   "zero_day_holdout": [
@@ -365,7 +365,7 @@
       },
       "hybrid_ensemble_blind": {
         "recall_on_held_out_family_at_budget": 0.0,
-        "mean_percentile_of_family": 0.9822
+        "mean_percentile_of_family": 0.981
       }
     },
     {
@@ -385,7 +385,7 @@
       },
       "hybrid_ensemble_blind": {
         "recall_on_held_out_family_at_budget": 0.0,
-        "mean_percentile_of_family": 0.9803
+        "mean_percentile_of_family": 0.98
       }
     },
     {
@@ -405,23 +405,23 @@
       },
       "hybrid_ensemble_blind": {
         "recall_on_held_out_family_at_budget": 0.0,
-        "mean_percentile_of_family": 0.9608
+        "mean_percentile_of_family": 0.957
       }
     }
   ],
   "operating_point": {
-    "threshold": 0.6303419959358633,
+    "threshold": 0.6251904732503484,
     "alerts_per_day": 49.83930778739184,
-    "recall": 0.6610169491525424,
-    "precision_eval": 0.7959183673469388,
-    "fpr": 0.0008875477056891808,
-    "tpr": 0.6610169491525424,
-    "ppv_at_deployment_prior": 0.06932091336199164,
+    "recall": 0.711864406779661,
+    "precision_eval": 0.8571428571428571,
+    "fpr": 0.0006212833939824266,
+    "tpr": 0.711864406779661,
+    "ppv_at_deployment_prior": 0.10281000634179056,
     "deployment_prior": 0.0001,
     "budget_per_day": 50.0
   },
   "per_family_recall_at_operating_point": {
-    "benign_false_positive_rate": 0.00089,
+    "benign_false_positive_rate": 0.00062,
     "brute_force": {
       "windows": 20,
       "recall": 0.95
@@ -436,7 +436,7 @@
     },
     "exfil": {
       "windows": 12,
-      "recall": 0.75
+      "recall": 0.9167
     },
     "lateral_movement": {
       "windows": 1,
@@ -444,18 +444,17 @@
     },
     "portscan": {
       "windows": 13,
-      "recall": 0.1538
+      "recall": 0.2308
     }
   },
   "calibration": {
-    "brier_test": 0.0021967659058242514,
-    "ece_test": 0.0018234095345293858,
+    "brier_test": 0.0018516473371663815,
+    "ece_test": 0.0018298573302903518,
     "stacker_coefficients": {
-      "iforest_logit": 0.34254645234181474,
-      "gbdt_logit": 1.1008832230073278,
-      "graph_score": 0.11347992873914635
+      "iforest_logit": 0.29640432878406237,
+      "gbdt_logit": 1.1462809539618983
     },
-    "stacker_intercept": -8.433968927814007,
+    "stacker_intercept": -8.26618014861838,
     "eval_prior": 0.0052092530460886455,
     "deployment_prior": 0.0001,
     "prior_shift_logodds": -3.9224164612054793
@@ -517,20 +516,20 @@
       "n": 22618,
       "positives": 115,
       "eval_base_rate": 0.0050844460164470775,
-      "roc_auc": 0.9979867418643698,
-      "average_precision": 0.7699788229262348,
-      "tpr_at_fpr_1e-2": 0.9652173913043478,
-      "tpr_at_fpr_1e-3": 0.5826086956521739,
-      "ppv_at_prior_0.0001_fpr_0.01": 0.009560847039367434,
-      "ppv_at_prior_0.0001_fpr_0.001": 0.05505861276948931,
+      "roc_auc": 0.9983480463474436,
+      "average_precision": 0.8148441605108243,
+      "tpr_at_fpr_1e-2": 0.9739130434782609,
+      "tpr_at_fpr_1e-3": 0.6521739130434783,
+      "ppv_at_prior_0.0001_fpr_0.01": 0.009646149937343087,
+      "ppv_at_prior_0.0001_fpr_0.001": 0.061230237940704646,
       "operating_point": {
-        "threshold": 0.5960806494920506,
+        "threshold": 0.5377754231239436,
         "alerts_per_day": 49.914227606331245,
-        "recall": 0.6,
-        "precision_eval": 0.7040816326530612,
-        "fpr": 0.0012887170599475625,
-        "tpr": 0.6,
-        "ppv_at_deployment_prior": 0.04449097250231323,
+        "recall": 0.6521739130434783,
+        "precision_eval": 0.7653061224489796,
+        "fpr": 0.0010220859440963426,
+        "tpr": 0.6521739130434783,
+        "ppv_at_deployment_prior": 0.059986500838099636,
         "deployment_prior": 0.0001,
         "budget_per_day": 50.0
       }
@@ -539,28 +538,28 @@
       "n": 22618,
       "positives": 115,
       "eval_base_rate": 0.0050844460164470775,
-      "roc_auc": 0.9983569340513052,
-      "average_precision": 0.8225988329515165,
+      "roc_auc": 0.9984272628383848,
+      "average_precision": 0.832996491741224,
       "tpr_at_fpr_1e-2": 0.9652173913043478,
-      "tpr_at_fpr_1e-3": 0.6608695652173913,
+      "tpr_at_fpr_1e-3": 0.6869565217391305,
       "ppv_at_prior_0.0001_fpr_0.01": 0.009560847039367434,
-      "ppv_at_prior_0.0001_fpr_0.001": 0.061996027359825755,
+      "ppv_at_prior_0.0001_fpr_0.001": 0.06428591772216279,
       "operating_point": {
-        "threshold": 0.5324841295964547,
+        "threshold": 0.528837622232998,
         "alerts_per_day": 49.914227606331245,
-        "recall": 0.6608695652173913,
-        "precision_eval": 0.7755102040816326,
-        "fpr": 0.0009776474247878062,
-        "tpr": 0.6608695652173913,
-        "ppv_at_deployment_prior": 0.0633237234806165,
+        "recall": 0.6869565217391305,
+        "precision_eval": 0.8061224489795918,
+        "fpr": 0.0008443318668621962,
+        "tpr": 0.6869565217391305,
+        "ppv_at_deployment_prior": 0.07524636884674694,
         "deployment_prior": 0.0001,
         "budget_per_day": 50.0
       }
     },
     "delta": {
-      "average_precision": 0.0526,
-      "recall_at_budget": 0.0609,
-      "precision_at_budget": 0.0714
+      "average_precision": 0.0182,
+      "recall_at_budget": 0.0348,
+      "precision_at_budget": 0.0408
     }
   }
 }

@@ -19,7 +19,7 @@ solution looking for one. -->
 Answer these or the proposal cannot be evaluated:
 
 - Which metric does it move, and by how much do you expect it to move?
-- Does it help at the **operating point** (50 alerts/day, threshold 0.6303), or
+- Does it help at the **operating point** (50 alerts/day, threshold 0.6252), or
   only in threshold-free ranking? AP that improves while budgeted recall does
   not is not an improvement for the analyst.
 - What does it cost in end-to-end runtime? The full pipeline is ~136 s and that

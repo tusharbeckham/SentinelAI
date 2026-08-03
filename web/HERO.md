@@ -28,8 +28,8 @@ and an exit transition. Act boundaries live in one array,
 | 01 | corpus | 11,326 windows, 40 hosts, 300 s | `report.json` |
 | 02 | feature space | PC1 22.5%, PC2 12.5%, 11,257 benign | `embedding.json` |
 | 03 | score axis | -10.40 to +4.30 | `report.json` |
-| 04 | fusion | the stacker equation, p = 0.9866 | `alert_trace.json` |
-| 05 | the plane | threshold 0.6303, 49 alerts, 39 TP | `budget_sweep.json` |
+| 04 | fusion | the stacker equation, p = 0.9858 | `alert_trace.json` |
+| 05 | the plane | threshold 0.6252, 49 alerts, 42 TP | `budget_sweep.json` |
 | 06 | response | `h002`, `auto_contain`, chain valid | `soar_decisions.json` |
 
 The object carries the motion. Each act gives it a **distinct verb** -- fold,

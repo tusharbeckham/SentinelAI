@@ -79,7 +79,7 @@ nothing is mounted it says so in plain language instead of throwing a traceback.
 - `log1p applied to 8 of 40 columns`
 - `cuML UMAP (GPU)`  -- or `GPU unavailable, CPU fallback:` which is fine, just slower
 - `above 49 = 39 true + 10 false | missed 20`
-- `precision 0.7959  recall 0.6610`
+- `precision 0.8571  recall 0.7119`
 - `reconciled with the deployed operating point`
 - `wrote embedding.json ... bytes n=11326`
 

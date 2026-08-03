@@ -4,8 +4,8 @@
     "entity": "h002",
     "window": 1767491700,
     "window_iso": "2026-01-04T01:55:00+00:00",
-    "probability": 0.9866137013264895,
-    "probability_at_deployment_prior": 0.5933014617059006,
+    "probability": 0.9858061128165326,
+    "probability_at_deployment_prior": 0.5788932781665679,
     "suspected_family": "dos",
     "ground_truth": "brute_force",
     "is_known_benign_anomaly": false,
@@ -13,45 +13,45 @@
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 3.3269938144079663,
+        "contribution": 3.451057486400051,
         "value": 201.9778367194372
       },
       {
         "feature": "flow_count",
-        "contribution": 1.6205228315750537,
+        "contribution": 1.6696022862383202,
         "value": 89.0
       },
       {
         "feature": "roll_admin_flows_1h",
-        "contribution": 1.4078080057946611,
+        "contribution": 1.4280680936511392,
         "value": 119.0
       },
       {
         "feature": "syn_ratio",
-        "contribution": 1.3859831986983355,
+        "contribution": 1.4178364107455577,
         "value": 0.48314606741573035
       },
       {
-        "feature": "admin_port_ratio",
-        "contribution": 0.5879794615715714,
-        "value": 0.9213483146067416
+        "feature": "roll_bytes_out_1h",
+        "contribution": 0.5931227445854923,
+        "value": 275966.8630628837
       },
       {
-        "feature": "roll_bytes_out_1h",
-        "contribution": 0.5660483358867465,
-        "value": 275966.8630628837
+        "feature": "admin_port_ratio",
+        "contribution": 0.5757312793404286,
+        "value": 0.9213483146067416
       }
     ],
-    "base_value_logodds": -8.362396334841463,
-    "attribution_residual": -1.7763568394002505e-15
+    "base_value_logodds": -8.272108197375303,
+    "attribution_residual": 0.0
   },
   {
     "alert_id": "AL-1767486900-h033",
     "entity": "h033",
     "window": 1767486900,
     "window_iso": "2026-01-04T00:35:00+00:00",
-    "probability": 0.9831170311810041,
-    "probability_at_deployment_prior": 0.5354420490627045,
+    "probability": 0.9837335290052401,
+    "probability_at_deployment_prior": 0.5448373792763173,
     "suspected_family": "dos",
     "ground_truth": "brute_force",
     "is_known_benign_anomaly": false,
@@ -59,45 +59,45 @@
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 3.4329424681633642,
+        "contribution": 3.5624061606928135,
         "value": 147.6631828635679
       },
       {
         "feature": "flow_count",
-        "contribution": 1.8495179614082269,
+        "contribution": 1.8972623310112673,
         "value": 203.0
       },
       {
         "feature": "syn_ratio",
-        "contribution": 1.5653518046105002,
+        "contribution": 1.6108022321448616,
         "value": 0.49261083743842365
       },
       {
         "feature": "roll_admin_flows_1h",
-        "contribution": 1.243854329089996,
+        "contribution": 1.2460159997496205,
         "value": 331.0
       },
       {
         "feature": "admin_port_ratio",
-        "contribution": 0.7844468111749371,
+        "contribution": 0.7853479430981277,
         "value": 0.9852216748768473
       },
       {
         "feature": "failed_logins",
-        "contribution": 0.4984790201195977,
+        "contribution": 0.5014834221546631,
         "value": 63.0
       }
     ],
-    "base_value_logodds": -8.571667238894737,
-    "attribution_residual": -3.552713678800501e-15
+    "base_value_logodds": -8.463255718742037,
+    "attribution_residual": 0.0
   },
   {
     "alert_id": "AL-1767545700-h012",
     "entity": "h012",
     "window": 1767545700,
     "window_iso": "2026-01-04T16:55:00+00:00",
-    "probability": 0.9814967917589927,
-    "probability_at_deployment_prior": 0.512177128681247,
+    "probability": 0.9794263759457509,
+    "probability_at_deployment_prior": 0.48513956256257024,
     "suspected_family": "dos",
     "ground_truth": "brute_force",
     "is_known_benign_anomaly": false,
@@ -105,91 +105,45 @@
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 3.0663465473455833,
+        "contribution": 3.181273735465972,
         "value": 156.14110417035667
       },
       {
         "feature": "flow_count",
-        "contribution": 2.3678839096976856,
+        "contribution": 2.4469150358934946,
         "value": 108.0
       },
       {
         "feature": "roll_admin_flows_1h",
-        "contribution": 1.5075989546744284,
+        "contribution": 1.5183372611916386,
         "value": 300.0
       },
       {
         "feature": "syn_ratio",
-        "contribution": 1.2929593099778312,
+        "contribution": 1.3277022723370449,
         "value": 0.4351851851851852
       },
       {
         "feature": "admin_port_ratio",
-        "contribution": 0.7808354719269018,
+        "contribution": 0.7834947862716176,
         "value": 0.9814814814814815
       },
       {
         "feature": "roll_bytes_out_1h",
-        "contribution": 0.6201845004883655,
+        "contribution": 0.6479516786675782,
         "value": 371135.7162046713
       }
     ],
-    "base_value_logodds": -8.16823453420539,
-    "attribution_residual": -3.552713678800501e-15
-  },
-  {
-    "alert_id": "AL-1767554100-h029",
-    "entity": "h029",
-    "window": 1767554100,
-    "window_iso": "2026-01-04T19:15:00+00:00",
-    "probability": 0.9746239592242943,
-    "probability_at_deployment_prior": 0.43188360491921973,
-    "suspected_family": "dos",
-    "ground_truth": "brute_force",
-    "is_known_benign_anomaly": false,
-    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; high proportion of SYN-only flows",
-    "top": [
-      {
-        "feature": "mean_pkt_size",
-        "contribution": 2.7522956503568854,
-        "value": 166.88096133995197
-      },
-      {
-        "feature": "flow_count",
-        "contribution": 2.363384411565092,
-        "value": 93.0
-      },
-      {
-        "feature": "syn_ratio",
-        "contribution": 1.6079513323944505,
-        "value": 0.41935483870967744
-      },
-      {
-        "feature": "roll_admin_flows_1h",
-        "contribution": 1.3042516543348563,
-        "value": 356.0
-      },
-      {
-        "feature": "admin_port_ratio",
-        "contribution": 0.6355533634372887,
-        "value": 0.9139784946236559
-      },
-      {
-        "feature": "failed_logins",
-        "contribution": 0.5457940047518602,
-        "value": 112.0
-      }
-    ],
-    "base_value_logodds": -8.356530107072462,
-    "attribution_residual": 1.7763568394002505e-15
+    "base_value_logodds": -8.09971176061924,
+    "attribution_residual": 0.0
   },
   {
     "alert_id": "AL-1767546000-h012",
     "entity": "h012",
     "window": 1767546000,
     "window_iso": "2026-01-04T17:00:00+00:00",
-    "probability": 0.9726904488795979,
-    "probability_at_deployment_prior": 0.4134825592437696,
+    "probability": 0.97499019295896,
+    "probability_at_deployment_prior": 0.4355463435559535,
     "suspected_family": "dos",
     "ground_truth": "brute_force",
     "is_known_benign_anomaly": false,
@@ -197,45 +151,45 @@
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 3.358707885247984,
+        "contribution": 2.8690668114753035,
         "value": 172.7383432550896
       },
       {
         "feature": "flow_count",
-        "contribution": 2.0819294748971444,
+        "contribution": 2.3975986873030912,
         "value": 42.0
       },
       {
         "feature": "syn_ratio",
-        "contribution": 1.4201114776871804,
+        "contribution": 1.4876816975378468,
         "value": 0.4523809523809524
       },
       {
         "feature": "roll_admin_flows_1h",
-        "contribution": 1.3566822544544863,
+        "contribution": 1.2793981190965993,
         "value": 339.0
       },
       {
-        "feature": "admin_port_ratio",
-        "contribution": 0.6023923531903574,
-        "value": 0.9285714285714286
+        "feature": "roll_bytes_out_1h",
+        "contribution": 0.6847968597666149,
+        "value": 390624.22503767756
       },
       {
-        "feature": "z_flow_count",
-        "contribution": 0.5062630407937063,
-        "value": 12.478079050317012
+        "feature": "admin_port_ratio",
+        "contribution": 0.6177379441530539,
+        "value": 0.9285714285714286
       }
     ],
-    "base_value_logodds": -8.49707057284324,
-    "attribution_residual": -1.7763568394002505e-15
+    "base_value_logodds": -8.258866561905814,
+    "attribution_residual": 1.7763568394002505e-15
   },
   {
     "alert_id": "AL-1767553800-h029",
     "entity": "h029",
     "window": 1767553800,
     "window_iso": "2026-01-04T19:10:00+00:00",
-    "probability": 0.9722670864310966,
-    "probability_at_deployment_prior": 0.4096515978767249,
+    "probability": 0.9735739747467501,
+    "probability_at_deployment_prior": 0.4217016153798138,
     "suspected_family": "dos",
     "ground_truth": "brute_force",
     "is_known_benign_anomaly": false,
@@ -243,36 +197,36 @@
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 3.289954152105046,
+        "contribution": 3.488132393421339,
         "value": 147.58100080490286
       },
       {
         "feature": "flow_count",
-        "contribution": 2.1824062575101686,
+        "contribution": 2.2542030588208384,
         "value": 149.0
       },
       {
         "feature": "syn_ratio",
-        "contribution": 1.6075061533754562,
+        "contribution": 1.6807279770860648,
         "value": 0.4697986577181208
       },
       {
         "feature": "roll_admin_flows_1h",
-        "contribution": 1.4153824225474412,
+        "contribution": 1.2825939449385577,
         "value": 271.0
       },
       {
-        "feature": "admin_port_ratio",
-        "contribution": 0.5909462548259388,
-        "value": 0.9664429530201343
+        "feature": "failed_logins",
+        "contribution": 0.5885697669488192,
+        "value": 137.0
       },
       {
-        "feature": "failed_logins",
-        "contribution": 0.5608781521413003,
-        "value": 137.0
+        "feature": "admin_port_ratio",
+        "contribution": 0.571014768333827,
+        "value": 0.9664429530201343
       }
     ],
-    "base_value_logodds": -8.559850163465228,
+    "base_value_logodds": -8.387130315046628,
     "attribution_residual": 0.0
   },
   {
@@ -280,8 +234,8 @@
     "entity": "h011",
     "window": 1767569700,
     "window_iso": "2026-01-04T23:35:00+00:00",
-    "probability": 0.9712828669301067,
-    "probability_at_deployment_prior": 0.4010018098556901,
+    "probability": 0.9729526550525397,
+    "probability_at_deployment_prior": 0.41588966795467847,
     "suspected_family": "dos",
     "ground_truth": "brute_force",
     "is_known_benign_anomaly": false,
@@ -289,91 +243,45 @@
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 3.1844681894106848,
+        "contribution": 3.270996573435369,
         "value": 162.4546501143155
       },
       {
         "feature": "flow_count",
-        "contribution": 2.2115073930700535,
+        "contribution": 2.2766989383863794,
         "value": 124.0
       },
       {
         "feature": "syn_ratio",
-        "contribution": 1.4380754959495616,
+        "contribution": 1.5195191719783727,
         "value": 0.3709677419354839
       },
       {
         "feature": "roll_admin_flows_1h",
-        "contribution": 1.4071478326200855,
+        "contribution": 1.3465269310129482,
         "value": 121.0
       },
       {
         "feature": "admin_port_ratio",
-        "contribution": 0.6086471893351431,
+        "contribution": 0.5996297167425018,
         "value": 0.9758064516129032
       },
       {
-        "feature": "failed_logins",
-        "contribution": 0.47213639500996935,
-        "value": 64.0
+        "feature": "z_flow_count",
+        "contribution": 0.47801753833654526,
+        "value": 40.46944556859571
       }
     ],
-    "base_value_logodds": -8.156321635266732,
-    "attribution_residual": -1.7763568394002505e-15
+    "base_value_logodds": -8.43814109450671,
+    "attribution_residual": -3.552713678800501e-15
   },
   {
     "alert_id": "AL-1767491400-h002",
     "entity": "h002",
     "window": 1767491400,
     "window_iso": "2026-01-04T01:50:00+00:00",
-    "probability": 0.9692563147461276,
-    "probability_at_deployment_prior": 0.3842442433550616,
-    "suspected_family": "dos",
-    "ground_truth": "brute_force",
-    "is_known_benign_anomaly": false,
-    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; high proportion of SYN-only flows",
-    "top": [
-      {
-        "feature": "mean_pkt_size",
-        "contribution": 3.340107895371835,
-        "value": 352.9312994094922
-      },
-      {
-        "feature": "flow_count",
-        "contribution": 2.047267176288899,
-        "value": 45.0
-      },
-      {
-        "feature": "syn_ratio",
-        "contribution": 1.2590163142909292,
-        "value": 0.5111111111111111
-      },
-      {
-        "feature": "roll_admin_flows_1h",
-        "contribution": 1.1638161606642443,
-        "value": 37.0
-      },
-      {
-        "feature": "admin_port_ratio",
-        "contribution": 0.7136121904991453,
-        "value": 0.8222222222222222
-      },
-      {
-        "feature": "z_flow_count",
-        "contribution": 0.477031580964533,
-        "value": 8.093889113719142
-      }
-    ],
-    "base_value_logodds": -8.451640323718133,
-    "attribution_residual": 0.0
-  },
-  {
-    "alert_id": "AL-1767545400-h012",
-    "entity": "h012",
-    "window": 1767545400,
-    "window_iso": "2026-01-04T16:50:00+00:00",
-    "probability": 0.9677553966816099,
-    "probability_at_deployment_prior": 0.37266804154509536,
+    "probability": 0.9728848375107992,
+    "probability_at_deployment_prior": 0.4152645302490933,
     "suspected_family": "dos",
     "ground_truth": "brute_force",
     "is_known_benign_anomaly": false,
@@ -381,45 +289,91 @@
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 3.0743092455735326,
-        "value": 135.639581979549
+        "contribution": 3.5182371954655736,
+        "value": 352.9312994094922
       },
       {
         "feature": "flow_count",
-        "contribution": 2.1626869992992503,
-        "value": 199.0
+        "contribution": 1.830764603323642,
+        "value": 45.0
       },
       {
         "feature": "roll_admin_flows_1h",
-        "contribution": 1.467612678454044,
-        "value": 194.0
+        "contribution": 1.389701943450846,
+        "value": 37.0
       },
       {
         "feature": "syn_ratio",
-        "contribution": 1.3020433443307977,
-        "value": 0.49246231155778897
+        "contribution": 1.3119651960947014,
+        "value": 0.5111111111111111
       },
       {
         "feature": "admin_port_ratio",
-        "contribution": 0.6254158486634004,
-        "value": 0.9748743718592965
+        "contribution": 0.6242668125483256,
+        "value": 0.8222222222222222
       },
       {
-        "feature": "roll_bytes_out_1h",
-        "contribution": 0.6080965214254952,
-        "value": 364981.39096477977
+        "feature": "z_flow_count",
+        "contribution": 0.49859312328999617,
+        "value": 8.093889113719142
       }
     ],
-    "base_value_logodds": -8.322655155598966,
+    "base_value_logodds": -8.054141496011676,
     "attribution_residual": 0.0
+  },
+  {
+    "alert_id": "AL-1767554100-h029",
+    "entity": "h029",
+    "window": 1767554100,
+    "window_iso": "2026-01-04T19:15:00+00:00",
+    "probability": 0.9717315255283646,
+    "probability_at_deployment_prior": 0.40490125898647117,
+    "suspected_family": "dos",
+    "ground_truth": "brute_force",
+    "is_known_benign_anomaly": false,
+    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; roll_admin_flows_1h elevated",
+    "top": [
+      {
+        "feature": "mean_pkt_size",
+        "contribution": 3.429186203333586,
+        "value": 166.88096133995197
+      },
+      {
+        "feature": "flow_count",
+        "contribution": 2.4419054413907504,
+        "value": 93.0
+      },
+      {
+        "feature": "roll_admin_flows_1h",
+        "contribution": 1.445581432891382,
+        "value": 356.0
+      },
+      {
+        "feature": "syn_ratio",
+        "contribution": 1.3136404697305504,
+        "value": 0.41935483870967744
+      },
+      {
+        "feature": "admin_port_ratio",
+        "contribution": 0.6901305331398232,
+        "value": 0.9139784946236559
+      },
+      {
+        "feature": "failed_logins",
+        "contribution": 0.5158922469846084,
+        "value": 112.0
+      }
+    ],
+    "base_value_logodds": -8.317282211428939,
+    "attribution_residual": -1.7763568394002505e-15
   },
   {
     "alert_id": "AL-1767492000-h002",
     "entity": "h002",
     "window": 1767492000,
     "window_iso": "2026-01-04T02:00:00+00:00",
-    "probability": 0.9665858957936683,
-    "probability_at_deployment_prior": 0.36409730895262366,
+    "probability": 0.9700534784467216,
+    "probability_at_deployment_prior": 0.39067436678597184,
     "suspected_family": "dos",
     "ground_truth": "brute_force",
     "is_known_benign_anomaly": false,
@@ -427,45 +381,45 @@
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 3.0693151050021528,
+        "contribution": 3.025750842302604,
         "value": 181.30947558617015
       },
       {
         "feature": "syn_ratio",
-        "contribution": 1.701269047128443,
+        "contribution": 1.6485080541288855,
         "value": 0.5555555555555556
       },
       {
         "feature": "flow_count",
-        "contribution": 1.4279928326251243,
+        "contribution": 1.6448338519633423,
         "value": 45.0
       },
       {
         "feature": "roll_admin_flows_1h",
-        "contribution": 1.4045511726982398,
+        "contribution": 1.5039395601488426,
         "value": 160.0
       },
       {
         "feature": "admin_port_ratio",
-        "contribution": 0.6720457662330247,
+        "contribution": 0.6670673331344643,
         "value": 0.9111111111111111
       },
       {
         "feature": "roll_bytes_out_1h",
-        "contribution": 0.5734001255342909,
+        "contribution": 0.6349756090970048,
         "value": 304701.9722795819
       }
     ],
-    "base_value_logodds": -8.441434752833542,
-    "attribution_residual": 0.0
+    "base_value_logodds": -8.228687126807246,
+    "attribution_residual": 1.7763568394002505e-15
   },
   {
-    "alert_id": "AL-1767486600-h033",
-    "entity": "h033",
-    "window": 1767486600,
-    "window_iso": "2026-01-04T00:30:00+00:00",
-    "probability": 0.9647300915305389,
-    "probability_at_deployment_prior": 0.3512388269548972,
+    "alert_id": "AL-1767545400-h012",
+    "entity": "h012",
+    "window": 1767545400,
+    "window_iso": "2026-01-04T16:50:00+00:00",
+    "probability": 0.9678769311257722,
+    "probability_at_deployment_prior": 0.3735806910772709,
     "suspected_family": "dos",
     "ground_truth": "brute_force",
     "is_known_benign_anomaly": false,
@@ -473,45 +427,91 @@
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 3.3637984430957437,
+        "contribution": 3.361917434368317,
+        "value": 135.639581979549
+      },
+      {
+        "feature": "flow_count",
+        "contribution": 2.0565949903354293,
+        "value": 199.0
+      },
+      {
+        "feature": "roll_admin_flows_1h",
+        "contribution": 1.4470282665042398,
+        "value": 194.0
+      },
+      {
+        "feature": "syn_ratio",
+        "contribution": 1.3596249534804226,
+        "value": 0.49246231155778897
+      },
+      {
+        "feature": "roll_bytes_out_1h",
+        "contribution": 0.6449984071829832,
+        "value": 364981.39096477977
+      },
+      {
+        "feature": "admin_port_ratio",
+        "contribution": 0.6139974476940038,
+        "value": 0.9748743718592965
+      }
+    ],
+    "base_value_logodds": -8.3392421075122,
+    "attribution_residual": -1.7763568394002505e-15
+  },
+  {
+    "alert_id": "AL-1767486600-h033",
+    "entity": "h033",
+    "window": 1767486600,
+    "window_iso": "2026-01-04T00:30:00+00:00",
+    "probability": 0.9605225285167199,
+    "probability_at_deployment_prior": 0.325047895177481,
+    "suspected_family": "dos",
+    "ground_truth": "brute_force",
+    "is_known_benign_anomaly": false,
+    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; roll_admin_flows_1h elevated",
+    "top": [
+      {
+        "feature": "mean_pkt_size",
+        "contribution": 3.4909981069581866,
         "value": 142.9439584649938
       },
       {
         "feature": "flow_count",
-        "contribution": 2.240503037372033,
+        "contribution": 2.3108675096591176,
         "value": 117.0
       },
       {
         "feature": "roll_admin_flows_1h",
-        "contribution": 1.4619274100084578,
+        "contribution": 1.483240882737099,
         "value": 131.0
       },
       {
         "feature": "syn_ratio",
-        "contribution": 1.280507285813536,
+        "contribution": 1.3140673593682615,
         "value": 0.46153846153846156
       },
       {
         "feature": "admin_port_ratio",
-        "contribution": 0.6429000889020451,
+        "contribution": 0.6366992140522711,
         "value": 0.9829059829059829
       },
       {
         "feature": "z_flow_count",
-        "contribution": 0.42383612297959466,
+        "contribution": 0.41871778213521565,
         "value": 38.10872791042763
       }
     ],
-    "base_value_logodds": -8.289415218547745,
-    "attribution_residual": 1.7763568394002505e-15
+    "base_value_logodds": -8.209629546830008,
+    "attribution_residual": -1.7763568394002505e-15
   },
   {
     "alert_id": "AL-1767487500-h020",
     "entity": "h020",
     "window": 1767487500,
     "window_iso": "2026-01-04T00:45:00+00:00",
-    "probability": 0.9571870181156897,
-    "probability_at_deployment_prior": 0.3067709599688106,
+    "probability": 0.9573415643091786,
+    "probability_at_deployment_prior": 0.3075749369451085,
     "suspected_family": "dos",
     "ground_truth": "brute_force",
     "is_known_benign_anomaly": false,
@@ -519,82 +519,36 @@
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 2.5324443120137916,
+        "contribution": 2.621919700206801,
         "value": 128.88463404901978
       },
       {
         "feature": "flow_count",
-        "contribution": 2.522743522670054,
+        "contribution": 2.6015694881101825,
         "value": 185.0
       },
       {
         "feature": "syn_ratio",
-        "contribution": 1.4103297777448476,
+        "contribution": 1.4505366443168641,
         "value": 0.5405405405405406
       },
       {
         "feature": "roll_admin_flows_1h",
-        "contribution": 1.2782281509100468,
+        "contribution": 1.2859778864969813,
         "value": 185.0
       },
       {
         "feature": "admin_port_ratio",
-        "contribution": 0.8562802487865813,
+        "contribution": 0.8594264491794216,
         "value": 1.0
       },
       {
         "feature": "failed_logins",
-        "contribution": 0.5143604511943455,
+        "contribution": 0.516823871335365,
         "value": 102.0
       }
     ],
-    "base_value_logodds": -8.26985211175727,
-    "attribution_residual": -1.7763568394002505e-15
-  },
-  {
-    "alert_id": "AL-1767553200-h029",
-    "entity": "h029",
-    "window": 1767553200,
-    "window_iso": "2026-01-04T19:00:00+00:00",
-    "probability": 0.9529482270357716,
-    "probability_at_deployment_prior": 0.28616067807003137,
-    "suspected_family": "dos",
-    "ground_truth": "brute_force",
-    "is_known_benign_anomaly": false,
-    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; high proportion of SYN-only flows",
-    "top": [
-      {
-        "feature": "mean_pkt_size",
-        "contribution": 3.4263538490262575,
-        "value": 187.053667493564
-      },
-      {
-        "feature": "flow_count",
-        "contribution": 1.7849116191299859,
-        "value": 93.0
-      },
-      {
-        "feature": "syn_ratio",
-        "contribution": 1.5718122582982577,
-        "value": 0.40860215053763443
-      },
-      {
-        "feature": "roll_admin_flows_1h",
-        "contribution": 1.2888384298551863,
-        "value": 83.0
-      },
-      {
-        "feature": "admin_port_ratio",
-        "contribution": 0.6924984688447748,
-        "value": 0.8924731182795699
-      },
-      {
-        "feature": "failed_logins",
-        "contribution": 0.5691693223917026,
-        "value": 84.0
-      }
-    ],
-    "base_value_logodds": -8.352933663605013,
+    "base_value_logodds": -8.150552904431246,
     "attribution_residual": 0.0
   },
   {
@@ -602,8 +556,8 @@
     "entity": "h029",
     "window": 1767553500,
     "window_iso": "2026-01-04T19:05:00+00:00",
-    "probability": 0.9502024690927428,
-    "probability_at_deployment_prior": 0.274142279877852,
+    "probability": 0.9542254964989465,
+    "probability_at_deployment_prior": 0.29209233671641194,
     "suspected_family": "dos",
     "ground_truth": "brute_force",
     "is_known_benign_anomaly": false,
@@ -611,82 +565,128 @@
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 3.0079012166037455,
+        "contribution": 3.529278891532,
         "value": 174.68371900115324
       },
       {
         "feature": "syn_ratio",
-        "contribution": 1.918751304758015,
+        "contribution": 1.9257710615273431,
         "value": 0.3877551020408163
       },
       {
         "feature": "flow_count",
-        "contribution": 1.608097491525622,
+        "contribution": 1.4372304644083616,
         "value": 49.0
       },
       {
         "feature": "roll_admin_flows_1h",
-        "contribution": 1.2266348977181099,
+        "contribution": 1.3009188552351914,
         "value": 127.0
       },
       {
         "feature": "admin_port_ratio",
-        "contribution": 0.797940025260362,
+        "contribution": 0.7077433925606138,
         "value": 0.8979591836734694
       },
       {
         "feature": "failed_logins",
-        "contribution": 0.5247796717247797,
+        "contribution": 0.5318306926476737,
         "value": 13.0
       }
     ],
-    "base_value_logodds": -8.40238811823148,
-    "attribution_residual": 0.0
+    "base_value_logodds": -8.263492231067481,
+    "attribution_residual": 1.7763568394002505e-15
   },
   {
     "alert_id": "AL-1767492300-h002",
     "entity": "h002",
     "window": 1767492300,
     "window_iso": "2026-01-04T02:05:00+00:00",
-    "probability": 0.9477240565297319,
-    "probability_at_deployment_prior": 0.2640761045017286,
+    "probability": 0.9522393900665227,
+    "probability_at_deployment_prior": 0.28296504081343643,
     "suspected_family": "dos",
     "ground_truth": "brute_force",
     "is_known_benign_anomaly": false,
-    "narrative": "Likely dos: mean_pkt_size elevated; high proportion of SYN-only flows; flow count spike",
+    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; high proportion of SYN-only flows",
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 3.2922726137204443,
+        "contribution": 3.002057012119516,
         "value": 297.29188731087794
       },
       {
-        "feature": "syn_ratio",
-        "contribution": 1.614796135846142,
-        "value": 0.5588235294117647
-      },
-      {
         "feature": "flow_count",
-        "contribution": 1.6135957701362544,
+        "contribution": 1.7643413317745837,
         "value": 34.0
       },
       {
+        "feature": "syn_ratio",
+        "contribution": 1.7456751208909498,
+        "value": 0.5588235294117647
+      },
+      {
         "feature": "roll_admin_flows_1h",
-        "contribution": 1.3658596475656526,
+        "contribution": 1.4217665348463728,
         "value": 189.0
       },
       {
         "feature": "admin_port_ratio",
-        "contribution": 0.6568572358665458,
+        "contribution": 0.7594982377514634,
         "value": 0.8529411764705882
       },
       {
         "feature": "bytes_in_sum",
-        "contribution": -0.5166273588853505,
+        "contribution": -0.5386609949899259,
         "value": 55761.84516392469
       }
     ],
-    "base_value_logodds": -8.321122813931963,
+    "base_value_logodds": -8.289841047513038,
+    "attribution_residual": 1.7763568394002505e-15
+  },
+  {
+    "alert_id": "AL-1767553200-h029",
+    "entity": "h029",
+    "window": 1767553200,
+    "window_iso": "2026-01-04T19:00:00+00:00",
+    "probability": 0.9473656085426575,
+    "probability_at_deployment_prior": 0.2626769633088787,
+    "suspected_family": "dos",
+    "ground_truth": "brute_force",
+    "is_known_benign_anomaly": false,
+    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; high proportion of SYN-only flows",
+    "top": [
+      {
+        "feature": "mean_pkt_size",
+        "contribution": 3.509199945547283,
+        "value": 187.053667493564
+      },
+      {
+        "feature": "flow_count",
+        "contribution": 2.143720006558663,
+        "value": 93.0
+      },
+      {
+        "feature": "syn_ratio",
+        "contribution": 1.4488832327570509,
+        "value": 0.40860215053763443
+      },
+      {
+        "feature": "roll_admin_flows_1h",
+        "contribution": 1.262686171450132,
+        "value": 83.0
+      },
+      {
+        "feature": "admin_port_ratio",
+        "contribution": 0.6618023142623359,
+        "value": 0.8924731182795699
+      },
+      {
+        "feature": "failed_logins",
+        "contribution": 0.5491834350642748,
+        "value": 84.0
+      }
+    ],
+    "base_value_logodds": -8.245700954019522,
     "attribution_residual": 0.0
   },
   {
@@ -694,8 +694,8 @@
     "entity": "h020",
     "window": 1767488100,
     "window_iso": "2026-01-04T00:55:00+00:00",
-    "probability": 0.9410796152750236,
-    "probability_at_deployment_prior": 0.24020136728819455,
+    "probability": 0.9461784775359682,
+    "probability_at_deployment_prior": 0.25813996079248674,
     "suspected_family": "dos",
     "ground_truth": "brute_force",
     "is_known_benign_anomaly": false,
@@ -703,36 +703,36 @@
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 2.4003588687817063,
+        "contribution": 2.484627299957979,
         "value": 197.09951964448098
       },
       {
         "feature": "syn_ratio",
-        "contribution": 1.9264226795977313,
+        "contribution": 1.9872795500483396,
         "value": 0.53125
       },
       {
         "feature": "flow_count",
-        "contribution": 1.743933920488559,
+        "contribution": 1.8049546627659683,
         "value": 32.0
       },
       {
         "feature": "roll_admin_flows_1h",
-        "contribution": 1.325913583847003,
+        "contribution": 1.3269298831781815,
         "value": 315.0
       },
       {
         "feature": "roll_bytes_out_1h",
-        "contribution": 0.6932645254362831,
+        "contribution": 0.7247820924551406,
         "value": 253244.9835693679
       },
       {
         "feature": "out_in_ratio",
-        "contribution": 0.5756086678843363,
+        "contribution": 0.6011393064987643,
         "value": 0.6285120704338986
       }
     ],
-    "base_value_logodds": -8.482664792964526,
+    "base_value_logodds": -8.365100549776518,
     "attribution_residual": -1.7763568394002505e-15
   },
   {
@@ -740,8 +740,8 @@
     "entity": "h020",
     "window": 1767487800,
     "window_iso": "2026-01-04T00:50:00+00:00",
-    "probability": 0.9383789367085061,
-    "probability_at_deployment_prior": 0.23160575291540547,
+    "probability": 0.9392819128455207,
+    "probability_at_deployment_prior": 0.23441585575868526,
     "suspected_family": "dos",
     "ground_truth": "brute_force",
     "is_known_benign_anomaly": false,
@@ -749,137 +749,45 @@
     "top": [
       {
         "feature": "flow_count",
-        "contribution": 2.6614233281101716,
+        "contribution": 2.7506824518480766,
         "value": 101.0
       },
       {
         "feature": "mean_pkt_size",
-        "contribution": 2.568086200727712,
+        "contribution": 2.6581260454566,
         "value": 132.81561523489515
       },
       {
         "feature": "syn_ratio",
-        "contribution": 1.5373100933925266,
+        "contribution": 1.5814531865909536,
         "value": 0.44554455445544555
       },
       {
         "feature": "roll_admin_flows_1h",
-        "contribution": 1.452375103923279,
+        "contribution": 1.4611375330124483,
         "value": 285.0
       },
       {
         "feature": "roll_bytes_out_1h",
-        "contribution": 0.6991963816517446,
+        "contribution": 0.7290176589974366,
         "value": 241351.70171068655
       },
       {
         "feature": "admin_port_ratio",
-        "contribution": 0.6696906907942345,
+        "contribution": 0.6635358571007107,
         "value": 0.9900990099009901
       }
     ],
-    "base_value_logodds": -8.28355093656938,
+    "base_value_logodds": -8.193438996346677,
     "attribution_residual": 0.0
-  },
-  {
-    "alert_id": "AL-1767570000-h011",
-    "entity": "h011",
-    "window": 1767570000,
-    "window_iso": "2026-01-04T23:40:00+00:00",
-    "probability": 0.9165971205479521,
-    "probability_at_deployment_prior": 0.1786631299112152,
-    "suspected_family": "dos",
-    "ground_truth": "brute_force",
-    "is_known_benign_anomaly": false,
-    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; high proportion of SYN-only flows",
-    "top": [
-      {
-        "feature": "mean_pkt_size",
-        "contribution": 3.104865677745348,
-        "value": 259.92076471889146
-      },
-      {
-        "feature": "flow_count",
-        "contribution": 1.8844158627460335,
-        "value": 39.0
-      },
-      {
-        "feature": "syn_ratio",
-        "contribution": 1.6043514175850435,
-        "value": 0.5897435897435898
-      },
-      {
-        "feature": "roll_admin_flows_1h",
-        "contribution": 1.1128600524195018,
-        "value": 158.0
-      },
-      {
-        "feature": "admin_port_ratio",
-        "contribution": 0.9005467598154868,
-        "value": 0.9487179487179487
-      },
-      {
-        "feature": "z_flow_count",
-        "contribution": 0.5010720536884996,
-        "value": 11.803588290840416
-      }
-    ],
-    "base_value_logodds": -8.313079057242117,
-    "attribution_residual": -1.7763568394002505e-15
-  },
-  {
-    "alert_id": "AL-1767537900-h002",
-    "entity": "h002",
-    "window": 1767537900,
-    "window_iso": "2026-01-04T14:45:00+00:00",
-    "probability": 0.8987664725197736,
-    "probability_at_deployment_prior": 0.14946246847959066,
-    "suspected_family": "lateral_movement",
-    "ground_truth": "benign",
-    "is_known_benign_anomaly": true,
-    "narrative": "Likely lateral movement: mean_pkt_size elevated; anomalous authentication-graph traversal; roll_admin_flows_1h elevated",
-    "top": [
-      {
-        "feature": "mean_pkt_size",
-        "contribution": 2.74019144634738,
-        "value": 120.27384028481613
-      },
-      {
-        "feature": "graph_score",
-        "contribution": 1.2293694186015482,
-        "value": 0.8677442353655562
-      },
-      {
-        "feature": "roll_admin_flows_1h",
-        "contribution": 1.1275952861725513,
-        "value": 18.0
-      },
-      {
-        "feature": "flow_count",
-        "contribution": 1.0683785775890864,
-        "value": 34.0
-      },
-      {
-        "feature": "distinct_dsts",
-        "contribution": 0.9520441199411535,
-        "value": 10.0
-      },
-      {
-        "feature": "roll_bytes_out_1h",
-        "contribution": 0.6847275453548509,
-        "value": 648221.585478548
-      }
-    ],
-    "base_value_logodds": -8.254205551108717,
-    "attribution_residual": 1.7763568394002505e-15
   },
   {
     "alert_id": "AL-1767490200-h005",
     "entity": "h005",
     "window": 1767490200,
     "window_iso": "2026-01-04T01:30:00+00:00",
-    "probability": 0.8809433678534948,
-    "probability_at_deployment_prior": 0.12774759889190782,
+    "probability": 0.9154534019195645,
+    "probability_at_deployment_prior": 0.17649169162099812,
     "suspected_family": "dos",
     "ground_truth": "dos",
     "is_known_benign_anomaly": false,
@@ -887,36 +795,36 @@
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 3.132817817450683,
+        "contribution": 3.734987594200417,
         "value": 123.38560332817815
       },
       {
         "feature": "flow_count",
-        "contribution": 2.6621533961873394,
+        "contribution": 2.557211026473658,
         "value": 883.0
       },
       {
         "feature": "syn_ratio",
-        "contribution": 1.7521528794399464,
+        "contribution": 1.7797059141206157,
         "value": 0.8595696489241224
       },
       {
         "feature": "roll_bytes_out_1h",
-        "contribution": 0.6549887688559676,
+        "contribution": 0.5273534434849536,
         "value": 643112.7582796101
       },
       {
         "feature": "z_flow_count",
-        "contribution": 0.5783728541605636,
+        "contribution": 0.5125563398826716,
         "value": 147.2076082557669
       },
       {
-        "feature": "out_in_ratio",
-        "contribution": 0.48903039971875745,
-        "value": 1.8860584394910385
+        "feature": "bytes_out_sum",
+        "contribution": 0.3813798330566999,
+        "value": 228192.9341809503
       }
     ],
-    "base_value_logodds": -8.368971391127918,
+    "base_value_logodds": -8.198448448713098,
     "attribution_residual": 1.7763568394002505e-15
   },
   {
@@ -924,8 +832,8 @@
     "entity": "h005",
     "window": 1767490500,
     "window_iso": "2026-01-04T01:35:00+00:00",
-    "probability": 0.8759913624232971,
-    "probability_at_deployment_prior": 0.12266719428925142,
+    "probability": 0.9120074169170891,
+    "probability_at_deployment_prior": 0.17022678284211867,
     "suspected_family": "dos",
     "ground_truth": "dos",
     "is_known_benign_anomaly": false,
@@ -933,137 +841,45 @@
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 3.7816261550479853,
+        "contribution": 3.6465682870441407,
         "value": 128.79649748438146
       },
       {
         "feature": "flow_count",
-        "contribution": 2.226187642799086,
+        "contribution": 2.1381731029798843,
         "value": 856.0
       },
       {
         "feature": "syn_ratio",
-        "contribution": 1.7685939430307127,
+        "contribution": 1.7978572234256498,
         "value": 0.8341121495327103
       },
       {
+        "feature": "out_in_ratio",
+        "contribution": 0.6217435359348853,
+        "value": 1.456919711436395
+      },
+      {
         "feature": "roll_bytes_out_1h",
-        "contribution": 0.5977120346119195,
+        "contribution": 0.506120990049876,
         "value": 838845.6006133651
       },
       {
         "feature": "z_flow_count",
-        "contribution": 0.5420712556386661,
+        "contribution": 0.48630626930572274,
         "value": 142.65479562929988
-      },
-      {
-        "feature": "short_flow_ratio",
-        "contribution": 0.3571050581251852,
-        "value": 0.8364485981308412
       }
     ],
-    "base_value_logodds": -8.562158388224459,
-    "attribution_residual": 1.7763568394002505e-15
-  },
-  {
-    "alert_id": "AL-1767524100-h002",
-    "entity": "h002",
-    "window": 1767524100,
-    "window_iso": "2026-01-04T10:55:00+00:00",
-    "probability": 0.873262821185831,
-    "probability_at_deployment_prior": 0.12001423404581914,
-    "suspected_family": "dos",
-    "ground_truth": "exfil",
-    "is_known_benign_anomaly": false,
-    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; distinct_dsts elevated",
-    "top": [
-      {
-        "feature": "mean_pkt_size",
-        "contribution": 2.529654252498373,
-        "value": 22.65456861220901
-      },
-      {
-        "feature": "flow_count",
-        "contribution": 1.5312879832715067,
-        "value": 19.0
-      },
-      {
-        "feature": "distinct_dsts",
-        "contribution": 1.5255792971743174,
-        "value": 12.0
-      },
-      {
-        "feature": "z_distinct_dsts",
-        "contribution": 1.2113534385949447,
-        "value": 8.0
-      },
-      {
-        "feature": "pkts_sum",
-        "contribution": 0.6465853331182179,
-        "value": 31380.0
-      },
-      {
-        "feature": "roll_dst_reach_1h",
-        "contribution": 0.5916825115558213,
-        "value": 92.0
-      }
-    ],
-    "base_value_logodds": -8.371219651653922,
-    "attribution_residual": -1.7763568394002505e-15
-  },
-  {
-    "alert_id": "AL-1767502200-h020",
-    "entity": "h020",
-    "window": 1767502200,
-    "window_iso": "2026-01-04T04:50:00+00:00",
-    "probability": 0.8666183006218844,
-    "probability_at_deployment_prior": 0.11394806696451704,
-    "suspected_family": "dos",
-    "ground_truth": "dos",
-    "is_known_benign_anomaly": false,
-    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; high proportion of SYN-only flows",
-    "top": [
-      {
-        "feature": "mean_pkt_size",
-        "contribution": 3.4580074128972016,
-        "value": 86.69076430444775
-      },
-      {
-        "feature": "flow_count",
-        "contribution": 2.023943501626789,
-        "value": 448.0
-      },
-      {
-        "feature": "syn_ratio",
-        "contribution": 1.8441113324464524,
-        "value": 0.8549107142857143
-      },
-      {
-        "feature": "out_in_ratio",
-        "contribution": 0.7214497399329809,
-        "value": 7.151900573145985
-      },
-      {
-        "feature": "z_flow_count",
-        "contribution": 0.6251188772251379,
-        "value": 149.73694860380414
-      },
-      {
-        "feature": "roll_bytes_out_1h",
-        "contribution": 0.36322820627647545,
-        "value": 374006.41146321356
-      }
-    ],
-    "base_value_logodds": -8.489788313319751,
-    "attribution_residual": 3.552713678800501e-15
+    "base_value_logodds": -8.15396787520174,
+    "attribution_residual": 0.0
   },
   {
     "alert_id": "AL-1767492000-h026",
     "entity": "h026",
     "window": 1767492000,
     "window_iso": "2026-01-04T02:00:00+00:00",
-    "probability": 0.8594033276058692,
-    "probability_at_deployment_prior": 0.10792887411542633,
+    "probability": 0.9089915606684611,
+    "probability_at_deployment_prior": 0.16506247082481498,
     "suspected_family": "dos",
     "ground_truth": "exfil",
     "is_known_benign_anomaly": false,
@@ -1071,321 +887,45 @@
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 2.9828646077501952,
+        "contribution": 2.60924016799983,
         "value": 3.9054989881712023
       },
       {
         "feature": "distinct_dsts",
-        "contribution": 1.6856714782055968,
+        "contribution": 1.649913668189598,
         "value": 8.0
       },
       {
         "feature": "z_distinct_dsts",
-        "contribution": 1.358740357423852,
+        "contribution": 1.4222420389137862,
         "value": 3.3724537973829762
       },
       {
-        "feature": "pkts_sum",
-        "contribution": 0.8311871642192328,
-        "value": 23045.0
-      },
-      {
         "feature": "flow_count",
-        "contribution": 0.691903086462272,
+        "contribution": 1.1198416361296784,
         "value": 11.0
       },
       {
-        "feature": "roll_bytes_out_1h",
-        "contribution": 0.6178724471105146,
-        "value": 615342.6042250037
-      }
-    ],
-    "base_value_logodds": -8.180802244712208,
-    "attribution_residual": 0.0
-  },
-  {
-    "alert_id": "AL-1767492300-h026",
-    "entity": "h026",
-    "window": 1767492300,
-    "window_iso": "2026-01-04T02:05:00+00:00",
-    "probability": 0.858833082013465,
-    "probability_at_deployment_prior": 0.10747609177685243,
-    "suspected_family": "dos",
-    "ground_truth": "exfil",
-    "is_known_benign_anomaly": false,
-    "narrative": "Likely dos: mean_pkt_size elevated; distinct_dsts elevated; z_distinct_dsts elevated",
-    "top": [
-      {
-        "feature": "mean_pkt_size",
-        "contribution": 3.104702957922543,
-        "value": 29.5565411256675
-      },
-      {
-        "feature": "distinct_dsts",
-        "contribution": 1.3374691648224282,
-        "value": 12.0
-      },
-      {
-        "feature": "z_distinct_dsts",
-        "contribution": 1.2560804034026756,
-        "value": 6.070416835289357
-      },
-      {
-        "feature": "flow_count",
-        "contribution": 0.9225398202035124,
-        "value": 18.0
-      },
-      {
-        "feature": "z_bytes_out_sum",
-        "contribution": 0.5791068746793882,
-        "value": 50.444671895427184
-      },
-      {
-        "feature": "admin_port_ratio",
-        "contribution": 0.5715780429706258,
-        "value": 0.5555555555555556
-      }
-    ],
-    "base_value_logodds": -8.330860496764373,
-    "attribution_residual": 1.7763568394002505e-15
-  },
-  {
-    "alert_id": "AL-1767490200-h008",
-    "entity": "h008",
-    "window": 1767490200,
-    "window_iso": "2026-01-04T01:30:00+00:00",
-    "probability": 0.8365185398875252,
-    "probability_at_deployment_prior": 0.09196562520121683,
-    "suspected_family": "lateral_movement",
-    "ground_truth": "benign",
-    "is_known_benign_anomaly": true,
-    "narrative": "Likely lateral movement: mean_pkt_size elevated; anomalous authentication-graph traversal; roll_admin_flows_1h elevated",
-    "top": [
-      {
-        "feature": "mean_pkt_size",
-        "contribution": 3.0547596562898307,
-        "value": 107.62772145939002
-      },
-      {
-        "feature": "graph_score",
-        "contribution": 1.144222549811789,
-        "value": 0.775005281613932
+        "feature": "pkts_sum",
+        "contribution": 0.7236104867354438,
+        "value": 23045.0
       },
       {
         "feature": "roll_admin_flows_1h",
-        "contribution": 1.100336782861625,
-        "value": 22.0
-      },
-      {
-        "feature": "flow_count",
-        "contribution": 1.0282931146902885,
-        "value": 21.0
-      },
-      {
-        "feature": "distinct_dsts",
-        "contribution": 0.8509443446719922,
-        "value": 9.0
-      },
-      {
-        "feature": "z_distinct_dsts",
-        "contribution": 0.5927846316877309,
-        "value": 3.3724537973829762
-      }
-    ],
-    "base_value_logodds": -8.733283035232583,
-    "attribution_residual": 0.0
-  },
-  {
-    "alert_id": "AL-1767545100-h012",
-    "entity": "h012",
-    "window": 1767545100,
-    "window_iso": "2026-01-04T16:45:00+00:00",
-    "probability": 0.8336301757944381,
-    "probability_at_deployment_prior": 0.09022918698109945,
-    "suspected_family": "dos",
-    "ground_truth": "dos",
-    "is_known_benign_anomaly": false,
-    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; high proportion of SYN-only flows",
-    "top": [
-      {
-        "feature": "mean_pkt_size",
-        "contribution": 3.674501417849243,
-        "value": 95.67543219343504
-      },
-      {
-        "feature": "flow_count",
-        "contribution": 1.836326412177904,
-        "value": 602.0
-      },
-      {
-        "feature": "syn_ratio",
-        "contribution": 1.6875360613567805,
-        "value": 0.8421926910299004
-      },
-      {
-        "feature": "roll_bytes_out_1h",
-        "contribution": 0.7436467972282639,
-        "value": 264752.4770080922
-      },
-      {
-        "feature": "roll_dst_reach_1h",
-        "contribution": 0.5854738706573459,
-        "value": 82.0
-      },
-      {
-        "feature": "z_flow_count",
-        "contribution": 0.5688314763222926,
-        "value": 201.33549170376367
-      }
-    ],
-    "base_value_logodds": -8.48827338768648,
-    "attribution_residual": 1.7763568394002505e-15
-  },
-  {
-    "alert_id": "AL-1767530400-h015",
-    "entity": "h015",
-    "window": 1767530400,
-    "window_iso": "2026-01-04T12:40:00+00:00",
-    "probability": 0.8262475909770048,
-    "probability_at_deployment_prior": 0.08602593817148955,
-    "suspected_family": "dos",
-    "ground_truth": "benign",
-    "is_known_benign_anomaly": true,
-    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; anomalous authentication-graph traversal",
-    "top": [
-      {
-        "feature": "mean_pkt_size",
-        "contribution": 2.4526648513433056,
-        "value": 71.84745133300046
-      },
-      {
-        "feature": "flow_count",
-        "contribution": 1.2973342144314366,
-        "value": 27.0
-      },
-      {
-        "feature": "graph_score",
-        "contribution": 1.2504065952963097,
-        "value": 0.8412910297581644
-      },
-      {
-        "feature": "roll_admin_flows_1h",
-        "contribution": 1.1860314307185573,
-        "value": 18.0
-      },
-      {
-        "feature": "distinct_dsts",
-        "contribution": 0.92279002869138,
-        "value": 9.0
-      },
-      {
-        "feature": "z_distinct_dsts",
-        "contribution": 0.72841507072414,
-        "value": 4.046944556859572
-      }
-    ],
-    "base_value_logodds": -8.447542425394168,
-    "attribution_residual": 1.7763568394002505e-15
-  },
-  {
-    "alert_id": "AL-1767490800-h005",
-    "entity": "h005",
-    "window": 1767490800,
-    "window_iso": "2026-01-04T01:40:00+00:00",
-    "probability": 0.825224328497808,
-    "probability_at_deployment_prior": 0.08546846500579769,
-    "suspected_family": "dos",
-    "ground_truth": "dos",
-    "is_known_benign_anomaly": false,
-    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; high proportion of SYN-only flows",
-    "top": [
-      {
-        "feature": "mean_pkt_size",
-        "contribution": 3.835713577892059,
-        "value": 112.45754442863536
-      },
-      {
-        "feature": "flow_count",
-        "contribution": 2.1776945403236216,
-        "value": 826.0
-      },
-      {
-        "feature": "syn_ratio",
-        "contribution": 1.6629891637006304,
-        "value": 0.8208232445520581
-      },
-      {
-        "feature": "out_in_ratio",
-        "contribution": 0.5971627689736664,
-        "value": 2.767310282711303
-      },
-      {
-        "feature": "z_flow_count",
-        "contribution": 0.4637957235909518,
-        "value": 137.59611493322544
-      },
-      {
-        "feature": "roll_bytes_out_1h",
-        "contribution": 0.3400831336875024,
-        "value": 1044406.3504161192
-      }
-    ],
-    "base_value_logodds": -8.401640517366252,
-    "attribution_residual": 1.7763568394002505e-15
-  },
-  {
-    "alert_id": "AL-1767563100-h039",
-    "entity": "h039",
-    "window": 1767563100,
-    "window_iso": "2026-01-04T21:45:00+00:00",
-    "probability": 0.818605986928259,
-    "probability_at_deployment_prior": 0.08199947507783908,
-    "suspected_family": "dos",
-    "ground_truth": "benign",
-    "is_known_benign_anomaly": true,
-    "narrative": "Likely dos: mean_pkt_size elevated; roll_admin_flows_1h elevated; flow count spike",
-    "top": [
-      {
-        "feature": "mean_pkt_size",
-        "contribution": 2.8472648456463108,
-        "value": 53.377077523897036
-      },
-      {
-        "feature": "roll_admin_flows_1h",
-        "contribution": 1.5123318908857226,
+        "contribution": 0.6767085450226288,
         "value": 15.0
-      },
-      {
-        "feature": "flow_count",
-        "contribution": 1.2851557385696322,
-        "value": 10.0
-      },
-      {
-        "feature": "syn_ratio",
-        "contribution": 1.2586776593961444,
-        "value": 0.6
-      },
-      {
-        "feature": "graph_score",
-        "contribution": 1.066144907439542,
-        "value": 0.7418041912092483
-      },
-      {
-        "feature": "admin_port_ratio",
-        "contribution": 0.6712897225329042,
-        "value": 0.9
       }
     ],
-    "base_value_logodds": -8.356867916697665,
-    "attribution_residual": 3.552713678800501e-15
+    "base_value_logodds": -8.254018181874542,
+    "attribution_residual": -1.7763568394002505e-15
   },
   {
-    "alert_id": "AL-1767570300-h011",
+    "alert_id": "AL-1767570000-h011",
     "entity": "h011",
-    "window": 1767570300,
-    "window_iso": "2026-01-04T23:45:00+00:00",
-    "probability": 0.794649647697618,
-    "probability_at_deployment_prior": 0.07114499355026004,
+    "window": 1767570000,
+    "window_iso": "2026-01-04T23:40:00+00:00",
+    "probability": 0.9089567802746725,
+    "probability_at_deployment_prior": 0.16500454669900877,
     "suspected_family": "dos",
     "ground_truth": "brute_force",
     "is_known_benign_anomaly": false,
@@ -1393,82 +933,220 @@
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 2.261241119962592,
-        "value": 249.55468464981848
+        "contribution": 3.5717889299585273,
+        "value": 259.92076471889146
       },
       {
         "feature": "syn_ratio",
-        "contribution": 1.8416961747096663,
-        "value": 0.42424242424242425
+        "contribution": 1.7314815707397988,
+        "value": 0.5897435897435898
       },
       {
         "feature": "flow_count",
-        "contribution": 1.642069000609437,
-        "value": 33.0
+        "contribution": 1.6261119064688314,
+        "value": 39.0
       },
       {
         "feature": "roll_admin_flows_1h",
-        "contribution": 1.1410627424151274,
-        "value": 188.0
-      },
-      {
-        "feature": "out_in_ratio",
-        "contribution": -1.0941719978952908,
-        "value": 0.19276295111130218
+        "contribution": 1.3336737052202448,
+        "value": 158.0
       },
       {
         "feature": "admin_port_ratio",
-        "contribution": 0.9715363225912752,
-        "value": 0.9090909090909091
-      }
-    ],
-    "base_value_logodds": -8.607176302010057,
-    "attribution_residual": 1.7763568394002505e-15
-  },
-  {
-    "alert_id": "AL-1767510000-h027",
-    "entity": "h027",
-    "window": 1767510000,
-    "window_iso": "2026-01-04T07:00:00+00:00",
-    "probability": 0.7928948220610882,
-    "probability_at_deployment_prior": 0.07043983111528923,
-    "suspected_family": "dos",
-    "ground_truth": "dns_tunnel",
-    "is_known_benign_anomaly": false,
-    "narrative": "Likely dos: mean_pkt_size elevated; distinct_dsts elevated; flow count spike",
-    "top": [
-      {
-        "feature": "mean_pkt_size",
-        "contribution": 2.9737293691184474,
-        "value": 324.79401442765345
-      },
-      {
-        "feature": "distinct_dsts",
-        "contribution": 1.4949435433671336,
-        "value": 34.0
-      },
-      {
-        "feature": "flow_count",
-        "contribution": 1.1620671422059172,
-        "value": 87.0
-      },
-      {
-        "feature": "z_distinct_dsts",
-        "contribution": 1.09723607409546,
-        "value": 31.0
+        "contribution": 0.6378102326506294,
+        "value": 0.9487179487179487
       },
       {
         "feature": "roll_bytes_out_1h",
-        "contribution": 0.6696651150014173,
-        "value": 253581.00370033155
-      },
-      {
-        "feature": "roll_dst_reach_1h",
-        "contribution": 0.5520893090246638,
-        "value": 95.0
+        "contribution": 0.519590252083951,
+        "value": 226450.38233096965
       }
     ],
-    "base_value_logodds": -8.186878442783081,
+    "base_value_logodds": -8.429843971706402,
+    "attribution_residual": -3.552713678800501e-15
+  },
+  {
+    "alert_id": "AL-1767502200-h020",
+    "entity": "h020",
+    "window": 1767502200,
+    "window_iso": "2026-01-04T04:50:00+00:00",
+    "probability": 0.9042472691628738,
+    "probability_at_deployment_prior": 0.15748214627292734,
+    "suspected_family": "dos",
+    "ground_truth": "dos",
+    "is_known_benign_anomaly": false,
+    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; high proportion of SYN-only flows",
+    "top": [
+      {
+        "feature": "mean_pkt_size",
+        "contribution": 3.03545635090393,
+        "value": 86.69076430444775
+      },
+      {
+        "feature": "flow_count",
+        "contribution": 2.6605910089184786,
+        "value": 448.0
+      },
+      {
+        "feature": "syn_ratio",
+        "contribution": 1.835942155612016,
+        "value": 0.8549107142857143
+      },
+      {
+        "feature": "roll_bytes_out_1h",
+        "contribution": 0.9226723632801938,
+        "value": 374006.41146321356
+      },
+      {
+        "feature": "out_in_ratio",
+        "contribution": 0.5611092892959761,
+        "value": 7.151900573145985
+      },
+      {
+        "feature": "z_flow_count",
+        "contribution": 0.5168051993355263,
+        "value": 149.73694860380414
+      }
+    ],
+    "base_value_logodds": -8.284236556486373,
+    "attribution_residual": -1.7763568394002505e-15
+  },
+  {
+    "alert_id": "AL-1767492300-h026",
+    "entity": "h026",
+    "window": 1767492300,
+    "window_iso": "2026-01-04T02:05:00+00:00",
+    "probability": 0.8941581553334285,
+    "probability_at_deployment_prior": 0.14325921262953037,
+    "suspected_family": "dos",
+    "ground_truth": "exfil",
+    "is_known_benign_anomaly": false,
+    "narrative": "Likely dos: mean_pkt_size elevated; z_distinct_dsts elevated; distinct_dsts elevated",
+    "top": [
+      {
+        "feature": "mean_pkt_size",
+        "contribution": 3.2055334350996163,
+        "value": 29.5565411256675
+      },
+      {
+        "feature": "z_distinct_dsts",
+        "contribution": 1.2660179306861528,
+        "value": 6.070416835289357
+      },
+      {
+        "feature": "distinct_dsts",
+        "contribution": 1.2548006010102497,
+        "value": 12.0
+      },
+      {
+        "feature": "flow_count",
+        "contribution": 1.1229877406982771,
+        "value": 18.0
+      },
+      {
+        "feature": "pkts_sum",
+        "contribution": 0.6494178183436852,
+        "value": 19210.0
+      },
+      {
+        "feature": "z_bytes_out_sum",
+        "contribution": 0.5751876182561227,
+        "value": 50.444671895427184
+      }
+    ],
+    "base_value_logodds": -8.34153233360703,
+    "attribution_residual": -1.7763568394002505e-15
+  },
+  {
+    "alert_id": "AL-1767524100-h002",
+    "entity": "h002",
+    "window": 1767524100,
+    "window_iso": "2026-01-04T10:55:00+00:00",
+    "probability": 0.8829479632708847,
+    "probability_at_deployment_prior": 0.12990841338053394,
+    "suspected_family": "dos",
+    "ground_truth": "exfil",
+    "is_known_benign_anomaly": false,
+    "narrative": "Likely dos: mean_pkt_size elevated; distinct_dsts elevated; z_distinct_dsts elevated",
+    "top": [
+      {
+        "feature": "mean_pkt_size",
+        "contribution": 2.946255894409142,
+        "value": 22.65456861220901
+      },
+      {
+        "feature": "distinct_dsts",
+        "contribution": 1.7084590195307323,
+        "value": 12.0
+      },
+      {
+        "feature": "z_distinct_dsts",
+        "contribution": 1.2072554141541258,
+        "value": 8.0
+      },
+      {
+        "feature": "flow_count",
+        "contribution": 1.1037357616373014,
+        "value": 19.0
+      },
+      {
+        "feature": "pkts_sum",
+        "contribution": 0.6256132520379851,
+        "value": 31380.0
+      },
+      {
+        "feature": "out_in_ratio",
+        "contribution": 0.5382958204909054,
+        "value": 8.680766055073162
+      }
+    ],
+    "base_value_logodds": -8.086061684098983,
+    "attribution_residual": -1.7763568394002505e-15
+  },
+  {
+    "alert_id": "AL-1767490800-h005",
+    "entity": "h005",
+    "window": 1767490800,
+    "window_iso": "2026-01-04T01:40:00+00:00",
+    "probability": 0.8711764397406034,
+    "probability_at_deployment_prior": 0.1180511921030029,
+    "suspected_family": "dos",
+    "ground_truth": "dos",
+    "is_known_benign_anomaly": false,
+    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; high proportion of SYN-only flows",
+    "top": [
+      {
+        "feature": "mean_pkt_size",
+        "contribution": 3.947238008765475,
+        "value": 112.45754442863536
+      },
+      {
+        "feature": "flow_count",
+        "contribution": 2.1954852382093364,
+        "value": 826.0
+      },
+      {
+        "feature": "syn_ratio",
+        "contribution": 1.8286748066383591,
+        "value": 0.8208232445520581
+      },
+      {
+        "feature": "z_flow_count",
+        "contribution": 0.4875064872252569,
+        "value": 137.59611493322544
+      },
+      {
+        "feature": "out_in_ratio",
+        "contribution": 0.46227836159711777,
+        "value": 2.767310282711303
+      },
+      {
+        "feature": "short_flow_ratio",
+        "contribution": 0.2844710699801961,
+        "value": 0.8135593220338984
+      }
+    ],
+    "base_value_logodds": -8.203986185489754,
     "attribution_residual": 0.0
   },
   {
@@ -1476,8 +1154,54 @@
     "entity": "h005",
     "window": 1767489900,
     "window_iso": "2026-01-04T01:25:00+00:00",
-    "probability": 0.7923430419304937,
-    "probability_at_deployment_prior": 0.0702203473854094,
+    "probability": 0.850719639602378,
+    "probability_at_deployment_prior": 0.10136400666739474,
+    "suspected_family": "dos",
+    "ground_truth": "dos",
+    "is_known_benign_anomaly": false,
+    "narrative": "Likely dos: mean_pkt_size elevated; high proportion of SYN-only flows; flow count spike",
+    "top": [
+      {
+        "feature": "mean_pkt_size",
+        "contribution": 3.731751382684088,
+        "value": 170.10045251139675
+      },
+      {
+        "feature": "syn_ratio",
+        "contribution": 1.9047584582708337,
+        "value": 0.8312236286919831
+      },
+      {
+        "feature": "flow_count",
+        "contribution": 1.898486100620647,
+        "value": 474.0
+      },
+      {
+        "feature": "roll_bytes_out_1h",
+        "contribution": 0.6459766592505098,
+        "value": 458112.7487314528
+      },
+      {
+        "feature": "z_flow_count",
+        "contribution": 0.47229146167428754,
+        "value": 78.24092809928504
+      },
+      {
+        "feature": "out_in_ratio",
+        "contribution": 0.37583031879660755,
+        "value": 1.0593622287266906
+      }
+    ],
+    "base_value_logodds": -8.574695725020849,
+    "attribution_residual": 1.7763568394002505e-15
+  },
+  {
+    "alert_id": "AL-1767545100-h012",
+    "entity": "h012",
+    "window": 1767545100,
+    "window_iso": "2026-01-04T16:45:00+00:00",
+    "probability": 0.8481075263538156,
+    "probability_at_deployment_prior": 0.09951887368756793,
     "suspected_family": "dos",
     "ground_truth": "dos",
     "is_known_benign_anomaly": false,
@@ -1485,45 +1209,91 @@
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 3.756110936077918,
-        "value": 170.10045251139675
+        "contribution": 3.808623347222443,
+        "value": 95.67543219343504
       },
       {
         "feature": "flow_count",
-        "contribution": 1.8573289810085882,
-        "value": 474.0
+        "contribution": 1.860836146525737,
+        "value": 602.0
       },
       {
         "feature": "syn_ratio",
-        "contribution": 1.6560830785435638,
-        "value": 0.8312236286919831
-      },
-      {
-        "feature": "z_flow_count",
-        "contribution": 0.5030015872081901,
-        "value": 78.24092809928504
-      },
-      {
-        "feature": "z_bytes_out_sum",
-        "contribution": 0.47456559461928133,
-        "value": 3.239389394590325
+        "contribution": 1.7254499288054395,
+        "value": 0.8421926910299004
       },
       {
         "feature": "roll_bytes_out_1h",
-        "contribution": 0.4354010487264077,
-        "value": 458112.7487314528
+        "contribution": 0.7784226188591068,
+        "value": 264752.4770080922
+      },
+      {
+        "feature": "roll_dst_reach_1h",
+        "contribution": 0.5985159867301812,
+        "value": 82.0
+      },
+      {
+        "feature": "z_flow_count",
+        "contribution": 0.5379928672376864,
+        "value": 201.33549170376367
       }
     ],
-    "base_value_logodds": -8.37842599115044,
+    "base_value_logodds": -8.383120362987722,
     "attribution_residual": -1.7763568394002505e-15
+  },
+  {
+    "alert_id": "AL-1767510000-h027",
+    "entity": "h027",
+    "window": 1767510000,
+    "window_iso": "2026-01-04T07:00:00+00:00",
+    "probability": 0.847743741983007,
+    "probability_at_deployment_prior": 0.0992663397141047,
+    "suspected_family": "dos",
+    "ground_truth": "dns_tunnel",
+    "is_known_benign_anomaly": false,
+    "narrative": "Likely dos: mean_pkt_size elevated; distinct_dsts elevated; z_distinct_dsts elevated",
+    "top": [
+      {
+        "feature": "mean_pkt_size",
+        "contribution": 3.0282679111607935,
+        "value": 324.79401442765345
+      },
+      {
+        "feature": "distinct_dsts",
+        "contribution": 1.527257711869886,
+        "value": 34.0
+      },
+      {
+        "feature": "z_distinct_dsts",
+        "contribution": 1.2513092730074815,
+        "value": 31.0
+      },
+      {
+        "feature": "flow_count",
+        "contribution": 1.1978850306685096,
+        "value": 87.0
+      },
+      {
+        "feature": "roll_bytes_out_1h",
+        "contribution": 0.5640315647792005,
+        "value": 253581.00370033155
+      },
+      {
+        "feature": "roll_dst_reach_1h",
+        "contribution": 0.5362728968468335,
+        "value": 95.0
+      }
+    ],
+    "base_value_logodds": -8.30145677123036,
+    "attribution_residual": 0.0
   },
   {
     "alert_id": "AL-1767502500-h020",
     "entity": "h020",
     "window": 1767502500,
     "window_iso": "2026-01-04T04:55:00+00:00",
-    "probability": 0.7880300114257786,
-    "probability_at_deployment_prior": 0.06854068588314045,
+    "probability": 0.8372733500725164,
+    "probability_at_deployment_prior": 0.09242844283938312,
     "suspected_family": "dos",
     "ground_truth": "dos",
     "is_known_benign_anomaly": false,
@@ -1531,36 +1301,36 @@
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 3.1751009582252014,
+        "contribution": 3.7188666276364284,
         "value": 91.32186593515351
       },
       {
         "feature": "flow_count",
-        "contribution": 2.5389718894524376,
+        "contribution": 2.255186223146609,
         "value": 1148.0
       },
       {
         "feature": "syn_ratio",
-        "contribution": 1.8827279949548097,
+        "contribution": 1.721626649977041,
         "value": 0.8536585365853658
       },
       {
         "feature": "out_in_ratio",
-        "contribution": 0.6631911964131966,
+        "contribution": 0.6547409874193115,
         "value": 5.3557578546435165
       },
       {
-        "feature": "z_flow_count",
-        "contribution": 0.6117117135035969,
-        "value": 385.80871442061243
+        "feature": "roll_bytes_out_1h",
+        "contribution": 0.5801828145152534,
+        "value": 640356.8952226695
       },
       {
-        "feature": "roll_bytes_out_1h",
-        "contribution": 0.5877845700036661,
-        "value": 640356.8952226695
+        "feature": "z_flow_count",
+        "contribution": 0.5134139021726528,
+        "value": 385.80871442061243
       }
     ],
-    "base_value_logodds": -8.457140414031613,
+    "base_value_logodds": -8.274662932995296,
     "attribution_residual": 3.552713678800501e-15
   },
   {
@@ -1568,54 +1338,54 @@
     "entity": "h026",
     "window": 1767490500,
     "window_iso": "2026-01-04T01:35:00+00:00",
-    "probability": 0.7710671877330546,
-    "probability_at_deployment_prior": 0.062498868505358976,
+    "probability": 0.832758757212375,
+    "probability_at_deployment_prior": 0.08971581277267988,
     "suspected_family": "dos",
     "ground_truth": "exfil",
     "is_known_benign_anomaly": false,
-    "narrative": "Likely dos: mean_pkt_size elevated; z_distinct_dsts elevated; distinct_dsts elevated",
+    "narrative": "Likely dos: mean_pkt_size elevated; distinct_dsts elevated; flow count spike",
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 3.194273384310468,
+        "contribution": 2.4950294588942423,
         "value": 4.206359472173759
       },
       {
-        "feature": "z_distinct_dsts",
-        "contribution": 1.581423103771945,
-        "value": 4.721435316336167
-      },
-      {
         "feature": "distinct_dsts",
-        "contribution": 1.3810210027584735,
+        "contribution": 1.2712095476153868,
         "value": 10.0
       },
       {
-        "feature": "admin_port_ratio",
-        "contribution": 0.7838841792499963,
-        "value": 0.9090909090909091
+        "feature": "flow_count",
+        "contribution": 1.1959214159232965,
+        "value": 11.0
+      },
+      {
+        "feature": "z_distinct_dsts",
+        "contribution": 1.1280092579391137,
+        "value": 4.721435316336167
       },
       {
         "feature": "pkts_sum",
-        "contribution": 0.626911757003211,
+        "contribution": 0.7322588143657239,
         "value": 25160.0
       },
       {
-        "feature": "out_in_ratio",
-        "contribution": 0.46129751910730116,
-        "value": 2.176589071873488
+        "feature": "roll_bytes_out_1h",
+        "contribution": 0.5448185764556837,
+        "value": 514119.51125365635
       }
     ],
-    "base_value_logodds": -8.714721131853647,
-    "attribution_residual": 0.0
+    "base_value_logodds": -8.2272463422293,
+    "attribution_residual": 1.7763568394002505e-15
   },
   {
     "alert_id": "AL-1767489900-h026",
     "entity": "h026",
     "window": 1767489900,
     "window_iso": "2026-01-04T01:25:00+00:00",
-    "probability": 0.7698784430284805,
-    "probability_at_deployment_prior": 0.06210616488486,
+    "probability": 0.8277007175817219,
+    "probability_at_deployment_prior": 0.08682778586656051,
     "suspected_family": "dos",
     "ground_truth": "exfil",
     "is_known_benign_anomaly": false,
@@ -1623,174 +1393,82 @@
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 2.6243857557073915,
+        "contribution": 2.4828014380599552,
         "value": 25.507091422772522
       },
       {
         "feature": "z_distinct_dsts",
-        "contribution": 1.654525287763198,
+        "contribution": 1.8145421296826825,
         "value": 2.697963037906381
       },
       {
         "feature": "distinct_dsts",
-        "contribution": 1.6370420296573809,
+        "contribution": 1.8000308423354439,
         "value": 7.0
       },
       {
         "feature": "pkts_sum",
-        "contribution": 0.7089149994318582,
+        "contribution": 0.6956303736650935,
         "value": 13583.0
       },
       {
-        "feature": "flow_count",
-        "contribution": 0.6682547454205545,
-        "value": 9.0
-      },
-      {
         "feature": "admin_port_ratio",
-        "contribution": 0.6456217995832382,
+        "contribution": 0.6771314953408244,
         "value": 0.5555555555555556
-      }
-    ],
-    "base_value_logodds": -8.360786917294186,
-    "attribution_residual": -1.7763568394002505e-15
-  },
-  {
-    "alert_id": "AL-1767532500-h013",
-    "entity": "h013",
-    "window": 1767532500,
-    "window_iso": "2026-01-04T13:15:00+00:00",
-    "probability": 0.7578562739386169,
-    "probability_at_deployment_prior": 0.058334624472426544,
-    "suspected_family": "dos",
-    "ground_truth": "benign",
-    "is_known_benign_anomaly": true,
-    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; high proportion of SYN-only flows",
-    "top": [
-      {
-        "feature": "mean_pkt_size",
-        "contribution": 2.893323181204079,
-        "value": 182.38251108310118
       },
       {
         "feature": "flow_count",
-        "contribution": 1.71100125886528,
-        "value": 293.0
-      },
-      {
-        "feature": "syn_ratio",
-        "contribution": 1.139982654851952,
-        "value": 0.9692832764505119
-      },
-      {
-        "feature": "distinct_dsts",
-        "contribution": 1.0577189008180783,
-        "value": 40.0
-      },
-      {
-        "feature": "roll_dst_reach_1h",
-        "contribution": 0.8832816510011055,
-        "value": 83.0
-      },
-      {
-        "feature": "roll_admin_flows_1h",
-        "contribution": 0.7312763039584231,
-        "value": 15.0
+        "contribution": 0.6559268233177651,
+        "value": 9.0
       }
     ],
-    "base_value_logodds": -8.303321101509916,
-    "attribution_residual": 0.0
+    "base_value_logodds": -8.465015377340084,
+    "attribution_residual": 3.552713678800501e-15
   },
   {
-    "alert_id": "AL-1767556800-h016",
-    "entity": "h016",
-    "window": 1767556800,
-    "window_iso": "2026-01-04T20:00:00+00:00",
-    "probability": 0.7494983012310734,
-    "probability_at_deployment_prior": 0.055910007037661906,
+    "alert_id": "AL-1767570300-h011",
+    "entity": "h011",
+    "window": 1767570300,
+    "window_iso": "2026-01-04T23:45:00+00:00",
+    "probability": 0.8005619684365711,
+    "probability_at_deployment_prior": 0.07360374961878706,
     "suspected_family": "dos",
-    "ground_truth": "benign",
-    "is_known_benign_anomaly": true,
-    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; anomalous authentication-graph traversal",
-    "top": [
-      {
-        "feature": "mean_pkt_size",
-        "contribution": 2.738631352476721,
-        "value": 115.44741330500378
-      },
-      {
-        "feature": "flow_count",
-        "contribution": 1.5302260949984214,
-        "value": 28.0
-      },
-      {
-        "feature": "graph_score",
-        "contribution": 1.2153458635956054,
-        "value": 0.8327563667100251
-      },
-      {
-        "feature": "roll_admin_flows_1h",
-        "contribution": 1.0698592638335354,
-        "value": 15.0
-      },
-      {
-        "feature": "distinct_dsts",
-        "contribution": 0.7078378319089594,
-        "value": 8.0
-      },
-      {
-        "feature": "z_distinct_dsts",
-        "contribution": 0.4728971974140409,
-        "value": 5.0
-      }
-    ],
-    "base_value_logodds": -8.4985429735463,
-    "attribution_residual": 0.0
-  },
-  {
-    "alert_id": "AL-1767501900-h020",
-    "entity": "h020",
-    "window": 1767501900,
-    "window_iso": "2026-01-04T04:45:00+00:00",
-    "probability": 0.7259327619927333,
-    "probability_at_deployment_prior": 0.049815379781691656,
-    "suspected_family": "dos",
-    "ground_truth": "dos",
+    "ground_truth": "brute_force",
     "is_known_benign_anomaly": false,
-    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; high proportion of SYN-only flows",
+    "narrative": "Likely dos: mean_pkt_size elevated; high proportion of SYN-only flows; flow count spike",
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 3.209255819206689,
-        "value": 99.59093401316059
-      },
-      {
-        "feature": "flow_count",
-        "contribution": 2.9008933773519554,
-        "value": 778.0
+        "contribution": 2.5992558882853753,
+        "value": 249.55468464981848
       },
       {
         "feature": "syn_ratio",
-        "contribution": 1.4194340546680466,
-        "value": 0.8444730077120822
+        "contribution": 1.7176639400967013,
+        "value": 0.42424242424242425
       },
       {
-        "feature": "z_flow_count",
-        "contribution": 0.617773591741008,
-        "value": 261.02792391744237
+        "feature": "flow_count",
+        "contribution": 1.6744913379280244,
+        "value": 33.0
       },
       {
-        "feature": "roll_bytes_out_1h",
-        "contribution": 0.5358327631845801,
-        "value": 276466.79966361396
+        "feature": "roll_admin_flows_1h",
+        "contribution": 1.3743764320749086,
+        "value": 188.0
       },
       {
         "feature": "out_in_ratio",
-        "contribution": 0.4585907392133636,
-        "value": 3.371508576617489
+        "contribution": -1.036080916462542,
+        "value": 0.19276295111130218
+      },
+      {
+        "feature": "admin_port_ratio",
+        "contribution": 0.7087807587967769,
+        "value": 0.9090909090909091
       }
     ],
-    "base_value_logodds": -8.258777178454308,
+    "base_value_logodds": -8.08868305825692,
     "attribution_residual": 0.0
   },
   {
@@ -1798,54 +1476,100 @@
     "entity": "h014",
     "window": 1767552300,
     "window_iso": "2026-01-04T18:45:00+00:00",
-    "probability": 0.7247586119205766,
-    "probability_at_deployment_prior": 0.04953714458485579,
-    "suspected_family": "dos",
+    "probability": 0.7920030701510188,
+    "probability_at_deployment_prior": 0.0700856439656545,
+    "suspected_family": "exfil",
     "ground_truth": "exfil",
     "is_known_benign_anomaly": false,
-    "narrative": "Likely dos: mean_pkt_size elevated; z_distinct_dsts elevated; distinct_dsts elevated",
+    "narrative": "Likely exfil: mean_pkt_size elevated; z_distinct_dsts elevated; distinct_dsts elevated",
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 3.0393102699884142,
+        "contribution": 3.4074554110215267,
         "value": 40.94913109421467
       },
       {
         "feature": "z_distinct_dsts",
-        "contribution": 1.6118875300599143,
+        "contribution": 1.524095916982389,
         "value": 5.0
       },
       {
         "feature": "distinct_dsts",
-        "contribution": 1.4070462598068834,
+        "contribution": 1.5017106072968045,
         "value": 7.0
       },
       {
-        "feature": "flow_count",
-        "contribution": 0.6787173630161615,
-        "value": 15.0
+        "feature": "bytes_in_sum",
+        "contribution": -0.5694457910751598,
+        "value": 44555.06215119392
+      },
+      {
+        "feature": "z_bytes_out_sum",
+        "contribution": 0.5587322360242127,
+        "value": 34.787416463010324
       },
       {
         "feature": "roll_bytes_out_1h",
-        "contribution": 0.6146268974561635,
+        "contribution": 0.5586137173396644,
         "value": 819562.959962921
-      },
-      {
-        "feature": "bytes_in_sum",
-        "contribution": -0.5776526862440562,
-        "value": 44555.06215119392
       }
     ],
-    "base_value_logodds": -8.50580811808586,
-    "attribution_residual": 1.7763568394002505e-15
+    "base_value_logodds": -8.251069188169105,
+    "attribution_residual": 0.0
   },
   {
     "alert_id": "AL-1767552900-h014",
     "entity": "h014",
     "window": 1767552900,
     "window_iso": "2026-01-04T18:55:00+00:00",
-    "probability": 0.7197112324449129,
-    "probability_at_deployment_prior": 0.04836584532455566,
+    "probability": 0.7892254349606678,
+    "probability_at_deployment_prior": 0.06899994627770487,
+    "suspected_family": "dos",
+    "ground_truth": "exfil",
+    "is_known_benign_anomaly": false,
+    "narrative": "Likely dos: mean_pkt_size elevated; distinct_dsts elevated; z_distinct_dsts elevated",
+    "top": [
+      {
+        "feature": "mean_pkt_size",
+        "contribution": 2.869494904858365,
+        "value": 17.65264745548975
+      },
+      {
+        "feature": "distinct_dsts",
+        "contribution": 1.744977194426996,
+        "value": 8.0
+      },
+      {
+        "feature": "z_distinct_dsts",
+        "contribution": 1.4016145092462657,
+        "value": 6.0
+      },
+      {
+        "feature": "pkts_sum",
+        "contribution": 0.6286813534795752,
+        "value": 15987.0
+      },
+      {
+        "feature": "flow_count",
+        "contribution": 0.6222077350616886,
+        "value": 16.0
+      },
+      {
+        "feature": "out_in_ratio",
+        "contribution": 0.556923261515806,
+        "value": 5.78269309663509
+      }
+    ],
+    "base_value_logodds": -8.353084025263946,
+    "attribution_residual": 0.0
+  },
+  {
+    "alert_id": "AL-1767552000-h014",
+    "entity": "h014",
+    "window": 1767552000,
+    "window_iso": "2026-01-04T18:40:00+00:00",
+    "probability": 0.7718856758503314,
+    "probability_at_deployment_prior": 0.06277144303227765,
     "suspected_family": "dos",
     "ground_truth": "exfil",
     "is_known_benign_anomaly": false,
@@ -1853,413 +1577,91 @@
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 3.063340686277635,
-        "value": 17.65264745548975
-      },
-      {
-        "feature": "z_distinct_dsts",
-        "contribution": 1.5893518133179556,
-        "value": 6.0
-      },
-      {
-        "feature": "distinct_dsts",
-        "contribution": 1.5378074225172629,
-        "value": 8.0
-      },
-      {
-        "feature": "roll_bytes_out_1h",
-        "contribution": 0.5815545640792273,
-        "value": 1088601.1126714544
-      },
-      {
-        "feature": "pkts_sum",
-        "contribution": 0.5398195607760083,
-        "value": 15987.0
-      },
-      {
-        "feature": "out_in_ratio",
-        "contribution": 0.5156038517737189,
-        "value": 5.78269309663509
-      }
-    ],
-    "base_value_logodds": -8.457685495333815,
-    "attribution_residual": -1.7763568394002505e-15
-  },
-  {
-    "alert_id": "AL-1767552000-h014",
-    "entity": "h014",
-    "window": 1767552000,
-    "window_iso": "2026-01-04T18:40:00+00:00",
-    "probability": 0.7146062290070101,
-    "probability_at_deployment_prior": 0.047220531664027815,
-    "suspected_family": "dos",
-    "ground_truth": "exfil",
-    "is_known_benign_anomaly": false,
-    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; z_distinct_dsts elevated",
-    "top": [
-      {
-        "feature": "mean_pkt_size",
-        "contribution": 2.668591852228952,
+        "contribution": 3.5245039819196307,
         "value": 17.948355476133916
       },
       {
-        "feature": "flow_count",
-        "contribution": 1.3618148889587594,
-        "value": 21.0
-      },
-      {
         "feature": "z_distinct_dsts",
-        "contribution": 1.3597136203926898,
+        "contribution": 1.3912380075215014,
         "value": 10.0
       },
       {
         "feature": "distinct_dsts",
-        "contribution": 1.1564767528643047,
+        "contribution": 1.1787663170351317,
         "value": 12.0
       },
       {
-        "feature": "pkts_sum",
-        "contribution": 0.6119613622143347,
-        "value": 25326.0
-      },
-      {
-        "feature": "z_bytes_out_sum",
-        "contribution": 0.5854891258553554,
-        "value": 47.19518929581152
-      }
-    ],
-    "base_value_logodds": -8.48511047302123,
-    "attribution_residual": 1.7763568394002505e-15
-  },
-  {
-    "alert_id": "AL-1767497100-h010",
-    "entity": "h010",
-    "window": 1767497100,
-    "window_iso": "2026-01-04T03:25:00+00:00",
-    "probability": 0.6705422808218636,
-    "probability_at_deployment_prior": 0.03872490368205411,
-    "suspected_family": "dos",
-    "ground_truth": "benign",
-    "is_known_benign_anomaly": true,
-    "narrative": "Likely dos: mean_pkt_size elevated; distinct_dsts elevated; high proportion of SYN-only flows",
-    "top": [
-      {
-        "feature": "mean_pkt_size",
-        "contribution": 2.80171596745199,
-        "value": 119.1090281442001
-      },
-      {
-        "feature": "distinct_dsts",
-        "contribution": 1.5412268078910134,
-        "value": 40.0
-      },
-      {
-        "feature": "syn_ratio",
-        "contribution": 1.4963946184258106,
-        "value": 0.9811320754716981
-      },
-      {
         "feature": "flow_count",
-        "contribution": 1.3290405115784483,
-        "value": 159.0
-      },
-      {
-        "feature": "z_distinct_dsts",
-        "contribution": 0.6949931185130682,
-        "value": 24.956158100634024
-      },
-      {
-        "feature": "bytes_out_p95",
-        "contribution": -0.6685521790357671,
-        "value": 189.2624155891677
-      }
-    ],
-    "base_value_logodds": -8.493639659036702,
-    "attribution_residual": 0.0
-  },
-  {
-    "alert_id": "AL-1767550500-h016",
-    "entity": "h016",
-    "window": 1767550500,
-    "window_iso": "2026-01-04T18:15:00+00:00",
-    "probability": 0.6697933970785878,
-    "probability_at_deployment_prior": 0.038598982901858106,
-    "suspected_family": "lateral_movement",
-    "ground_truth": "benign",
-    "is_known_benign_anomaly": true,
-    "narrative": "Likely lateral movement: mean_pkt_size elevated; roll_admin_flows_1h elevated; distinct_dsts elevated",
-    "top": [
-      {
-        "feature": "mean_pkt_size",
-        "contribution": 2.65896988599553,
-        "value": 324.5266950800968
-      },
-      {
-        "feature": "roll_admin_flows_1h",
-        "contribution": 1.2108461833857036,
-        "value": 15.0
-      },
-      {
-        "feature": "distinct_dsts",
-        "contribution": 1.2090880984914916,
-        "value": 8.0
-      },
-      {
-        "feature": "graph_score",
-        "contribution": 1.1793898626851185,
-        "value": 0.8109206883518036
-      },
-      {
-        "feature": "flow_count",
-        "contribution": 0.8826130671994766,
-        "value": 31.0
-      },
-      {
-        "feature": "z_distinct_dports",
-        "contribution": -0.680669477741172,
-        "value": 2.697963037906381
-      }
-    ],
-    "base_value_logodds": -8.370321070676065,
-    "attribution_residual": -1.7763568394002505e-15
-  },
-  {
-    "alert_id": "AL-1767518400-h038",
-    "entity": "h038",
-    "window": 1767518400,
-    "window_iso": "2026-01-04T09:20:00+00:00",
-    "probability": 0.6621924740492058,
-    "probability_at_deployment_prior": 0.037350737153505585,
-    "suspected_family": "dos",
-    "ground_truth": "portscan",
-    "is_known_benign_anomaly": false,
-    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; distinct_dsts elevated",
-    "top": [
-      {
-        "feature": "mean_pkt_size",
-        "contribution": 2.4734815384205473,
-        "value": 451.0879913466915
-      },
-      {
-        "feature": "flow_count",
-        "contribution": 1.6244210511336932,
-        "value": 77.0
-      },
-      {
-        "feature": "distinct_dsts",
-        "contribution": 1.5185288043841958,
-        "value": 32.0
-      },
-      {
-        "feature": "syn_ratio",
-        "contribution": 0.9853664482422708,
-        "value": 0.8571428571428571
-      },
-      {
-        "feature": "roll_dst_reach_1h",
-        "contribution": 0.8844368233360239,
-        "value": 92.0
-      },
-      {
-        "feature": "z_distinct_dsts",
-        "contribution": 0.47040912644292454,
-        "value": 30.0
-      }
-    ],
-    "base_value_logodds": -8.389284823018581,
-    "attribution_residual": -1.7763568394002505e-15
-  },
-  {
-    "alert_id": "AL-1767568200-h007",
-    "entity": "h007",
-    "window": 1767568200,
-    "window_iso": "2026-01-04T23:10:00+00:00",
-    "probability": 0.6454018762366768,
-    "probability_at_deployment_prior": 0.03477278875890696,
-    "suspected_family": "lateral_movement",
-    "ground_truth": "benign",
-    "is_known_benign_anomaly": true,
-    "narrative": "Likely lateral movement: mean_pkt_size elevated; anomalous authentication-graph traversal; roll_admin_flows_1h elevated",
-    "top": [
-      {
-        "feature": "mean_pkt_size",
-        "contribution": 3.0460829543613763,
-        "value": 71.67364144342268
-      },
-      {
-        "feature": "graph_score",
-        "contribution": 1.1622218849919834,
-        "value": 0.814452246853836
-      },
-      {
-        "feature": "roll_admin_flows_1h",
-        "contribution": 1.0435100852915267,
-        "value": 12.0
-      },
-      {
-        "feature": "distinct_dsts",
-        "contribution": 0.857813985724449,
-        "value": 6.0
+        "contribution": 1.0568288783257198,
+        "value": 21.0
       },
       {
         "feature": "admin_port_ratio",
-        "contribution": 0.6943984360812681,
-        "value": 0.7058823529411765
-      },
-      {
-        "feature": "bytes_in_sum",
-        "contribution": -0.47720714552741594,
-        "value": 56342.820241668094
-      }
-    ],
-    "base_value_logodds": -8.277129197432249,
-    "attribution_residual": 0.0
-  },
-  {
-    "alert_id": "AL-1767523500-h007",
-    "entity": "h007",
-    "window": 1767523500,
-    "window_iso": "2026-01-04T10:45:00+00:00",
-    "probability": 0.638256370758582,
-    "probability_at_deployment_prior": 0.03374445673129719,
-    "suspected_family": "dos",
-    "ground_truth": "benign",
-    "is_known_benign_anomaly": true,
-    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; distinct_dsts elevated",
-    "top": [
-      {
-        "feature": "mean_pkt_size",
-        "contribution": 2.407857766975806,
-        "value": 253.69266022358693
-      },
-      {
-        "feature": "flow_count",
-        "contribution": 1.4407247768189508,
-        "value": 29.0
-      },
-      {
-        "feature": "distinct_dsts",
-        "contribution": 1.3768055179814171,
-        "value": 7.0
-      },
-      {
-        "feature": "graph_score",
-        "contribution": 1.0514303165745744,
-        "value": 0.7758301867378063
-      },
-      {
-        "feature": "z_distinct_dsts",
-        "contribution": 0.7654893739375883,
-        "value": 3.0
+        "contribution": 0.7465593880837236,
+        "value": 0.5238095238095238
       },
       {
         "feature": "z_bytes_out_sum",
-        "contribution": 0.5106829835132881,
-        "value": 3.1688990978313476
+        "contribution": 0.49819701809084915,
+        "value": 47.19518929581152
       }
     ],
-    "base_value_logodds": -8.50847556132295,
+    "base_value_logodds": -8.565828633313846,
     "attribution_residual": 1.7763568394002505e-15
   },
   {
-    "alert_id": "AL-1767552600-h014",
-    "entity": "h014",
-    "window": 1767552600,
-    "window_iso": "2026-01-04T18:50:00+00:00",
-    "probability": 0.6380662905665988,
-    "probability_at_deployment_prior": 0.03371762682428356,
+    "alert_id": "AL-1767537900-h002",
+    "entity": "h002",
+    "window": 1767537900,
+    "window_iso": "2026-01-04T14:45:00+00:00",
+    "probability": 0.7697882061753093,
+    "probability_at_deployment_prior": 0.06207650726190988,
     "suspected_family": "dos",
-    "ground_truth": "exfil",
-    "is_known_benign_anomaly": false,
-    "narrative": "Likely dos: mean_pkt_size elevated; distinct_dsts elevated; roll_admin_flows_1h elevated",
+    "ground_truth": "benign",
+    "is_known_benign_anomaly": true,
+    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; roll_admin_flows_1h elevated",
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 3.9969505970358026,
-        "value": 10.791371469473091
+        "contribution": 2.9740155838392885,
+        "value": 120.27384028481613
       },
       {
-        "feature": "distinct_dsts",
-        "contribution": 1.0823940088801804,
-        "value": 10.0
+        "feature": "flow_count",
+        "contribution": 1.3607547113097747,
+        "value": 34.0
       },
       {
         "feature": "roll_admin_flows_1h",
-        "contribution": 1.0315224087975383,
-        "value": 11.0
-      },
-      {
-        "feature": "z_distinct_dsts",
-        "contribution": 1.0054084020832783,
-        "value": 8.0
-      },
-      {
-        "feature": "flow_count",
-        "contribution": 0.6684889239845362,
-        "value": 21.0
-      },
-      {
-        "feature": "pkts_sum",
-        "contribution": 0.5094228032477632,
-        "value": 13330.0
-      }
-    ],
-    "base_value_logodds": -8.721519397835966,
-    "attribution_residual": -1.7763568394002505e-15
-  },
-  {
-    "alert_id": "AL-1767525000-h037",
-    "entity": "h037",
-    "window": 1767525000,
-    "window_iso": "2026-01-04T11:10:00+00:00",
-    "probability": 0.6303419959358633,
-    "probability_at_deployment_prior": 0.03264947302944803,
-    "suspected_family": "dos",
-    "ground_truth": "portscan",
-    "is_known_benign_anomaly": false,
-    "narrative": "Likely dos: mean_pkt_size elevated; high proportion of SYN-only flows; distinct_dsts elevated",
-    "top": [
-      {
-        "feature": "mean_pkt_size",
-        "contribution": 2.6554215356598414,
-        "value": 183.1271180156599
-      },
-      {
-        "feature": "syn_ratio",
-        "contribution": 1.6899472501744186,
-        "value": 0.967741935483871
+        "contribution": 1.1368263990069936,
+        "value": 18.0
       },
       {
         "feature": "distinct_dsts",
-        "contribution": 1.4747499887655882,
-        "value": 23.0
+        "contribution": 0.8371242457868313,
+        "value": 10.0
       },
       {
-        "feature": "flow_count",
-        "contribution": 1.0661714717833894,
-        "value": 31.0
+        "feature": "z_bytes_out_sum",
+        "contribution": 0.7291839948740358,
+        "value": 3.0863028758339177
       },
       {
-        "feature": "bytes_out_p95",
-        "contribution": -0.6528558681870561,
-        "value": 154.91312028952524
-      },
-      {
-        "feature": "roll_dst_reach_1h",
-        "contribution": 0.6408971758055036,
-        "value": 89.0
+        "feature": "admin_port_ratio",
+        "contribution": 0.6460627680501622,
+        "value": 0.5294117647058824
       }
     ],
-    "base_value_logodds": -8.71651559885644,
-    "attribution_residual": 0.0
+    "base_value_logodds": -8.251181721323992,
+    "attribution_residual": -1.7763568394002505e-15
   },
   {
-    "alert_id": "AL-1767553800-h036",
-    "entity": "h036",
-    "window": 1767553800,
-    "window_iso": "2026-01-04T19:10:00+00:00",
-    "probability": 0.626067247917153,
-    "probability_at_deployment_prior": 0.032076336545875835,
+    "alert_id": "AL-1767532500-h013",
+    "entity": "h013",
+    "window": 1767532500,
+    "window_iso": "2026-01-04T13:15:00+00:00",
+    "probability": 0.7690532561404272,
+    "probability_at_deployment_prior": 0.0618357491817092,
     "suspected_family": "dos",
     "ground_truth": "benign",
     "is_known_benign_anomaly": true,
@@ -2267,36 +1669,634 @@
     "top": [
       {
         "feature": "mean_pkt_size",
-        "contribution": 2.6572493396021963,
-        "value": 437.03316487850344
+        "contribution": 2.9997690461135007,
+        "value": 182.38251108310118
       },
       {
         "feature": "flow_count",
-        "contribution": 1.5026679383792318,
-        "value": 167.0
+        "contribution": 1.7454431731399924,
+        "value": 293.0
       },
       {
         "feature": "syn_ratio",
-        "contribution": 1.2323441106391722,
-        "value": 0.9640718562874252
+        "contribution": 1.1503744584789455,
+        "value": 0.9692832764505119
       },
       {
         "feature": "distinct_dsts",
-        "contribution": 1.1447459112803386,
+        "contribution": 1.060075272496704,
         "value": 40.0
       },
       {
+        "feature": "roll_dst_reach_1h",
+        "contribution": 0.9064699603615964,
+        "value": 83.0
+      },
+      {
         "feature": "roll_admin_flows_1h",
-        "contribution": 1.0548573233546148,
-        "value": 13.0
+        "contribution": 0.742471199598621,
+        "value": 15.0
+      }
+    ],
+    "base_value_logodds": -8.205117120110392,
+    "attribution_residual": 0.0
+  },
+  {
+    "alert_id": "AL-1767501900-h020",
+    "entity": "h020",
+    "window": 1767501900,
+    "window_iso": "2026-01-04T04:45:00+00:00",
+    "probability": 0.7470453326788482,
+    "probability_at_deployment_prior": 0.055226574192772326,
+    "suspected_family": "dos",
+    "ground_truth": "dos",
+    "is_known_benign_anomaly": false,
+    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; high proportion of SYN-only flows",
+    "top": [
+      {
+        "feature": "mean_pkt_size",
+        "contribution": 3.215232371294475,
+        "value": 99.59093401316059
+      },
+      {
+        "feature": "flow_count",
+        "contribution": 2.650596457778292,
+        "value": 778.0
+      },
+      {
+        "feature": "syn_ratio",
+        "contribution": 1.6928077831623067,
+        "value": 0.8444730077120822
+      },
+      {
+        "feature": "z_flow_count",
+        "contribution": 0.5631122218279118,
+        "value": 261.02792391744237
+      },
+      {
+        "feature": "out_in_ratio",
+        "contribution": 0.5478374414358372,
+        "value": 3.371508576617489
+      },
+      {
+        "feature": "bytes_in_sum",
+        "contribution": -0.5370496782074246,
+        "value": 54106.05804088211
+      }
+    ],
+    "base_value_logodds": -8.377255176040084,
+    "attribution_residual": 1.7763568394002505e-15
+  },
+  {
+    "alert_id": "AL-1767518400-h038",
+    "entity": "h038",
+    "window": 1767518400,
+    "window_iso": "2026-01-04T09:20:00+00:00",
+    "probability": 0.7357780747791403,
+    "probability_at_deployment_prior": 0.05223878838275221,
+    "suspected_family": "dos",
+    "ground_truth": "portscan",
+    "is_known_benign_anomaly": false,
+    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; distinct_dsts elevated",
+    "top": [
+      {
+        "feature": "mean_pkt_size",
+        "contribution": 2.4945326701152366,
+        "value": 451.0879913466915
+      },
+      {
+        "feature": "flow_count",
+        "contribution": 2.037435206013641,
+        "value": 77.0
+      },
+      {
+        "feature": "distinct_dsts",
+        "contribution": 1.450651633757955,
+        "value": 32.0
+      },
+      {
+        "feature": "syn_ratio",
+        "contribution": 0.9247914677816775,
+        "value": 0.8571428571428571
+      },
+      {
+        "feature": "roll_dst_reach_1h",
+        "contribution": 0.8973293594727635,
+        "value": 92.0
       },
       {
         "feature": "z_distinct_dsts",
-        "contribution": 0.600744748736662,
-        "value": 37.0
+        "contribution": 0.4764760923954601,
+        "value": 30.0
       }
     ],
-    "base_value_logodds": -8.373205412701969,
+    "base_value_logodds": -8.159716193464284,
+    "attribution_residual": 0.0
+  },
+  {
+    "alert_id": "AL-1767497100-h010",
+    "entity": "h010",
+    "window": 1767497100,
+    "window_iso": "2026-01-04T03:25:00+00:00",
+    "probability": 0.7259344066057113,
+    "probability_at_deployment_prior": 0.0498157710584598,
+    "suspected_family": "dos",
+    "ground_truth": "benign",
+    "is_known_benign_anomaly": true,
+    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; high proportion of SYN-only flows",
+    "top": [
+      {
+        "feature": "mean_pkt_size",
+        "contribution": 2.7795838503627452,
+        "value": 119.1090281442001
+      },
+      {
+        "feature": "flow_count",
+        "contribution": 1.8228642027725466,
+        "value": 159.0
+      },
+      {
+        "feature": "syn_ratio",
+        "contribution": 1.4990669821838247,
+        "value": 0.9811320754716981
+      },
+      {
+        "feature": "distinct_dsts",
+        "contribution": 1.1117191361684378,
+        "value": 40.0
+      },
+      {
+        "feature": "bytes_out_p95",
+        "contribution": -0.673315594529952,
+        "value": 189.2624155891677
+      },
+      {
+        "feature": "z_distinct_dsts",
+        "contribution": 0.6541460532440978,
+        "value": 24.956158100634024
+      }
+    ],
+    "base_value_logodds": -8.383149396827442,
+    "attribution_residual": 0.0
+  },
+  {
+    "alert_id": "AL-1767525000-h037",
+    "entity": "h037",
+    "window": 1767525000,
+    "window_iso": "2026-01-04T11:10:00+00:00",
+    "probability": 0.7041595812346972,
+    "probability_at_deployment_prior": 0.04499214545564106,
+    "suspected_family": "dos",
+    "ground_truth": "portscan",
+    "is_known_benign_anomaly": false,
+    "narrative": "Likely dos: mean_pkt_size elevated; high proportion of SYN-only flows; flow count spike",
+    "top": [
+      {
+        "feature": "mean_pkt_size",
+        "contribution": 2.726455916015335,
+        "value": 183.1271180156599
+      },
+      {
+        "feature": "syn_ratio",
+        "contribution": 1.487402452591448,
+        "value": 0.967741935483871
+      },
+      {
+        "feature": "flow_count",
+        "contribution": 1.3041744429471944,
+        "value": 31.0
+      },
+      {
+        "feature": "distinct_dsts",
+        "contribution": 1.1829722220834076,
+        "value": 23.0
+      },
+      {
+        "feature": "roll_dst_reach_1h",
+        "contribution": 0.9893541357910505,
+        "value": 89.0
+      },
+      {
+        "feature": "bytes_out_p95",
+        "contribution": -0.6128027507594543,
+        "value": 154.91312028952524
+      }
+    ],
+    "base_value_logodds": -8.351125362787919,
+    "attribution_residual": -1.7763568394002505e-15
+  },
+  {
+    "alert_id": "AL-1767524400-h002",
+    "entity": "h002",
+    "window": 1767524400,
+    "window_iso": "2026-01-04T11:00:00+00:00",
+    "probability": 0.6973330895662764,
+    "probability_at_deployment_prior": 0.04361388437206347,
+    "suspected_family": "dos",
+    "ground_truth": "exfil",
+    "is_known_benign_anomaly": false,
+    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; distinct_dsts elevated",
+    "top": [
+      {
+        "feature": "mean_pkt_size",
+        "contribution": 2.909667981937778,
+        "value": 10.940630529556058
+      },
+      {
+        "feature": "flow_count",
+        "contribution": 1.4816116846322696,
+        "value": 20.0
+      },
+      {
+        "feature": "distinct_dsts",
+        "contribution": 1.3931899919756452,
+        "value": 11.0
+      },
+      {
+        "feature": "z_distinct_dsts",
+        "contribution": 1.3273757244086588,
+        "value": 7.0
+      },
+      {
+        "feature": "pkts_sum",
+        "contribution": 0.6248287826127463,
+        "value": 19113.0
+      },
+      {
+        "feature": "roll_dst_reach_1h",
+        "contribution": 0.5863436559869589,
+        "value": 99.0
+      }
+    ],
+    "base_value_logodds": -8.377573897322304,
+    "attribution_residual": 0.0
+  },
+  {
+    "alert_id": "AL-1767490200-h008",
+    "entity": "h008",
+    "window": 1767490200,
+    "window_iso": "2026-01-04T01:30:00+00:00",
+    "probability": 0.6922914368834387,
+    "probability_at_deployment_prior": 0.0426328225626013,
+    "suspected_family": "dos",
+    "ground_truth": "benign",
+    "is_known_benign_anomaly": true,
+    "narrative": "Likely dos: mean_pkt_size elevated; roll_admin_flows_1h elevated; distinct_dsts elevated",
+    "top": [
+      {
+        "feature": "mean_pkt_size",
+        "contribution": 3.452451231053604,
+        "value": 107.62772145939002
+      },
+      {
+        "feature": "roll_admin_flows_1h",
+        "contribution": 1.1282168474458545,
+        "value": 22.0
+      },
+      {
+        "feature": "distinct_dsts",
+        "contribution": 1.0362147065297067,
+        "value": 9.0
+      },
+      {
+        "feature": "flow_count",
+        "contribution": 0.9135093447066449,
+        "value": 21.0
+      },
+      {
+        "feature": "z_distinct_dsts",
+        "contribution": 0.5920770048846429,
+        "value": 3.3724537973829762
+      },
+      {
+        "feature": "admin_port_ratio",
+        "contribution": 0.5406862210580538,
+        "value": 0.7142857142857143
+      }
+    ],
+    "base_value_logodds": -8.382415884196405,
+    "attribution_residual": -1.7763568394002505e-15
+  },
+  {
+    "alert_id": "AL-1767563100-h039",
+    "entity": "h039",
+    "window": 1767563100,
+    "window_iso": "2026-01-04T21:45:00+00:00",
+    "probability": 0.6847414485306844,
+    "probability_at_deployment_prior": 0.041218807489111865,
+    "suspected_family": "dos",
+    "ground_truth": "benign",
+    "is_known_benign_anomaly": true,
+    "narrative": "Likely dos: mean_pkt_size elevated; roll_admin_flows_1h elevated; high proportion of SYN-only flows",
+    "top": [
+      {
+        "feature": "mean_pkt_size",
+        "contribution": 3.517936760421019,
+        "value": 53.377077523897036
+      },
+      {
+        "feature": "roll_admin_flows_1h",
+        "contribution": 1.3890546133502975,
+        "value": 15.0
+      },
+      {
+        "feature": "syn_ratio",
+        "contribution": 1.1468362764700015,
+        "value": 0.6
+      },
+      {
+        "feature": "admin_port_ratio",
+        "contribution": 0.9590230896756685,
+        "value": 0.9
+      },
+      {
+        "feature": "roll_dns_flows_1h",
+        "contribution": 0.6826112031500369,
+        "value": 11.0
+      },
+      {
+        "feature": "flow_count",
+        "contribution": 0.6073095178892944,
+        "value": 10.0
+      }
+    ],
+    "base_value_logodds": -8.261301848140661,
+    "attribution_residual": 0.0
+  },
+  {
+    "alert_id": "AL-1767552600-h014",
+    "entity": "h014",
+    "window": 1767552600,
+    "window_iso": "2026-01-04T18:50:00+00:00",
+    "probability": 0.6824460557655857,
+    "probability_at_deployment_prior": 0.0408014417264522,
+    "suspected_family": "dos",
+    "ground_truth": "exfil",
+    "is_known_benign_anomaly": false,
+    "narrative": "Likely dos: mean_pkt_size elevated; distinct_dsts elevated; flow count spike",
+    "top": [
+      {
+        "feature": "mean_pkt_size",
+        "contribution": 3.2007937683019407,
+        "value": 10.791371469473091
+      },
+      {
+        "feature": "distinct_dsts",
+        "contribution": 1.523540563700782,
+        "value": 10.0
+      },
+      {
+        "feature": "flow_count",
+        "contribution": 1.3735728212573233,
+        "value": 21.0
+      },
+      {
+        "feature": "roll_admin_flows_1h",
+        "contribution": 1.0188933467830323,
+        "value": 11.0
+      },
+      {
+        "feature": "z_distinct_dsts",
+        "contribution": 0.7617734563502272,
+        "value": 8.0
+      },
+      {
+        "feature": "pkts_sum",
+        "contribution": 0.48837282238755886,
+        "value": 13330.0
+      }
+    ],
+    "base_value_logodds": -8.280486543201926,
+    "attribution_residual": 0.0
+  },
+  {
+    "alert_id": "AL-1767490800-h026",
+    "entity": "h026",
+    "window": 1767490800,
+    "window_iso": "2026-01-04T01:40:00+00:00",
+    "probability": 0.6587157676397116,
+    "probability_at_deployment_prior": 0.036797279456362755,
+    "suspected_family": "dos",
+    "ground_truth": "exfil",
+    "is_known_benign_anomaly": false,
+    "narrative": "Likely dos: mean_pkt_size elevated; distinct_dsts elevated; z_distinct_dsts elevated",
+    "top": [
+      {
+        "feature": "mean_pkt_size",
+        "contribution": 3.2379292502698793,
+        "value": 4.911252598142181
+      },
+      {
+        "feature": "distinct_dsts",
+        "contribution": 1.6150249598074102,
+        "value": 12.0
+      },
+      {
+        "feature": "z_distinct_dsts",
+        "contribution": 1.1267130855795529,
+        "value": 6.070416835289357
+      },
+      {
+        "feature": "bytes_in_sum",
+        "contribution": -0.8080845780287185,
+        "value": 48591.40839122244
+      },
+      {
+        "feature": "roll_admin_flows_1h",
+        "contribution": 0.6721746186176566,
+        "value": 15.0
+      },
+      {
+        "feature": "pkts_sum",
+        "contribution": 0.6251028511775787,
+        "value": 24116.0
+      }
+    ],
+    "base_value_logodds": -8.16572403193861,
+    "attribution_residual": 1.7763568394002505e-15
+  },
+  {
+    "alert_id": "AL-1767530400-h015",
+    "entity": "h015",
+    "window": 1767530400,
+    "window_iso": "2026-01-04T12:40:00+00:00",
+    "probability": 0.6424227183390856,
+    "probability_at_deployment_prior": 0.03433932035184873,
+    "suspected_family": "dos",
+    "ground_truth": "benign",
+    "is_known_benign_anomaly": true,
+    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; distinct_dsts elevated",
+    "top": [
+      {
+        "feature": "mean_pkt_size",
+        "contribution": 2.4712501277893026,
+        "value": 71.84745133300046
+      },
+      {
+        "feature": "flow_count",
+        "contribution": 1.4653341361418706,
+        "value": 27.0
+      },
+      {
+        "feature": "distinct_dsts",
+        "contribution": 1.2479229793251907,
+        "value": 9.0
+      },
+      {
+        "feature": "roll_admin_flows_1h",
+        "contribution": 1.1648848267893546,
+        "value": 18.0
+      },
+      {
+        "feature": "z_distinct_dsts",
+        "contribution": 0.7969393018628075,
+        "value": 4.046944556859572
+      },
+      {
+        "feature": "admin_port_ratio",
+        "contribution": 0.457408631451512,
+        "value": 0.5555555555555556
+      }
+    ],
+    "base_value_logodds": -8.41897941049444,
+    "attribution_residual": 0.0
+  },
+  {
+    "alert_id": "AL-1767551400-h003",
+    "entity": "h003",
+    "window": 1767551400,
+    "window_iso": "2026-01-04T18:30:00+00:00",
+    "probability": 0.629393896805402,
+    "probability_at_deployment_prior": 0.03252127464907207,
+    "suspected_family": "dos",
+    "ground_truth": "portscan",
+    "is_known_benign_anomaly": false,
+    "narrative": "Likely dos: mean_pkt_size elevated; high proportion of SYN-only flows; distinct_dsts elevated",
+    "top": [
+      {
+        "feature": "mean_pkt_size",
+        "contribution": 3.5164477298482684,
+        "value": 164.33760169578665
+      },
+      {
+        "feature": "syn_ratio",
+        "contribution": 1.068730485222627,
+        "value": 0.9888392857142857
+      },
+      {
+        "feature": "distinct_dsts",
+        "contribution": 1.0565718452515573,
+        "value": 40.0
+      },
+      {
+        "feature": "flow_count",
+        "contribution": 1.0227522561670517,
+        "value": 448.0
+      },
+      {
+        "feature": "roll_dst_reach_1h",
+        "contribution": 0.8327832492157908,
+        "value": 182.0
+      },
+      {
+        "feature": "bytes_out_p95",
+        "contribution": -0.740608321211672,
+        "value": 154.15719027838372
+      }
+    ],
+    "base_value_logodds": -8.586274891785125,
+    "attribution_residual": -1.7763568394002505e-15
+  },
+  {
+    "alert_id": "AL-1767521700-h002",
+    "entity": "h002",
+    "window": 1767521700,
+    "window_iso": "2026-01-04T10:15:00+00:00",
+    "probability": 0.6251904732503484,
+    "probability_at_deployment_prior": 0.031960316158862634,
+    "suspected_family": "dos",
+    "ground_truth": "benign",
+    "is_known_benign_anomaly": true,
+    "narrative": "Likely dos: mean_pkt_size elevated; distinct_dsts elevated; flow count spike",
+    "top": [
+      {
+        "feature": "mean_pkt_size",
+        "contribution": 2.9691349857504026,
+        "value": 174.18094511444377
+      },
+      {
+        "feature": "distinct_dsts",
+        "contribution": 1.5280398575697562,
+        "value": 40.0
+      },
+      {
+        "feature": "flow_count",
+        "contribution": 1.4515739763948927,
+        "value": 508.0
+      },
+      {
+        "feature": "syn_ratio",
+        "contribution": 1.040550717711967,
+        "value": 0.9862204724409449
+      },
+      {
+        "feature": "z_distinct_dsts",
+        "contribution": 0.8425336234645684,
+        "value": 36.0
+      },
+      {
+        "feature": "roll_dst_reach_1h",
+        "contribution": 0.6191318599713185,
+        "value": 82.0
+      }
+    ],
+    "base_value_logodds": -8.57845361987063,
+    "attribution_residual": 0.0
+  },
+  {
+    "alert_id": "AL-1767567900-h000",
+    "entity": "h000",
+    "window": 1767567900,
+    "window_iso": "2026-01-04T23:05:00+00:00",
+    "probability": 0.5987781497271291,
+    "probability_at_deployment_prior": 0.028691594851261874,
+    "suspected_family": "dos",
+    "ground_truth": "benign",
+    "is_known_benign_anomaly": true,
+    "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; high proportion of SYN-only flows",
+    "top": [
+      {
+        "feature": "mean_pkt_size",
+        "contribution": 2.312369552092382,
+        "value": 136.4851390678617
+      },
+      {
+        "feature": "flow_count",
+        "contribution": 1.5993050512000189,
+        "value": 292.0
+      },
+      {
+        "feature": "syn_ratio",
+        "contribution": 1.432435635195845,
+        "value": 0.9794520547945206
+      },
+      {
+        "feature": "distinct_dsts",
+        "contribution": 1.4220501448797829,
+        "value": 40.0
+      },
+      {
+        "feature": "roll_dst_reach_1h",
+        "contribution": 0.9125834801922543,
+        "value": 76.0
+      },
+      {
+        "feature": "z_distinct_dsts",
+        "contribution": 0.769843064621433,
+        "value": 36.0
+      }
+    ],
+    "base_value_logodds": -8.243115857027815,
     "attribution_residual": 1.7763568394002505e-15
   }
 ]

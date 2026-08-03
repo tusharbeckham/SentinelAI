@@ -278,7 +278,7 @@ function AblationSection({ report }: { report: Bundle['report'] }) {
 				id="ablation"
 				kicker="02 / ablation"
 				title="What each leg actually contributes"
-				blurb="Average precision per detector on the held-out test split. The negative result is kept in view: the stacked hybrid does not beat the supervised booster on AP - it buys stability and unseen-family sensitivity instead, and the graph leg is close to useless on this synthetic corpus."
+				blurb="Average precision per detector on the held-out test split. For several releases the three-leg hybrid scored BELOW the supervised booster alone (0.811 vs 0.858) - a real failure, kept on this chart rather than hidden. The auth-graph leg was measured at 0.039 standalone and was removed from the fusion in v3.3.0; the two-leg hybrid now beats the booster on all four test corpora, by a small and honestly small margin."
 			/>
 			<div className="grid gap-4 lg:grid-cols-2">
 				<ScrollReveal>
