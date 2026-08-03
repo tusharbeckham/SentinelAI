@@ -1,0 +1,32 @@
+# Lint contract for SentinelAI.
+#
+# The rule set is selected explicitly, and that is the entire point of this
+# file. Before it existed, CI installed ruff unpinned and lint ran against
+# whatever the current default rule set happened to be. A ruff release then
+# widened that default and the build went red with 469 findings without a
+# single line of project code changing.
+#
+# That is the same failure class as the two gates fixed in v3.3.1: a check
+# that fires for reasons unrelated to the thing it protects gets muted, and
+# a muted check protects nothing. A linter must fail because the code got
+# worse, never because the linter got newer.
+#
+# Selected:
+#   E4  import placement errors
+#   E7  statement-level errors - comparisons to None/True, bare semicolons
+#   E9  syntax and IO errors
+#   F   pyflakes - undefined names, unused imports, shadowed builtins,
+#       f-strings with no placeholders. These are defects, not opinions.
+#
+# Not selected: the pyupgrade (UP) family and the stylistic pycodestyle
+# subsets. `'%s' % value` is a working format expression, not a bug, and 469
+# mechanical rewrites across a tested codebase carry more risk than the
+# inconsistency they remove. If this project later adopts UP, it should be a
+# deliberate commit with the tests re-run, not a silent consequence of a
+# dependency upgrade.
+
+target-version = "py311"
+line-length = 100
+
+[lint]
+select = ["E4", "E7", "E9", "F"]

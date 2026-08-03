@@ -116,6 +116,24 @@ config file. So deployment lives on a dedicated `space` branch, which is
 - `Dockerfile` <- a copy of `Dockerfile.space`
 - `README.md`  <- the Space card (`docs/space/README-space.md`)
 
+### The branch is generated, not published
+
+`space` is not kept on GitHub. It carries no unique work - it is `main` plus
+two file substitutions - and leaving it pushed makes GitHub offer a pull
+request that must never be merged, since merging it would overwrite the CI
+Dockerfile and the project README with the Space versions.
+
+Regenerate it from the current `main` whenever a Space deploy is needed:
+
+```bash
+git checkout -b space main
+git show main:Dockerfile.space > Dockerfile
+git show main:docs/space/README-space.md > README.md
+git commit -am 'deploy(space): root Dockerfile and Space card'
+git push hf space:main
+git checkout main && git branch -D space
+```
+
 ### First deploy
 
 ```bash
