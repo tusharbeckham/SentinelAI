@@ -39,10 +39,9 @@ import type { Bundle, LiveStatus } from "@/lib/data"
 const CANVAS = 0x0a0b0d
 const WATCH = 0xde9255
 const ALARM = 0xe97366
-/* Haze tints. Same two hues the palette uses for signal and graph, kept as
-   named constants so the scene never drifts away from the design tokens. */
+/* Haze tint. The same hue the palette uses for signal, kept as a named
+   constant so the scene never drifts away from the design tokens. */
 const SIGNAL = 0x5e9fe8
-const GRAPH = 0xbf8eda
 
 /*
  * Ground-truth palette, ordered to match families[] in embedding.json.
@@ -199,14 +198,19 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 		 * falloff and noise. This pass also owns both transitions, so the fade to
 		 * and from black happens after everything else is composited.
 		 */
+		/* Final grade pass uniforms.
+		   Bound to a const so the render loop reads a precisely typed object.
+		   three.js types .uniforms as an index signature, which makes every
+		   lookup possibly-undefined under noUncheckedIndexedAccess. */
+		const gradeUniforms = {
+			tDiffuse: { value: null },
+			uTime: { value: 0 },
+			uFade: { value: 0 },
+			uOutro: { value: 0 },
+			uRes: { value: new THREE.Vector2(1, 1) },
+		}
 		const grade = new ShaderPass({
-			uniforms: {
-				tDiffuse: { value: null },
-				uTime: { value: 0 },
-				uFade: { value: 0 },
-				uOutro: { value: 0 },
-				uRes: { value: new THREE.Vector2(1, 1) },
-			},
+			uniforms: gradeUniforms,
 			vertexShader: [
 				"varying vec2 vUv;",
 				"void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
@@ -251,22 +255,27 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 		let thresholdY = 0.224
 		let disposed = false
 
+		/* Corpus point-cloud uniforms.
+		   Bound to a const so the render loop reads a precisely typed object.
+		   three.js types .uniforms as an index signature, which makes every
+		   lookup possibly-undefined under noUncheckedIndexedAccess. */
+		const pointUniforms = {
+			uSettle: { value: 0 },
+			uLift: { value: 0 },
+			uIgnite: { value: 0 },
+			uFocus: { value: 0 },
+			uThresh: { value: thresholdY },
+			uSize: { value: 2.05 },
+			uTime: { value: 0 },
+			uDpr: { value: renderer.getPixelRatio() },
+			uIntro: { value: 0 },
+			uOutro: { value: 0 },
+		}
 		const pointMat = new THREE.ShaderMaterial({
 			transparent: true,
 			depthWrite: false,
 			blending: THREE.AdditiveBlending,
-			uniforms: {
-				uSettle: { value: 0 },
-				uLift: { value: 0 },
-				uIgnite: { value: 0 },
-				uFocus: { value: 0 },
-				uThresh: { value: thresholdY },
-				uSize: { value: 2.05 },
-				uTime: { value: 0 },
-				uDpr: { value: renderer.getPixelRatio() },
-				uIntro: { value: 0 },
-				uOutro: { value: 0 },
-			},
+			uniforms: pointUniforms,
 			vertexShader: [
 				"uniform float uSettle; uniform float uLift; uniform float uIgnite;",
 				"uniform float uThresh; uniform float uSize; uniform float uTime;",
@@ -366,26 +375,31 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 		 * normals from screen-space derivatives so every triangle is shaded
 		 * flat. Facets, a lit side and a dark side, a readable silhouette.
 		 */
+		/* Boundary hull uniforms.
+		   Bound to a const so the render loop reads a precisely typed object.
+		   three.js types .uniforms as an index signature, which makes every
+		   lookup possibly-undefined under noUncheckedIndexedAccess. */
+		const hullUniforms = {
+			uTime: { value: 0 },
+			uOpen: { value: 0 },
+			uOpacity: { value: 0 },
+			uFold: { value: 0 },
+			uAxis: { value: 0 },
+			uTwist: { value: 0 },
+			uSplit: { value: 0 },
+			uCut: { value: 0 },
+			uCutY: { value: 0 },
+			uRespond: { value: 0 },
+			uRim: { value: hdr(SIGNAL, 1.40) },
+			uWarn: { value: new THREE.Color(WATCH) },
+			uAlarm: { value: new THREE.Color(ALARM) },
+		}
 		const hullMat = new THREE.ShaderMaterial({
 			transparent: true,
 			depthWrite: true,
 			side: THREE.FrontSide,
 			blending: THREE.NormalBlending,
-			uniforms: {
-				uTime: { value: 0 },
-				uOpen: { value: 0 },
-				uOpacity: { value: 0 },
-				uFold: { value: 0 },
-				uAxis: { value: 0 },
-				uTwist: { value: 0 },
-				uSplit: { value: 0 },
-				uCut: { value: 0 },
-				uCutY: { value: 0 },
-				uRespond: { value: 0 },
-				uRim: { value: hdr(SIGNAL, 1.40) },
-				uWarn: { value: new THREE.Color(WATCH) },
-				uAlarm: { value: new THREE.Color(ALARM) },
-			},
+			uniforms: hullUniforms,
 			vertexShader: [
 				"uniform float uTime; uniform float uOpen; uniform float uFold;",
 				"uniform float uAxis; uniform float uTwist; uniform float uSplit;",
@@ -471,7 +485,7 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				if (disposed) return
 				const n = emb.n
 				thresholdY = emb.thresholdY
-				pointMat.uniforms.uThresh.value = thresholdY
+				pointUniforms.uThresh.value = thresholdY
 
 				const pos = new Float32Array(emb.pos)
 				const scatter = new Float32Array(n * 3)
@@ -521,11 +535,11 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 					gcol[i * 3 + 1] = gTmp.g
 					gcol[i * 3 + 2] = gTmp.b
 
-					tmp.setHex(FAMILY_COLOR[emb.fam[i]] ?? FAMILY_COLOR[0])
+					tmp.setHex(FAMILY_COLOR[emb.fam[i] ?? 0] ?? 0x39414f)
 					color[i * 3] = tmp.r
 					color[i * 3 + 1] = tmp.g
 					color[i * 3 + 2] = tmp.b
-					pArr[i] = emb.p[i]
+					pArr[i] = emb.p[i] ?? 0
 					rank[i] = i === emb.rank1 ? 1 : 0
 					/* Apparent magnitude follows a power law in any real star field: a
 					   handful of bright anchors and a long tail of faint ones. Uniform
@@ -579,9 +593,13 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 
 		function sampleCam(p: number) {
 			let i = 0
-			while (i < CAM.length - 2 && p > CAM[i + 1].p) i++
+			while (i < CAM.length - 2 && p > (CAM[i + 1]?.p ?? Infinity)) i++
 			const a = CAM[i]
 			const b = CAM[i + 1]
+			/* Unreachable: i is clamped to CAM.length - 2 above. Checked rather
+			   than asserted, because a non-null assertion is a promise the
+			   compiler cannot keep if the keyframe table is ever shortened. */
+			if (!a || !b) return
 			const t = smooth(clamp01((p - a.p) / Math.max(b.p - a.p, 1e-6)))
 			camPos.set(
 				a.pos[0] + (b.pos[0] - a.pos[0]) * t,
@@ -599,6 +617,7 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 		let currentAct = -1
 
 		function readScroll() {
+			if (!section) return
 			const rect = section.getBoundingClientRect()
 			const span = Math.max(rect.height - window.innerHeight, 1)
 			progress = clamp01(-rect.top / span)
@@ -665,15 +684,13 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				chrome < 0.02 ? "none" : "auto",
 			)
 
-			const fade = smooth(seg(progress, 0.05, 0.13))
-
 			if (probRef.current) {
 				const k = smooth(seg(progress, 0.5, 0.64))
 				probRef.current.textContent = (0.9858061 * k).toFixed(4)
 			}
 
 			let a = 0
-			for (let i = 0; i < ACT_BOUNDARIES.length; i++) if (progress >= ACT_BOUNDARIES[i]) a = i + 1
+			for (const [i, boundary] of ACT_BOUNDARIES.entries()) if (progress >= boundary) a = i + 1
 			if (a !== currentAct) {
 				currentAct = a
 				setAct(a)
@@ -686,23 +703,23 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 		const clock = new THREE.Clock()
 		renderer.setAnimationLoop(() => {
 			const t = clock.getElapsedTime()
-			pointMat.uniforms.uTime.value = t
-			pointMat.uniforms.uSettle.value = fx.settle
-			pointMat.uniforms.uLift.value = fx.lift
-			pointMat.uniforms.uIgnite.value = fx.ignite
-			pointMat.uniforms.uFocus.value = fx.focus
+			pointUniforms.uTime.value = t
+			pointUniforms.uSettle.value = fx.settle
+			pointUniforms.uLift.value = fx.lift
+			pointUniforms.uIgnite.value = fx.ignite
+			pointUniforms.uFocus.value = fx.focus
 			/* The entrance is a real move, not just a brightness ramp. Points grow
 			   from a third of their size and the whole lattice scales up into the
 			   frame across the same 0.10-0.17 window that uFade uses, so the model
 			   arrives rather than simply becoming less dark. */
-			pointMat.uniforms.uSize.value = fx.size * (0.34 + 0.66 * fx.enter)
+			pointUniforms.uSize.value = fx.size * (0.34 + 0.66 * fx.enter)
 			world.scale.setScalar((0.82 + 0.18 * fx.enter) * (1 + fx.outro * 0.10))
 			/* Entry: a 1.9s condense from the shell, independent of scroll. */
 			fx.intro = outCubic(clamp01((t - 0.12) / 1.9))
-			pointMat.uniforms.uIntro.value = fx.intro
-			pointMat.uniforms.uOutro.value = fx.outro
-			grade.uniforms.uTime.value = t
-			grade.uniforms.uFade.value = fx.intro * fx.enter
+			pointUniforms.uIntro.value = fx.intro
+			pointUniforms.uOutro.value = fx.outro
+			gradeUniforms.uTime.value = t
+			gradeUniforms.uFade.value = fx.intro * fx.enter
 			/* The model is revealed by fading the whole canvas against the page.
 			   Both are the CANVAS token, so no value of this opacity can produce a
 			   visible edge. Nothing about the seam depends on shader arithmetic. */
@@ -710,7 +727,7 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			   lit through the pause after act 06 and then the canvas leaves in one
 			   move. The console is never underneath a half-transparent scene. */
 			mount.style.opacity = loaded ? String(fx.intro * fx.enter * (1 - fx.outro)) : "0"
-			grade.uniforms.uOutro.value = fx.outro
+			gradeUniforms.uOutro.value = fx.outro
 
 			/* The idle yaw is gated on uSettle. At rest the lattice must face the
 			   camera dead-on -- a drifting yaw would turn a flat wall edge-on within
@@ -722,25 +739,25 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			   of the stage, opens as the corpus settles so the interior shows through
 			   the facets, and collapses again on the outro. Its own slow tumble runs
 			   independently of the world yaw so the silhouette never sits still. */
-			hullMat.uniforms.uTime.value = t
-			hullMat.uniforms.uOpacity.value = fx.enter * (1 - fx.outro)
-			hullMat.uniforms.uOpen.value = fx.settle * 0.35
-			hullMat.uniforms.uFold.value = fx.fold
-			hullMat.uniforms.uAxis.value = fx.axis
-			hullMat.uniforms.uRespond.value = fx.respond
+			hullUniforms.uTime.value = t
+			hullUniforms.uOpacity.value = fx.enter * (1 - fx.outro)
+			hullUniforms.uOpen.value = fx.settle * 0.35
+			hullUniforms.uFold.value = fx.fold
+			hullUniforms.uAxis.value = fx.axis
+			hullUniforms.uRespond.value = fx.respond
 
 			/* ACT 04. Torsion, not a stretch. It peaks mid-act and unwinds to
 			   nothing, so the twisted lobes resolve back into one locked form --
 			   the merge is the point, so the end state equals the start state. */
-			hullMat.uniforms.uTwist.value = fx.fuse * (1 - fx.fuse) * 4
+			hullUniforms.uTwist.value = fx.fuse * (1 - fx.fuse) * 4
 
 			/* ACT 05. The body separates along the decision height rather than a
 			   ring being laid near it. Everything above the cut lifts away from
 			   everything below it, which is what the threshold does to the corpus. */
 			const cutY = (1.4 + thresholdY * 2.6) * (1 + fx.axis * 0.35)
-			hullMat.uniforms.uCut.value = fx.cut
-			hullMat.uniforms.uCutY.value = cutY
-			hullMat.uniforms.uSplit.value = fx.cut * (1 - fx.respond)
+			hullUniforms.uCut.value = fx.cut
+			hullUniforms.uCutY.value = cutY
+			hullUniforms.uSplit.value = fx.cut * (1 - fx.respond)
 
 			/* Swipe. Yaw is driven by scroll position, not by the clock, so the
 			   object turns because you are turning it. A slow clock term keeps it
@@ -769,8 +786,8 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 			renderer.setSize(w, h)
 			composer.setSize(w, h)
 			bloom.setSize(w, h)
-			pointMat.uniforms.uDpr.value = renderer.getPixelRatio()
-			grade.uniforms.uRes.value.set(w * renderer.getPixelRatio(), h * renderer.getPixelRatio())
+			pointUniforms.uDpr.value = renderer.getPixelRatio()
+			gradeUniforms.uRes.value.set(w * renderer.getPixelRatio(), h * renderer.getPixelRatio())
 			readScroll()
 		}
 		window.addEventListener("resize", onResize)

@@ -6,7 +6,7 @@
  * demo needs no backend and cannot desync from the tool.
  */
 
-import { animate, stagger, utils } from 'animejs'
+import { animate, stagger } from 'animejs'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
@@ -410,7 +410,7 @@ export function CommandPalette({ items }: { items: PaletteItem[] }) {
 	useEffect(() => {
 		const host = panelRef.current
 		if (!open || !host || reduced) return
-		const rows = utils.$('[data-palette-row]', host)
+		const rows = Array.from(host.querySelectorAll<HTMLElement>('[data-palette-row]'))
 		if (rows.length === 0) return
 		animate(rows, {
 			opacity: [0, 1],

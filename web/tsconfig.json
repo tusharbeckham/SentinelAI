@@ -19,7 +19,7 @@
     "allowImportingTsExtensions": false,
     "baseUrl": ".",
     "paths": { "@/*": ["src/*"] },
-    "types": ["vite/client"]
+    "types": ["vite/client", "node"]
   },
   "include": ["src", "vite.config.ts", "types"]
 }

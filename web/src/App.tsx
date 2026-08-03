@@ -95,7 +95,7 @@ export default function App() {
 		const read = () => {
 			const line = 132
 			const seen: string[] = []
-			let current = SECTIONS[0].id
+			let current = SECTIONS[0]?.id ?? ""
 			for (const s of SECTIONS) {
 				const el = document.getElementById(s.id)
 				if (!el) continue
@@ -105,7 +105,7 @@ export default function App() {
 			// The final section is often too short to ever reach the line.
 			const atEnd =
 				window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4
-			if (atEnd && seen.length) current = seen[seen.length - 1]
+			if (atEnd && seen.length) current = seen[seen.length - 1] ?? current
 			setActive(current)
 			setPresent((prev) =>
 				prev.length === seen.length && prev.every((v, i) => v === seen[i]) ? prev : seen,
