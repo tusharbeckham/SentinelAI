@@ -3,6 +3,68 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v3.4.0 - the Space build, fixed before its first run
+
+Deployment. The Hugging Face Docker Space could not have built before this
+release, for three separate reasons, none of which any test covered.
+
+### Fixed
+
+- `.dockerignore` excluded `artifacts`, so `COPY artifacts ./artifacts` in
+  `Dockerfile.space` had no source files and the build failed before the
+  console could be assembled. Only `artifacts/scored_test_windows.csv` (4.5
+  MB) is excluded now; the measured JSON the console renders is a build
+  input, not local state.
+- The web stage ran `corepack enable && pnpm install --no-frozen-lockfile`
+  with no `packageManager` field and no pnpm lockfile in the repository.
+  That downloads a package manager and re-resolves every dependency range
+  at build time. Replaced with `npm ci` against a committed
+  `web/package-lock.json`, which fails loudly on drift instead of quietly
+  shipping different code than the last build.
+- The runtime stage was `python:3.13-slim` while the root `Dockerfile` and
+  the CI matrix ceiling were not aligned with it. One Python per project.
+
+### Added
+
+- `docs/DEPLOYMENT.md`: the Space architecture, the lockfile rationale, the
+  `space` branch workflow, free-tier limits, and local verification.
+- `docs/space/README-space.md`: the Hugging Face Space card, including the
+  YAML frontmatter HF requires at the repository root.
+- A `space` branch: `main` plus exactly two overrides, `Dockerfile` and
+  `README.md`, because HF requires both at the root under those exact names
+  and neither can take that shape on `main` without damaging it.
+
+### Known
+
+- The image has never been built. There is no Docker daemon and no network
+  in the environment these changes were authored in, so `docker build -f
+  Dockerfile.space .` is unverified and the first real build may still fail.
+- `web/package-lock.json` must be generated with `npm install` and committed
+  before the Space can build at all. `npm ci` has nothing to install from
+  until it exists.
+
+
+## v3.3.1 - CI gates verify invariants, not architectures
+
+Shipped without a changelog entry. Recorded here.
+
+### Fixed
+
+- `explainer-integrity` went red on v3.3.0. `scripts/verify_trace.py`
+  asserted `len(terms) == 3`, which is the number of legs the ensemble
+  happened to have, not a property the explanation must satisfy. A gate
+  that encodes the model shape has to be edited every time the architecture
+  legitimately changes, which trains people to edit the gate instead of
+  reading it. Now `len(terms) >= 2` plus a check that every leg is fully
+  specified: label, coefficient, value, mean, scale, term.
+- `secret-hygiene` had been failing on its own documentation. The tree-wide
+  grep for a hardcoded JWT secret matched the `export SENTINELAI_JWT_SECRET`
+  shell examples inside the docstrings of `serve.py` and `space_server.py`.
+  A security gate that cries wolf is worse than no gate, because it gets
+  muted. Replaced with two Python-syntax-anchored greps scoped to
+  `sentinelai/`, verified against a planted secret to confirm they still
+  catch a real one.
+
 ## v3.3.0 - the ensemble stops losing to its own best member
 
 ### Fixed
