@@ -1,0 +1,995 @@
+{
+  "components": {
+    "schemas": {
+      "Error": {
+        "properties": {
+          "details": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "error": {
+            "description": "Stable machine-readable token.",
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "error",
+          "message",
+          "request_id"
+        ],
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "bearerFormat": "JWT",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "description": "Hybrid intrusion detection. /v1 is frozen; /v2 is persistent, paginated and idempotent.",
+    "title": "SentinelAI",
+    "version": "2"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/metrics": {
+      "get": {
+        "operationId": "get_metrics",
+        "responses": {
+          "200": {
+            "description": "Success."
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "details": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "error": {
+                      "description": "Stable machine-readable token.",
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "message",
+                    "request_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Client error, in the common error shape."
+          }
+        },
+        "summary": "Prometheus text exposition."
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "operationId": "get_openapi.json",
+        "responses": {
+          "200": {
+            "description": "Success."
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "details": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "error": {
+                      "description": "Stable machine-readable token.",
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "message",
+                    "request_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Client error, in the common error shape."
+          }
+        },
+        "summary": "This document."
+      }
+    },
+    "/readyz": {
+      "get": {
+        "operationId": "get_readyz",
+        "responses": {
+          "200": {
+            "description": "Success."
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "details": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "error": {
+                      "description": "Stable machine-readable token.",
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "message",
+                    "request_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Client error, in the common error shape."
+          }
+        },
+        "summary": "Readiness: schema migrated and model loaded."
+      }
+    },
+    "/v2/alerts": {
+      "get": {
+        "operationId": "get_v2_alerts",
+        "responses": {
+          "200": {
+            "description": "Success."
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "details": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "error": {
+                      "description": "Stable machine-readable token.",
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "message",
+                    "request_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Client error, in the common error shape."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "List alerts, cursor paginated.",
+        "x-minimum-role": "viewer"
+      }
+    },
+    "/v2/alerts/{alert_id}": {
+      "get": {
+        "operationId": "get_v2_alerts_alert_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "alert_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success."
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "details": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "error": {
+                      "description": "Stable machine-readable token.",
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "message",
+                    "request_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Client error, in the common error shape."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Fetch a single alert.",
+        "x-minimum-role": "viewer"
+      }
+    },
+    "/v2/audit": {
+      "get": {
+        "operationId": "get_v2_audit",
+        "responses": {
+          "200": {
+            "description": "Success."
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "details": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "error": {
+                      "description": "Stable machine-readable token.",
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "message",
+                    "request_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Client error, in the common error shape."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Paginated audit log.",
+        "x-minimum-role": "admin"
+      }
+    },
+    "/v2/audit/verify": {
+      "get": {
+        "operationId": "get_v2_audit_verify",
+        "responses": {
+          "200": {
+            "description": "Success."
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "details": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "error": {
+                      "description": "Stable machine-readable token.",
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "message",
+                    "request_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Client error, in the common error shape."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Recompute the whole hash chain.",
+        "x-minimum-role": "admin"
+      }
+    },
+    "/v2/cases": {
+      "get": {
+        "operationId": "get_v2_cases",
+        "responses": {
+          "200": {
+            "description": "Success."
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "details": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "error": {
+                      "description": "Stable machine-readable token.",
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "message",
+                    "request_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Client error, in the common error shape."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "List cases, cursor paginated.",
+        "x-minimum-role": "viewer"
+      },
+      "post": {
+        "operationId": "post_v2_cases",
+        "responses": {
+          "200": {
+            "description": "Success."
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "details": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "error": {
+                      "description": "Stable machine-readable token.",
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "message",
+                    "request_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Client error, in the common error shape."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Open a case from an alert. Idempotent.",
+        "x-minimum-role": "analyst"
+      }
+    },
+    "/v2/cases/{case_id}": {
+      "get": {
+        "operationId": "get_v2_cases_case_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success."
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "details": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "error": {
+                      "description": "Stable machine-readable token.",
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "message",
+                    "request_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Client error, in the common error shape."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Fetch a case. ETag carries the version.",
+        "x-minimum-role": "viewer"
+      },
+      "patch": {
+        "operationId": "patch_v2_cases_case_id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success."
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "details": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "error": {
+                      "description": "Stable machine-readable token.",
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "message",
+                    "request_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Client error, in the common error shape."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Transition a case. Requires If-Match.",
+        "x-minimum-role": "analyst"
+      }
+    },
+    "/v2/cases/{case_id}/notes": {
+      "post": {
+        "operationId": "post_v2_cases_case_id_notes",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success."
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "details": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "error": {
+                      "description": "Stable machine-readable token.",
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "message",
+                    "request_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Client error, in the common error shape."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Append a note to a case.",
+        "x-minimum-role": "analyst"
+      }
+    },
+    "/v2/drift": {
+      "get": {
+        "operationId": "get_v2_drift",
+        "responses": {
+          "200": {
+            "description": "Success."
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "details": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "error": {
+                      "description": "Stable machine-readable token.",
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "message",
+                    "request_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Client error, in the common error shape."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Latest drift sweep and retrain recommendation.",
+        "x-minimum-role": "viewer"
+      }
+    },
+    "/v2/feedback": {
+      "post": {
+        "operationId": "post_v2_feedback",
+        "responses": {
+          "200": {
+            "description": "Success."
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "details": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "error": {
+                      "description": "Stable machine-readable token.",
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "message",
+                    "request_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Client error, in the common error shape."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Record an analyst verdict. Idempotent.",
+        "x-minimum-role": "analyst"
+      }
+    },
+    "/v2/models": {
+      "get": {
+        "operationId": "get_v2_models",
+        "responses": {
+          "200": {
+            "description": "Success."
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "details": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "error": {
+                      "description": "Stable machine-readable token.",
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "message",
+                    "request_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Client error, in the common error shape."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Registered model versions and stage pointers.",
+        "x-minimum-role": "viewer"
+      }
+    },
+    "/v2/models/{version}": {
+      "get": {
+        "operationId": "get_v2_models_version",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success."
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "details": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "error": {
+                      "description": "Stable machine-readable token.",
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "message",
+                    "request_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Client error, in the common error shape."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Manifest for one model version.",
+        "x-minimum-role": "viewer"
+      }
+    },
+    "/v2/models/{version}/promote": {
+      "post": {
+        "operationId": "post_v2_models_version_promote",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success."
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "details": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "error": {
+                      "description": "Stable machine-readable token.",
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "message",
+                    "request_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Client error, in the common error shape."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Run the promotion gate.",
+        "x-minimum-role": "admin"
+      }
+    },
+    "/v2/respond": {
+      "post": {
+        "operationId": "post_v2_respond",
+        "responses": {
+          "200": {
+            "description": "Success."
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "details": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "error": {
+                      "description": "Stable machine-readable token.",
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "message",
+                    "request_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Client error, in the common error shape."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "SOAR action. Idempotency-Key required.",
+        "x-minimum-role": "responder"
+      }
+    },
+    "/v2/score": {
+      "post": {
+        "operationId": "post_v2_score",
+        "responses": {
+          "200": {
+            "description": "Success."
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "details": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "error": {
+                      "description": "Stable machine-readable token.",
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "message",
+                    "request_id"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Client error, in the common error shape."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Score a feature vector. Idempotent.",
+        "x-minimum-role": "analyst"
+      }
+    }
+  }
+}
