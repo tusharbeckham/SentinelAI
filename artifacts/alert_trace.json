@@ -3,7 +3,7 @@
   "entity": "h002",
   "window": 1767491700,
   "window_iso": "2026-01-04T01:55:00+00:00",
-  "probability": 0.9866137013264895,
+  "probability": 0.9858061128165326,
   "narrative": "Likely dos: mean_pkt_size elevated; flow count spike; roll_admin_flows_1h elevated",
   "suspected_family": "dos",
   "ground_truth": "brute_force",
@@ -287,8 +287,8 @@
           "standardized": 4.890623264111436,
           "mean": -0.4199637370682053,
           "scale": 0.18527608029807857,
-          "coefficient": 0.34254645234181474,
-          "term": 1.6752656488617186,
+          "coefficient": 0.29640432878406237,
+          "term": 1.4496019059346705,
           "average_precision": 0.2984837011150931,
           "roc_auc": 0.9920361397391212,
           "recall_at_budget": 0.2033898305084746,
@@ -301,26 +301,12 @@
           "standardized": 9.646174882083566,
           "mean": -10.815766693034215,
           "scale": 2.2155102458439813,
-          "coefficient": 1.1008832230073278,
-          "term": 10.619312093880486,
+          "coefficient": 1.1462809539618983,
+          "term": 11.057226545918052,
           "average_precision": 0.858025896830434,
           "roc_auc": 0.9984054227660499,
           "recall_at_budget": 0.711864406779661,
           "precision_at_budget": 0.8571428571428571
-        },
-        {
-          "input": "graph_score",
-          "label": "graph leg",
-          "value": 0.31613859078764417,
-          "standardized": 3.8723857977925578,
-          "mean": 0.02835122304420554,
-          "scale": 0.0743178450627236,
-          "coefficient": 0.11347992873914635,
-          "term": 0.43943806438398186,
-          "average_precision": 0.038688622789486454,
-          "roc_auc": 0.6596104116867468,
-          "recall_at_budget": 0.01694915254237288,
-          "precision_at_budget": 0.0196078431372549
         }
       ]
     },
@@ -331,56 +317,47 @@
       "terms": [
         {
           "label": "isolation forest",
-          "coefficient": 0.34254645234181474,
+          "coefficient": 0.29640432878406237,
           "value": 0.48615177152095645,
           "standardized": 4.890623264111436,
           "mean": -0.4199637370682053,
           "scale": 0.18527608029807857,
-          "term": 1.6752656488617186
+          "term": 1.4496019059346705
         },
         {
           "label": "gradient boosting",
-          "coefficient": 1.1008832230073278,
+          "coefficient": 1.1462809539618983,
           "value": 10.555432591424783,
           "standardized": 9.646174882083566,
           "mean": -10.815766693034215,
           "scale": 2.2155102458439813,
-          "term": 10.619312093880486
-        },
-        {
-          "label": "graph leg",
-          "coefficient": 0.11347992873914635,
-          "value": 0.31613859078764417,
-          "standardized": 3.8723857977925578,
-          "mean": 0.02835122304420554,
-          "scale": 0.0743178450627236,
-          "term": 0.43943806438398186
+          "term": 11.057226545918052
         }
       ],
       "caption_standardisation": "Each term is the coefficient times the *standardised* input: the stacker centres and scales its three inputs against the fusion-training distribution before weighting them. Reading the weights against raw scores is the usual way to misread a logistic model.",
-      "intercept": -8.433968927814007,
-      "log_odds": 4.30004687931218,
-      "probability": 0.9866137013264895,
-      "published_probability": 0.9866137013264895,
+      "intercept": -8.26618014861838,
+      "log_odds": 4.240648303234343,
+      "probability": 0.9858061128165326,
+      "published_probability": 0.9858061128165326,
       "reconstruction_error": 0.0,
       "prior_shift_logodds": -3.9224164612054793,
-      "probability_at_deployment_prior": 0.5933014617059006,
+      "probability_at_deployment_prior": 0.5788932781665679,
       "caption_prior": "The evaluation set is enriched to a 0.5% base rate; production runs nearer 0.01%. Shifting the intercept by the log-odds difference is what keeps this number honest off the bench."
     },
     {
       "id": "threshold",
       "title": "The budget gate",
       "caption": "The threshold is not tuned for F1. It is whatever value spends exactly the analyst's daily alert budget, because a detector nobody has time to read has a recall of zero.",
-      "threshold": 0.6303419959358633,
-      "probability": 0.9866137013264895,
-      "margin": 0.35627170539062625,
+      "threshold": 0.6251904732503484,
+      "probability": 0.9858061128165326,
+      "margin": 0.36061563956618425,
       "fired": true,
       "alerts_per_day": 49.83930778739184,
       "budget_per_day": 50.0,
-      "recall": 0.6610169491525424,
-      "precision_eval": 0.7959183673469388,
-      "fpr": 0.0008875477056891808,
-      "ppv_at_deployment_prior": 0.06932091336199164,
+      "recall": 0.711864406779661,
+      "precision_eval": 0.8571428571428571,
+      "fpr": 0.0006212833939824266,
+      "ppv_at_deployment_prior": 0.10281000634179056,
       "rank": 1,
       "total_windows": 11326
     },
@@ -394,7 +371,7 @@
         "rate_limit_src_at_edge"
       ],
       "rationale": [
-        "probability 0.987 >= auto threshold, explanation consistent"
+        "probability 0.986 >= auto threshold, explanation consistent"
       ],
       "audit_chain_valid": true
     }
@@ -402,41 +379,41 @@
   "attributions": [
     {
       "feature": "mean_pkt_size",
-      "contribution": 3.3269938144079663,
+      "contribution": 3.451057486400051,
       "value": 201.9778367194372
     },
     {
       "feature": "flow_count",
-      "contribution": 1.6205228315750537,
+      "contribution": 1.6696022862383202,
       "value": 89.0
     },
     {
       "feature": "roll_admin_flows_1h",
-      "contribution": 1.4078080057946611,
+      "contribution": 1.4280680936511392,
       "value": 119.0
     },
     {
       "feature": "syn_ratio",
-      "contribution": 1.3859831986983355,
+      "contribution": 1.4178364107455577,
       "value": 0.48314606741573035
     },
     {
-      "feature": "admin_port_ratio",
-      "contribution": 0.5879794615715714,
-      "value": 0.9213483146067416
+      "feature": "roll_bytes_out_1h",
+      "contribution": 0.5931227445854923,
+      "value": 275966.8630628837
     },
     {
-      "feature": "roll_bytes_out_1h",
-      "contribution": 0.5660483358867465,
-      "value": 275966.8630628837
+      "feature": "admin_port_ratio",
+      "contribution": 0.5757312793404286,
+      "value": 0.9213483146067416
     }
   ],
-  "base_value_logodds": -8.362396334841463,
-  "attribution_residual": -1.7763568394002505e-15,
+  "base_value_logodds": -8.272108197375303,
+  "attribution_residual": 0.0,
   "family_evidence": [
     {
       "family": "dos",
-      "attributed": 3.006506030273389,
+      "attributed": 3.087438696983878,
       "corroboration": 0.982584319265407,
       "features": [
         {
@@ -450,7 +427,7 @@
           "feature": "flow_count",
           "value": 89.0,
           "percentile": 0.9870210135970334,
-          "attributed": 1.6205228315750537,
+          "attributed": 1.6696022862383202,
           "attributed_credit": true
         },
         {
@@ -464,7 +441,7 @@
           "feature": "syn_ratio",
           "value": 0.48314606741573035,
           "percentile": 0.9759844605332862,
-          "attributed": 1.3859831986983355,
+          "attributed": 1.4178364107455577,
           "attributed_credit": true
         }
       ]
