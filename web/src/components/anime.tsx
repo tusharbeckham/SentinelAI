@@ -121,7 +121,7 @@ export function SplitText({
 	useEffect(() => {
 		const host = ref.current
 		if (!host || !seen || reduced) return
-		const targets = utils.$('[data-char]', host)
+		const targets = Array.from(host.querySelectorAll<HTMLElement>('[data-char]'))
 		if (targets.length === 0) return
 		animate(targets, {
 			opacity: [0, 1],
@@ -360,7 +360,9 @@ export function PulseRing({ color = 'var(--color-safe)', size = 8 }: { color?: s
 			ease: 'out(2)',
 			loop: true,
 		})
-		return () => instance.pause()
+		return () => {
+			instance.pause()
+		}
 	}, [reduced])
 
 	return (
@@ -396,7 +398,7 @@ export function StaggerList({
 	useEffect(() => {
 		const host = ref.current
 		if (!host) return
-		const rows = utils.$('[data-stagger-row]', host)
+		const rows = Array.from(host.querySelectorAll<HTMLElement>('[data-stagger-row]'))
 		if (rows.length === 0) return
 		if (reduced) {
 			utils.set(rows, { opacity: 1, translateY: 0 })
@@ -408,7 +410,9 @@ export function StaggerList({
 			translateY: [10, 0],
 			delay: stagger(step),
 		})
-		return () => timeline.pause()
+		return () => {
+			timeline.pause()
+		}
 	}, [signature, reduced, step])
 
 	return (
