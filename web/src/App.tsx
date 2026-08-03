@@ -177,6 +177,12 @@ export default function App() {
 
 	return (
 		<div className="min-h-screen">
+			{/* The hero is a six-act scroll model. A keyboard user should not have to
+			    traverse it to reach the console, and #sweep is the first section that
+			    always renders regardless of which artifacts loaded. */}
+			<a className="skip-link" href="#sweep">
+				Skip the hero animation
+			</a>
 			<Dock
 				items={present.length ? SECTIONS.filter((s) => present.includes(s.id)) : SECTIONS}
 				active={active}

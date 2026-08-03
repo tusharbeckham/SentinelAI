@@ -25,3 +25,10 @@ web/public/data/
 .DS_Store
 .idea/
 .vscode/
+
+# Scratch planning notes. Several rounds of hero design plans were written to
+# think the problem through, then superseded by web/HERO.md once the design
+# settled. They are kept out of the tree because seven near-identical drafts of
+# one document guarantee that somebody eventually reads the wrong one.
+web/HERO-*-PLAN*.md
+web/HERO-3D-PLAN*.md
