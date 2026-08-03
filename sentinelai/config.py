@@ -178,7 +178,7 @@ class Settings:
 
         # Binding a security service to every interface is a deliberate act, so
         # it must be a deliberate act in production rather than a leftover.
-        if app_env == "prod" and host == "0.0.0.0" and env.get("SENTINELAI_ALLOW_PUBLIC_BIND") != "1":
+        if app_env == "prod" and host == "0.0.0.0" and env.get("SENTINELAI_ALLOW_PUBLIC_BIND") != "1":  # nosec B104 - this IS the guard that refuses the public bind
             problems.append(
                 "refusing to bind 0.0.0.0 in prod without SENTINELAI_ALLOW_PUBLIC_BIND=1"
             )

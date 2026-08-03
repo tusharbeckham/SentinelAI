@@ -6,7 +6,6 @@ was silently wrong.
 """
 
 import json
-import os
 import sqlite3
 import tempfile
 import threading

@@ -21,8 +21,8 @@ the safer failure, and the lag gauge makes a stuck consumer visible.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
+from dataclasses import dataclass
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from . import obs
 

@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import threading
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from . import obs
 from .bus import Bus
@@ -187,12 +187,12 @@ class Worker:
         if names:
             placeholders = ",".join("?" for _ in names)
             row = conn.execute(
-                "SELECT MIN(last_id) FROM consumer_offsets WHERE consumer IN ("
+                "SELECT MIN(last_id) FROM consumer_offsets WHERE consumer IN ("  # nosec B608 - placeholders is a join of '?'; names bound as params
                 + placeholders + ")", names).fetchone()
             committed = row[0] if row is not None else None
             # A registered consumer with no offset row has committed nothing.
             if committed is not None and len(names) == int(conn.execute(
-                    "SELECT COUNT(*) FROM consumer_offsets WHERE consumer IN ("
+                    "SELECT COUNT(*) FROM consumer_offsets WHERE consumer IN ("  # nosec B608 - placeholders is a join of '?'; names bound as params
                     + placeholders + ")", names).fetchone()[0]):
                 safe_below = int(committed)
                 cutoff = time.strftime(

@@ -19,6 +19,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY sentinelai/ ./sentinelai/
 COPY tests/ ./tests/
 COPY README.md ./
+# tests/test_openapi_parity.py asserts the committed spec equals the generated
+# one, so the in-image suite needs it. Without this the build fails with
+# FileNotFoundError on /app/docs/openapi.json - a test that passes on the runner
+# and only fails inside the image.
+COPY docs/openapi.json ./docs/openapi.json
 
 # The image is only published if its own test suite passes inside the image.
 # A container that cannot prove its model code works is not a release artifact.

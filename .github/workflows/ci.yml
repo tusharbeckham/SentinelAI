@@ -120,12 +120,13 @@ jobs:
         with:
           python-version: "3.13"
           cache: pip
-      - run: pip install -r requirements.txt ruff bandit[toml]
+      # PINNED DELIBERATELY. Unpinned linters made this job fail with no code
+      # change: a newer ruff widened F401 and flagged 7 pre-existing unused
+      # imports. Selecting rules in ruff.toml is not enough - a new release can
+      # still change what an existing rule detects. Bump these on purpose.
+      - run: pip install -r requirements.txt ruff==0.16.1 "bandit[toml]==1.9.4"
       - name: Lint
-        # ruff.toml selects the rule set explicitly so a new ruff release
-        # cannot redefine what 'passing' means. The version is printed so the
-        # exact linter is recoverable from the log and can be pinned the day
-        # this project needs bit-reproducible CI.
+        # The version is printed so the exact linter is recoverable from the log.
         run: |
           ruff --version
           ruff check --config ruff.toml sentinelai tests
@@ -203,11 +204,13 @@ jobs:
           fi
           echo "fails closed without a signing secret, as designed"
       - name: Trivy filesystem scan
-        # Pinned to a tag Dependabot has confirmed exists. 0.24.0 stopped
-        # resolving, which fails the job in 'Set up job' before any step
-        # runs - a two-second red cross that looks like a build failure
-        # and is really a missing action reference.
-        uses: aquasecurity/trivy-action@0.36.0
+        # NOTE THE 'v'. aquasecurity/trivy-action publishes v-prefixed tags
+        # (v0.36.0); the bare form (0.36.0, 0.24.0) does not resolve. An
+        # unresolvable action fails in 'Set up job' before any step runs - a
+        # two-second red cross that looks like a build failure and is really a
+        # missing action reference. Verify with:
+        #   gh api repos/aquasecurity/trivy-action/tags --jq '.[0:5][].name'
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .
