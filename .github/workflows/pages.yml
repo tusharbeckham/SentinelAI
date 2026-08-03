@@ -35,14 +35,36 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: npm
-          cache-dependency-path: web/package-lock.json
+          # No cache: key. setup-node fails the whole job when
+          # cache-dependency-path resolves to no file, which turns a
+          # caching optimisation into a deploy outage. This install is
+          # ~15s cold; that is not worth a failure mode.
 
-      # npm ci, not npm install: it installs the exact locked tree and fails
-      # if package.json and the lockfile have drifted apart.
+      # Printed before the install so a failure here is diagnosable from the
+      # log alone. The first version of this job failed in 19 seconds and
+      # said nothing about which of these was wrong.
+      - name: environment
+        run: |
+          node --version
+          npm --version
+          ls -l web/package.json web/package-lock.json
+
+      # npm ci is the default: it installs the exact locked tree. If the
+      # lockfile has drifted from package.json it refuses, and for a demo
+      # deploy a resolvable install beats a red cross - so it falls back,
+      # loudly. The warning is deliberate: a drifted lockfile is a real
+      # problem, it is just not a reason to take the site down.
       - name: install
         working-directory: web
-        run: npm ci --no-audit --fund=false
+        run: |
+          if npm ci --no-audit --fund=false; then
+            echo "locked tree installed"
+          else
+            echo "::warning::npm ci failed; the lockfile and package.json"\
+                 " have drifted. Falling back to npm install. Commit the"\
+                 " regenerated web/package-lock.json to restore reproducibility."
+            npm install --no-audit --fund=false
+          fi
 
       # Exits 1 if any required artifact is missing. There is no mock data
       # anywhere in this app, so a missing artifact must fail the deploy
