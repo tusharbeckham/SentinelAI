@@ -3,6 +3,36 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v3.5.2 - two red crosses that were never about this code
+
+`image build + filesystem scan` failed in **two seconds**. That is faster
+than a runner can pull a base image, so nothing in the Dockerfile could have
+caused it - every COPY target was verified present. Two seconds is the
+'Set up job' phase, where GitHub resolves every `uses:` reference before a
+single step runs. The job's only third-party pin was
+`aquasecurity/trivy-action@0.24.0`, and Dependabot had already opened a
+branch bumping it to 0.36.0 - which is how that tag is known to exist rather
+than guessed at. An unresolvable action fails a job before it starts, and
+the failure looks identical to a broken build.
+
+`build console` failed in 19 seconds with nothing recoverable from the log.
+Two changes, both about diagnosability rather than a specific bug:
+
+- `cache: npm` is removed. `setup-node` fails the entire job when
+  `cache-dependency-path` resolves to no file, so a caching optimisation was
+  able to take the deploy down. The cold install costs ~15 seconds; that is
+  not worth a failure mode.
+- An `environment` step prints node, npm and the size of both manifest files
+  before installing, and `npm ci` now falls back to `npm install` behind a
+  `::warning::` if the lockfile has drifted from package.json. A drifted
+  lockfile is a real problem worth a warning, but it is not a reason to take
+  a public demo offline - and the typecheck still gates the deploy either
+  way, so nothing broken can reach the site.
+
+Being honest about confidence: the trivy diagnosis explains its symptom
+exactly. The Pages change makes the next failure legible rather than
+claiming to have found the cause.
+
 ## v3.5.1 - a linter that got newer, not a codebase that got worse
 
 `SAST + lint` failed with **469 errors** across `sentinelai/` and `tests/`,
