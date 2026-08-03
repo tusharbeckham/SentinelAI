@@ -5,5 +5,5 @@
 # authenticated HTTP API are all implemented directly against NumPy/pandas and
 # the standard library. Fewer dependencies means a smaller CVE surface and no
 # hidden version-coupled behaviour in the results.
-numpy>=2.0,<3.0
+numpy>=2.5.1,<3.0
 pandas>=2.2,<4.0
