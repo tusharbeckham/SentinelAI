@@ -121,3 +121,49 @@ The existing token bucket, keyed by JWT `sub` rather than IP, since every
 mutating route is authenticated and IP is meaningless behind the Space proxy.
 `/metrics` and `/healthz` are exempt. `429` carries `Retry-After` in whole
 seconds, rounded up.
+
+
+## Model and drift routes
+
+| Method | Path | Role | Notes |
+| --- | --- | --- | --- |
+| GET | `/v2/models` | viewer | versions, stage pointers, current production |
+| GET | `/v2/models/{version}` | viewer | the full manifest; `404` if unknown |
+| POST | `/v2/models/{version}/promote` | admin | body `{"to": "production", "force": false}` |
+| GET | `/v2/drift` | viewer | latest sweep and retrain recommendation |
+
+A refused promotion is `422 promotion_refused` and carries every failed check:
+
+```json
+{"error": "promotion_refused",
+ "message": "the promotion gate refused this version",
+ "details": {"problems": ["ece 0.5 exceeds 0.05"], "overridable": true}}
+```
+
+Returning only the first failure would send an operator round the loop once per
+problem. Returning all of them, plus `overridable`, is what makes `force=true`
+an informed decision rather than a guess.
+
+When the process was started without a registry these routes answer `503
+registry_unavailable` rather than `404`. The distinction matters: `404` says the
+feature does not exist, `503` says it is not configured here.
+
+### `/v2/drift` and retention, stated plainly
+
+The route reads the most recent `retrain_recommended` event from the outbox, and
+the worker's retention job purges consumed outbox rows after 30 days. So this is
+a recent-history view, **not** an archive. Before the first sweep it returns
+`200` with `status: "no_recommendation"`, because "no evidence of drift" and "no
+drift" are different claims and only the first one is true. A dedicated drift
+table is the right fix if anyone needs the long series; it is not built.
+
+## Deviation: `/openapi.json` is generated, not hand-written
+
+The backend plan called for a hand-maintained `docs/openapi.json` plus a test
+asserting the implementation matches it. That detects drift. Generating the
+document from a single `ROUTE_SPECS` table in `apiv2.py` makes drift impossible
+instead, which is strictly better, so the committed `docs/openapi.json` is a
+build artefact and `tests/test_openapi_parity.py` asserts the committed copy
+equals the generated one. A second test walks `ROUTE_SPECS` through the real
+dispatcher, so a route can be neither documented-but-unreachable nor
+reachable-but-undocumented.
