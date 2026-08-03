@@ -13,7 +13,7 @@
  *   y     the model log-odds for that window
  *
  * Because the vertical axis IS the score, the operating threshold is not a
- * metaphor -- it is an exact horizontal plane at logit(0.6303). Everything
+ * metaphor -- it is an exact horizontal plane at logit(0.6252). Everything
  * above it fires, everything below waits. Colour is ground truth. So the
  * central problem of the whole project becomes visible as geometry: the ten
  * benign points above the plane are the false positives an analyst pays for,
@@ -21,7 +21,7 @@
  *
  * The projection is recomputed from artifacts/scored_test_windows.csv into
  * public/data/embedding.json, and it reconciles with the reported operating
- * point exactly: 49 alerts, precision 0.7959, recall 0.6610.
+ * point exactly: 49 alerts, precision 0.8571, recall 0.7119.
  */
 import { useEffect, useRef, useState, type RefObject } from "react"
 import * as THREE from "three"
@@ -112,7 +112,7 @@ const ACTS: Act[] = [
 		name: "Fusion",
 		color: "var(--color-safe)",
 		body: "A calibrated logistic stacker sets that height -- the exact arithmetic the Explain section reproduces line by line.",
-		chips: ["0.3425\u00B7z_if + 1.1009\u00B7z_gb + 0.1135\u00B7z_g \u2212 8.434"],
+		chips: ["0.2964\u00B7z_if + 1.1463\u00B7z_gb \u2212 8.266"],
 	},
 	{
 		n: "05",
@@ -120,7 +120,7 @@ const ACTS: Act[] = [
 		name: "The plane",
 		color: "var(--color-watch)",
 		body: "The gate is set by the analyst budget, not by a flattering AUC. Look at what it costs: ten benign points sit above the plane, and twenty real attacks are stranded below it. That is the honest picture.",
-		chips: ["threshold 0.6303", "49 fire", "39 true / 10 false", "20 missed"],
+		chips: ["threshold 0.6252", "49 fire", "42 true / 7 false", "17 missed"],
 	},
 	{
 		n: "06",
@@ -128,7 +128,7 @@ const ACTS: Act[] = [
 		name: "Response",
 		color: "var(--color-alarm)",
 		body: "One point stands highest: h002, rank 1 of 11,326. Policy-driven playbooks act on what crossed the gate, every decision hash-chained into the audit log.",
-		chips: ["h002 \u00B7 p = 0.9866", "auto_contain", "chain valid"],
+		chips: ["h002 \u00B7 p = 0.9858", "auto_contain", "chain valid"],
 	},
 ]
 
@@ -669,7 +669,7 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 
 			if (probRef.current) {
 				const k = smooth(seg(progress, 0.5, 0.64))
-				probRef.current.textContent = (0.9866137 * k).toFixed(4)
+				probRef.current.textContent = (0.9858061 * k).toFixed(4)
 			}
 
 			let a = 0
@@ -808,7 +808,7 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 				<TitleBlock report={report} live={live} />
 				<div className="mx-auto mt-12 grid max-w-3xl gap-4">
 					{ACTS.map((a) => (
-						<ActCard key={a.id} act={a} live probRef={probRef} prob="0.9866" />
+						<ActCard key={a.id} act={a} live probRef={probRef} prob="0.9858" />
 					))}
 				</div>
 			</section>
@@ -840,7 +840,7 @@ export function NetworkHero({ report, live }: { report: Bundle["report"]; live: 
 						className="absolute inset-0"
 						style={{ opacity: 0 }}
 						role="img"
-						aria-label="Animated 3D scatter plot of the 11,326 held-out test windows. Horizontal axes are the first two principal components of the 40 features; height is the model log-odds. Colour is the ground-truth attack family. As you scroll, the points settle from a raw stream into the feature manifold, rise into score space, and a horizontal threshold plane sweeps to 0.6303, leaving 49 points above it: 39 true detections and 10 false positives, with 20 attacks left below."
+						aria-label="Animated 3D scatter plot of the 11,326 held-out test windows. Horizontal axes are the first two principal components of the 40 features; height is the model log-odds. Colour is the ground-truth attack family. As you scroll, the points settle from a raw stream into the feature manifold, rise into score space, and a horizontal threshold plane sweeps to 0.6252, leaving 49 points above it: 42 true detections and 7 false positives, with 17 attacks left below."
 					/>
 
 
