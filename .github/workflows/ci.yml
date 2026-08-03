@@ -122,7 +122,13 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt ruff bandit[toml]
       - name: Lint
-        run: ruff check sentinelai tests
+        # ruff.toml selects the rule set explicitly so a new ruff release
+        # cannot redefine what 'passing' means. The version is printed so the
+        # exact linter is recoverable from the log and can be pinned the day
+        # this project needs bit-reproducible CI.
+        run: |
+          ruff --version
+          ruff check --config ruff.toml sentinelai tests
       - name: Bandit (Python SAST)
         # The auth, redaction and audit-chain code is the highest-risk surface,
         # so findings fail the build rather than being reported as advisories.
