@@ -44,7 +44,7 @@ from .apiv2 import ApiError, V2Router
 ROLE_ORDER = {"viewer": 0, "analyst": 1, "responder": 2, "admin": 3}
 MAX_BODY = 64 * 1024
 # Paths served by the v2 router rather than the frozen v1 table.
-V2_PUBLIC = ("/readyz", "/metrics")
+V2_PUBLIC = ("/readyz", "/metrics", "/openapi.json")
 
 
 def _err(error: str, message: str, details: Dict[str, Any] | None = None) -> dict:
@@ -84,12 +84,21 @@ def verify_token(secret: str, token: str, aud: str = "sentinelai") -> dict:
         raise AuthError("malformed token")
     signing_input = f"{parts[0]}.{parts[1]}"
     expected = hmac.new(secret.encode(), signing_input.encode(), hashlib.sha256).digest()
-    if not hmac.compare_digest(expected, _b64d(parts[2])):
+    # Everything below decodes attacker-controlled bytes. binascii.Error and
+    # JSONDecodeError are both ValueError, and an unhandled one here escapes
+    # the handler's except AuthError and kills the thread: the client sees a
+    # dropped connection instead of a 401, which is both a worse error message
+    # and a free denial of service for anyone who can send a malformed header.
+    try:
+        signature = _b64d(parts[2])
+        header = json.loads(_b64d(parts[0]))
+        claims = json.loads(_b64d(parts[1]))
+    except (ValueError, UnicodeDecodeError) as exc:
+        raise AuthError("malformed token") from exc
+    if not hmac.compare_digest(expected, signature):
         raise AuthError("bad signature")
-    header = json.loads(_b64d(parts[0]))
     if header.get("alg") != "HS256":  # block alg confusion / 'none'
         raise AuthError("unsupported alg")
-    claims = json.loads(_b64d(parts[1]))
     now = int(time.time())
     if claims.get("aud") != aud:
         raise AuthError("bad audience")
@@ -394,7 +403,8 @@ def make_handler(service: ScoringService, secret: str, bucket: TokenBucket,
 
 
 def serve(service: ScoringService, host: str = "127.0.0.1", port: int = 8088,
-          store: Any = None, execute: bool = False) -> ThreadingHTTPServer:
+          store: Any = None, execute: bool = False,
+          registry: Any = None) -> ThreadingHTTPServer:
     """Build the server. Passing a Store mounts /v2; without one, /v2 answers 503.
 
     v1 behaves identically either way. That is the point of the version split:
@@ -408,6 +418,7 @@ def serve(service: ScoringService, host: str = "127.0.0.1", port: int = 8088,
     router = None
     if store is not None:
         store.migrate()
-        router = V2Router(store, scorer=service.score, execute=execute)
+        router = V2Router(store, scorer=service.score, execute=execute,
+                          registry=registry)
     handler = make_handler(service, secret, TokenBucket(), logger, router)
     return ThreadingHTTPServer((host, port), handler)
