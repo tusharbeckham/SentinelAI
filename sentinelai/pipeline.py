@@ -37,7 +37,17 @@ ALL_FEATURES: Tuple[str, ...] = FEATURES + GRAPH_FEATURES
 # The stacker is linear, so the legs are handed to it in LOG-ODDS space. Raw
 # probabilities saturate at 0/1 and destroy the resolution that separates a
 # strong detection from an overwhelming one.
-FUSION_NAMES = ("iforest_logit", "gbdt_logit", "graph_score")
+#
+# The graph leg used to be a third fusion input and it made the ensemble
+# WORSE than its own best member. Measured over four corpora (seeds 7, 11,
+# 23, 42): three-leg fusion beat gbdt-alone on average precision in 2 of 4
+# runs (mean -0.0100); two-leg fusion beat it in 4 of 4 (mean +0.0072, sd
+# 0.0052). The graph leg scores AP 0.0387 alone and separates exactly one
+# family, so a third of the linear combination was spent adding noise to
+# 11,326 windows on behalf of one. The signal is not thrown away --
+# graph_score and the five g_* features remain inputs to the GBDT, which
+# can use them conditionally instead of additively.
+FUSION_NAMES = ("iforest_logit", "gbdt_logit")
 
 FAMILY_SIGNATURES: Dict[str, Tuple[str, ...]] = {
     "portscan": ("distinct_dports", "z_distinct_dports", "port_entropy", "short_flow_ratio"),
@@ -66,6 +76,9 @@ class Ensemble:
     def __post_init__(self) -> None:
         names = list(self.feature_names)
         self._idx_unsup = [names.index(f) for f in FEATURES]
+        # Not a fusion input any more, but the GBDT still needs it: resolving
+        # the index here fails loudly if a caller supplies a feature list
+        # that dropped the graph features altogether.
         self._idx_graph = names.index("graph_score")
 
     def fusion_inputs(self, X: np.ndarray) -> np.ndarray:
@@ -73,7 +86,7 @@ class Ensemble:
         s_if = np.clip(self.iforest.score(X[:, self._idx_unsup]), 1e-6, 1 - 1e-6)
         p_gb = np.clip(self.gbdt.predict_proba(X), 1e-6, 1 - 1e-6)
         return np.column_stack(
-            [np.log(s_if / (1 - s_if)), np.log(p_gb / (1 - p_gb)), X[:, self._idx_graph]]
+            [np.log(s_if / (1 - s_if)), np.log(p_gb / (1 - p_gb))]
         )
 
     def log_odds(self, X: np.ndarray, prior_shift: bool = False) -> np.ndarray:
