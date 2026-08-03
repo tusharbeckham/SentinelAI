@@ -25,12 +25,18 @@ import pathlib
 import numpy as np
 import pandas as pd
 
+_REPORT = json.loads(
+    (pathlib.Path(__file__).resolve().parents[1] / "artifacts" / "report.json")
+    .read_text()
+)
+_OP = _REPORT["operating_point"]
+
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 CSV = ROOT / "artifacts" / "scored_test_windows.csv"
 OUT = ROOT / "artifacts" / "embedding.json"
 
 # Operating threshold chosen by the budget sweep (50 alerts/day).
-TH = 0.6303419959358633
+TH = _OP["threshold"]
 # World units per unit of log-odds. Tuned so the full -10.4..+4.3 range is a
 # readable column rather than a skyscraper.
 SCALE = 0.42
@@ -92,8 +98,8 @@ def main() -> None:
     # this drifts, the picture is lying and the build should be treated as bad.
     precision = tp / max(tp + fp, 1)
     recall = tp / max(tp + fn, 1)
-    assert abs(precision - 0.7959183673469388) < 1e-6, precision
-    assert abs(recall - 0.6610169491525424) < 1e-6, recall
+    assert abs(precision - _OP["precision_eval"]) < 1e-6, (precision, _OP)
+    assert abs(recall - _OP["recall"]) < 1e-6, (recall, _OP)
 
     rank1 = int(np.argmax(p))
     pos = np.empty(len(df) * 3, dtype="float64")
