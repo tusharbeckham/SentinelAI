@@ -5,6 +5,11 @@
 [![python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue.svg)](https://www.python.org/)
 [![dependencies](https://img.shields.io/badge/runtime%20deps-numpy%20%2B%20pandas-lightgrey.svg)](requirements.txt)
 
+**Live console:** <https://tusharbeckham.github.io/SentinelAI/> - the analyst
+dashboard built from the artifacts in this repo. Live scoring is disabled there
+(static hosting cannot run the Python service); run `docker build -f
+Dockerfile.space .` for the full platform including the authenticated API.
+
 A **working** hybrid intrusion-detection platform: entity-behaviour telemetry generation,
 windowed feature engineering, three complementary detectors fused by a calibrated stacker,
 Shapley explanations on every alert, a policy-driven SOAR response engine with a hash-chained
