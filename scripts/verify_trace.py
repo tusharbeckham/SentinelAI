@@ -27,9 +27,9 @@ from typing import Any, Dict, List, Tuple
 
 EXPECTED_STAGES = ("telemetry", "features", "legs", "fusion", "threshold", "response")
 
-# Tolerances. The fusion sum is pure float arithmetic over three terms, so it
-# should agree to near machine precision; anything looser would hide the class
-# of bug this script was written to catch.
+# Tolerances. The fusion sum is pure float arithmetic over a small number of
+# terms, so it should agree to near machine precision; anything looser would
+# hide the class of bug this script was written to catch.
 EXACT = 1e-9
 TIGHT = 1e-12
 
@@ -82,7 +82,20 @@ def check_structure(c: Checker, trace: Dict[str, Any]) -> None:
 def check_fusion(c: Checker, fusion: Dict[str, Any]) -> None:
     print("fusion arithmetic")
     terms: List[Dict[str, Any]] = fusion["terms"]
-    c.ok("three fused legs", len(terms) == 3, f"{len(terms)}")
+    # Deliberately not asserted against a literal. This line read
+    # `len(terms) == 3` until v3.3.0 removed the auth-graph leg, at which
+    # point the gate failed on a correct model. A verifier should encode
+    # the invariant (every declared term reconstructs the published
+    # probability, checked below) and not the architecture of the week.
+    c.ok("at least two fused legs", len(terms) >= 2, f"{len(terms)}")
+    required = ("label", "coefficient", "value", "mean", "scale", "term")
+    missing = [
+        (t.get("label", "?"), k)
+        for t in terms
+        for k in required
+        if k not in t
+    ]
+    c.ok("every leg is fully specified", not missing, f"{missing}")
 
     for t in terms:
         # The standardisation must be re-derivable from the raw value, the
