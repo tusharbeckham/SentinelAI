@@ -2,11 +2,17 @@
 
 This module is the scientific core of SentinelAI.
 
-1. FUSION. Three heterogeneous detectors (unsupervised isolation score,
-   supervised GBDT probability, auth-graph score) are combined by a small
-   logistic stacker fitted on a *held-out calibration window* that is strictly
-   later in time than the training window. Stacking on the training window would
-   fit the base models' in-sample optimism.
+1. FUSION. Two heterogeneous detectors (unsupervised isolation score,
+   supervised GBDT probability) are combined by a small logistic stacker fitted
+   on out-of-fold base scores from time-blocked folds. Stacking on the training
+   window would fit the base models' in-sample optimism.
+
+   There was a third leg -- the auth-graph score -- until v3.3.0. It was removed
+   because it was measured to make the ensemble WORSE than its own best member:
+   with it, average precision was 0.811 against 0.858 for the booster alone.
+   Adding models to an ensemble is not free, and a detector that is nearly
+   uninformative globally (AP 0.039) spends its weight on noise. The graph
+   features remain inputs to the booster.
 
 2. CALIBRATION. The stacker output is a calibrated probability; we report
    reliability (Brier score + expected calibration error) because an

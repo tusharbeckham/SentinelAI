@@ -142,20 +142,31 @@ def leg_breakdown(
     probability by ~0.02. `mean` and `scale` default to the identity transform
     so callers with an unstandardised stacker still get exact arithmetic.
     """
-    order = ("iforest_logit", "gbdt_logit", "graph_score")
+    # Mirrors pipeline.FUSION_NAMES. The graph leg was removed from the
+    # fusion after it was measured to cost average precision; it survives as
+    # an input feature to the GBDT, so it shows up in the feature
+    # attributions rather than as a leg of its own.
+    order = ("iforest_logit", "gbdt_logit")
     labels = {
         "iforest_logit": "isolation forest",
         "gbdt_logit": "gradient boosting",
-        "graph_score": "graph leg",
     }
     ablation_key = {
         "iforest_logit": "unsupervised_isolation_forest",
         "gbdt_logit": "supervised_gbdt",
-        "graph_score": "graph_lateral_movement",
     }
-    row = [float(v) for v in np.asarray(fusion_row, dtype=float).ravel()[:3]]
-    mu = np.zeros(3) if mean is None else np.asarray(mean, dtype=float).ravel()[:3]
-    sd = np.ones(3) if scale is None else np.asarray(scale, dtype=float).ravel()[:3]
+    n_legs = len(order)
+    row = [float(v) for v in np.asarray(fusion_row, dtype=float).ravel()[:n_legs]]
+    mu = (
+        np.zeros(n_legs)
+        if mean is None
+        else np.asarray(mean, dtype=float).ravel()[:n_legs]
+    )
+    sd = (
+        np.ones(n_legs)
+        if scale is None
+        else np.asarray(scale, dtype=float).ravel()[:n_legs]
+    )
     # A zero scale would divide by zero; the stacker itself clamps degenerate
     # columns to 1.0 during fit, so mirror that rather than emitting infinities.
     sd = np.where(np.abs(sd) < 1e-9, 1.0, sd)
@@ -405,12 +416,14 @@ def build_trace(
         },
         {
             "id": "legs",
-            "title": "Three detectors score it",
+            "title": "Two detectors score it",
             "caption": (
-                "An isolation forest that never saw a label, a gradient-boosted "
-                "tree that saw every label, and a graph leg scoring new "
-                "user-host edges. They fail differently, which is the only "
-                "reason ensembling them helps."
+                "An isolation forest that never saw a label and a "
+                "gradient-boosted tree that saw every label. They fail "
+                "differently, which is the only reason ensembling them "
+                "helps. A third auth-graph leg voted here until v3.3.0; it "
+                "was measured to lower average precision and now feeds the "
+                "booster as features instead of casting its own vote."
             ),
             "legs": fusion["legs"],
         },
