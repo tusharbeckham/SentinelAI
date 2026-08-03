@@ -3,6 +3,50 @@
 Notable changes to SentinelAI. Versions follow semver: the major bump here is
 honest, because the hero is replaced rather than iterated.
 
+## v3.3.0 - the ensemble stops losing to its own best member
+
+### Fixed
+
+- **The hybrid was worse than the gradient booster alone and had been for
+  several releases.** Average precision 0.811 against 0.858. The auth-graph leg
+  was removed from the fusion after measuring it at AP 0.0387 standalone,
+  separating essentially one window that it still fails to catch at budget.
+  Replicated across four corpora (seeds 7, 11, 23, 42): the two-leg fusion beats
+  the booster in 4 of 4 runs, the three-leg fusion managed 2 of 4.
+
+      hybrid AP        0.8109 -> 0.8664      recall @ 50/day  0.6610 -> 0.7119
+      precision        0.7959 -> 0.8571      false positives  10 -> 7
+      threshold      0.630342 -> 0.625190    PPV @ 1e-4       0.069 -> 0.1028
+
+  The graph features remain inputs to the booster; only the third vote is gone.
+- `AssertionError: 0.8723404255319149` -- the hero embedding generator asserted
+  precision against a hard-coded literal. It now reads the operating point from
+  `artifacts/report.json` and can no longer disagree with the model in silence.
+- Five tests that encoded the three-leg shape, including two reconstruction
+  tests whose fixtures cancelled a `graph_score` term that no longer exists. No
+  assertion was weakened; the graph-specific ones were re-pointed at the
+  isolation-forest leg.
+
+### Changed
+
+- README sections 3.1-3.4 are generated from the artifacts rather than retyped.
+- README section 3.4 retitled. It claimed the zero-day holdout was where the
+  unsupervised and graph legs pay off. Recall at budget there is 0.0 for every
+  held-out family, so the section now reports that as the finding rather than as
+  a footnote to a success.
+- The act chips, live probability counter and aria-label of the hero carry the
+  new operating point; the ablation chart blurb no longer advertises the old
+  negative result as current.
+
+### Still true, still disclosed
+
+- Zero-day recall at budget is 0.0 for every held-out family.
+- `mean_pkt_size` holds 0.8086 of the split importance of the booster -- the
+  shortcut documented in section 9.1 is unchanged.
+- portscan 3/13, dns_tunnel 1/5, lateral_movement 0/1 at the operating point.
+- The frontend was not built or rendered in the environment that made this
+  change: no npm install, no vite build, no GPU.
+
 ## v3.2.0 - the model gets a registry and the events get a reader
 
 ### Added
