@@ -104,15 +104,16 @@ The first honest version of this system fused raw probabilities on a 7-positive 
 slice, and the hybrid **lost to the supervised leg alone**. Two defects, both fixed:
 
 * **Log-odds inputs.** Probabilities saturate at 0/1, so a linear stacker can't separate
-  "0.999" from "0.99999". Fusion inputs are `logit(iforest)`, `logit(gbdt)`, `graph_score`.
+  "0.999" from "0.99999". Fusion inputs are `logit(iforest)` and `logit(gbdt)`.
 * **Out-of-fold stacking.** Legs are fit on 3 contiguous **time blocks** of train+calibration;
   each block's fusion inputs come from legs that never saw it; the stacker trains on the
   assembled OOF matrix (171 positives instead of 42), then legs are refit on everything.
   Contiguous blocks — not random KFold — because random folds leak attack episodes across
   the split boundary and inflate everything.
 
-Learned weights: `gbdt_logit 1.101`, `iforest_logit 0.343`, `graph_score 0.113`,
-intercept `-8.433969`. (Before the trailing-window features the unsupervised weight was `0.098`;
+Learned weights: `gbdt_logit 1.146`, `iforest_logit 0.296`, intercept `-8.266180`.
+(A third `graph_score` leg was removed in v3.3.0 after it was measured to cost average
+precision; see §3.2.) (Before the trailing-window features the unsupervised weight was `0.098`;
 giving Isolation Forest a memory more than tripled how much the stacker trusts it.) The stacker itself tells you the supervised leg carries the aggregate
 signal on this corpus — see §3.2 for where the other two legs actually earn their place.
 
@@ -164,15 +165,15 @@ Strictly chronological split — 22,673 train / 11,341 calibration / 11,326 test
 
 | Metric | Value |
 |---|---|
-| Threshold | 0.6303 |
+| Threshold | 0.6252 |
 | Alerts/day | 49.8 |
-| Recall | 66.1 % |
-| Precision (test prior 5.2e-3) | 79.6 % |
-| FPR | 8.9e-4 |
-| **Bayesian PPV @ prior 1e-4** | **6.9 %** |
-| Brier / ECE | 0.0024 / 0.0018 |
+| Recall | 71.2 % |
+| Precision (test prior 5.2e-03) | 85.7 % |
+| FPR | 6.2e-04 |
+| **Bayesian PPV @ prior 1e-4** | **10.3 %** |
+| Brier / ECE | 0.0019 / 0.0018 |
 
-That 6.9 % is the honest headline. A well-calibrated detector at a realistic prior still
+That 10.3 % is the honest headline. A well-calibrated detector at a realistic prior still
 means most alerts are false — which is *exactly why* the explanation layer, the tiered SOAR
 policy and the human-in-the-loop tiers exist rather than blind auto-blocking.
 
@@ -183,51 +184,62 @@ policy and the human-in-the-loop tiers exist rather than blind auto-blocking.
 | Isolation Forest (unsup.) | 0.298 | 0.992 | 20.3 % | 24.5 % | 37 | **100 %** |
 | GBDT (supervised) | 0.858 | 0.998 | 71.2 % | 85.7 % | 7 | **100 %** |
 | Auth-graph only | 0.039 | 0.660 | 1.7 % | 2.0 % | 50 | 92 % |
-| **Hybrid ensemble** | 0.811 | 0.998 | 66.1 % | 79.6 % | 10 | **100 %** |
+| **Hybrid ensemble** | **0.866** | 0.999 | 71.2 % | 85.7 % | 7 | **100 %** |
 
 **Two findings I am not going to hide:**
 
-1. **The hybrid does not beat the supervised leg on aggregate PR-AUC here** (0.811 vs 0.858).
-   The literature's "ensembling cuts false positives" result holds when the unsupervised leg
-   contributes independent signal; on this corpus the GBDT already dominates on the six
-   families it was *trained on*, and blending in two weaker legs costs a little aggregate
-   precision. The ensemble earns its cost on **unseen** families (§3.4), not on this table.
-   Reporting the reverse would be the easy lie.
+1. **The hybrid only beats the supervised leg because a leg was removed** (0.866 vs 0.858).
+   The first version fused three legs and scored 0.811 -- *below* its own best member. That
+   is a real failure and it stood in this README for several releases. Diagnosis: the
+   auth-graph leg scores PR-AUC 0.039 alone and separates exactly one family, so as a third
+   of a linear combination it spent its weight adding noise to 11,326 windows to help one.
+   Measured across four independent corpora (seeds 7, 11, 23, 42): the three-leg fusion beat
+   GBDT-alone in 2 of 4 runs (mean dAP -0.0100), the two-leg fusion in **4 of 4** (mean dAP
+   +0.0072, sd 0.0052). The graph signal is not discarded -- `graph_score` and the five `g_*`
+   features remain inputs to the booster, which can use them conditionally instead of
+   additively. The margin over the best single leg is small and honestly reported as small.
 2. **100 % of every leg's false positives land on the confusable-benign windows.** The
    corpus is doing its job — the models are not tripping on ordinary traffic, they are
    tripping on exactly the rare-but-legitimate activity that fools real SOC tooling.
 
 ### 3.3 Per-family recall at the operating point
 
-| Family | Test windows | Recall |
+| Family | Test windows | Recall at budget |
 |---|---|---|
-| dos | 8 | 100 % |
-| brute_force | 20 | 95 % |
-| exfil | 12 | 75 % |
-| dns_tunnel | 5 | 20 % |
-| portscan | 13 | 15.4 % |
-| lateral_movement | 1 | 0 % |
+| `dos` | 8 | 100.0 % |
+| `brute_force` | 20 | 95.0 % |
+| `exfil` | 12 | 91.7 % |
+| `portscan` | 13 | 23.1 % |
+| `dns_tunnel` | 5 | 20.0 % |
+| `lateral_movement` | 1 | 0.0 % |
+| benign false-positive rate | 11326 | 0.062 % |
 
 Portscan and DNS tunnelling are the stealth-variant-heavy families — attenuated, long-dwell
 variants are genuinely near the benign-anomaly manifold. §3.7 documents a direct attempt to
 fix them and how partially it worked.
 
-### 3.4 Zero-day holdout — where the unsupervised and graph legs pay off
+### 3.4 Zero-day holdout — the experiment the hybrid was built for, and it fails
 
 A family's labels are zeroed across the **entire** development period, legs and stacker are
 refit blind, and we ask how the blind system ranks that family's windows:
 
-| Held-out family | n | GBDT (blind) mean percentile | Isolation Forest | Graph only |
-|---|---|---|---|---|
-| exfil | 12 | 0.906 | **0.980** | 0.838 |
-| dns_tunnel | 5 | 0.980 | **0.989** | 0.813 |
-| lateral_movement | 1 | 0.985 | 0.986 | **1.000** (recall 1.0 @ budget) |
+| Held-out family | n | GBDT (blind) mean percentile | Isolation Forest | Graph only | Hybrid (blind) |
+|---|---|---|---|---|---|
+| exfil | 12 | 0.974 | 0.983 | 0.838 | 0.957 |
+| dns_tunnel | 5 | 0.983 | 0.990 | 0.813 | 0.981 |
+| lateral_movement | 1 | 0.984 | 0.985 | 1.000 | 0.980 |
 
-The unsupervised leg ranks never-labelled attacks *above* the supervised leg, and the graph
-leg is the only one that fires on held-out lateral movement at budget — the specific
-justification for keeping all three legs. **Caveat stated plainly:** recall at budget is 0.0
-for the larger held-out families and n is 1–12 windows, so this is directional evidence, not
-a significance claim. A longer corpus is required to make it one.
+The unsupervised leg ranks never-labelled attacks *above* the supervised leg. That ordering
+is the entire argument for carrying an unsupervised detector at all, and it is the one piece
+of the hybrid rationale that survives measurement.
+
+**What does not survive, stated plainly: recall at budget is 0.0 for every held-out family.**
+Ranking a never-seen attack in the 98th percentile is not the same as alerting on it. At 50
+alerts/day the bar sits near the 99.6th percentile, so "unusually high" still loses to the
+11,267 benign windows beneath it. A detector that ranks zero-days well and reports none of
+them has not solved the problem it was built for. With n of 1-12 windows this is directional
+evidence of a real limitation, not a significance claim -- but the limitation is the finding,
+not a footnote to it.
 
 ### 3.5 Drift and active learning
 
@@ -270,7 +282,7 @@ reported as measured rather than as hoped:
 
 | Metric | 33 features | 40 features |
 |---|---|---|
-| Hybrid PR-AUC | 0.804 | **0.811** |
+| Hybrid PR-AUC (three-leg fusion, as measured then) | 0.804 | **0.811** |
 | Isolation Forest PR-AUC | 0.246 | **0.298** |
 | `iforest_logit` stacker weight | 0.098 | **0.343** |
 | dns_tunnel recall | 0 % | **20 %** |
@@ -367,7 +379,9 @@ replacing a runtime never changes the science.
 5. `suspected_family` is a signature heuristic over attributions and can mislabel a family
    (the top alert in the dashboard is a brute-force window called `dos`); the ground-truth
    column is shown so the analyst is never misled.
-6. Graph leg alone is weak (PR-AUC 0.039) — it is a specialist, not a detector.
+6. The auth-graph detector is weak (PR-AUC 0.039) and was removed from the fusion in v3.3.0.
+   It survives as input features to the booster. On a real corpus with genuine lateral
+   movement it may deserve its vote back; on this one it did not.
 
 ## 8. References
 
@@ -428,13 +442,12 @@ have revealed.
 Stage 4 renders the stacker as visible arithmetic:
 
 ```
- isolation forest    0.342546 x  +4.8906  =  +1.6753
- gradient boosting   1.100883 x  +9.6462  = +10.6193
- graph leg           0.113480 x  +3.8724  =  +0.4394
- intercept                                 -8.433969
-                                          ----------
- log-odds                                  +4.300047
- sigmoid(log-odds)                          0.9866137
+ isolation forest    0.296404 x   +4.8906 =    +1.4496
+ gradient boosting   1.146281 x   +9.6462 =   +11.0572
+ intercept                                -8.266180
+                                         ----------
+ log-odds                                 +4.240648
+ sigmoid(log-odds)                        0.9858061
 ```
 
 The trace then compares that reconstruction to the probability the pipeline
