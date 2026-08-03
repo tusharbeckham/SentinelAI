@@ -203,7 +203,11 @@ jobs:
           fi
           echo "fails closed without a signing secret, as designed"
       - name: Trivy filesystem scan
-        uses: aquasecurity/trivy-action@0.24.0
+        # Pinned to a tag Dependabot has confirmed exists. 0.24.0 stopped
+        # resolving, which fails the job in 'Set up job' before any step
+        # runs - a two-second red cross that looks like a build failure
+        # and is really a missing action reference.
+        uses: aquasecurity/trivy-action@0.36.0
         with:
           scan-type: fs
           scan-ref: .
